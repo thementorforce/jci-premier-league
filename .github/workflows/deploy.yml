@@ -6,7 +6,7 @@ on:
       - main
 
 env:
-  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }} # Add GCP Project ID to GitHub Secrets
+  PROJECT_ID: jci-premier-league # Hardcoded GCP Project ID
   SERVICE_NAME: franchise-cricket-league
   REGION: us-central1
 
