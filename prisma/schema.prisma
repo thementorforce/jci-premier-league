@@ -1,0 +1,72 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  username  String   @unique
+  password  String
+  role      String   // "ADMIN" or "OWNER"
+  teamId    String?  @unique
+  team      Team?    @relation("TeamOwner", fields: [teamId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+model Team {
+  id          String          @id @default(uuid())
+  name        String          @unique
+  ownerName   String
+  ownerUser   User?           @relation("TeamOwner")
+  pointsPurse Int             @default(100000) // Default 100,000 points purse
+  pointsSpent Int             @default(0)
+  players     PlayerProfile[]
+  bids        BidHistory[]
+  createdAt   DateTime        @default(now())
+}
+
+model PlayerProfile {
+  id              String       @id @default(uuid())
+  fullName        String
+  mobileNumber    String
+  organization    String       // JCI Tumkur Metro / JCOM / JAC / Rotary Tumkur Prerana / Other
+  gender          String       // Male / Female
+  ageGroup        String       // Below 25 Years / 25–40 Years / Above 40 Years
+  jerseySize      String       // S / M / L / XL / XXL / XXXL
+  preferredRole   String       // Batsman / Bowler / All-Rounder / Wicketkeeper / Any Role
+  experience      String       // Beginner / Intermediate / Experienced
+  photoUrl        String?      // Optional photo url
+  status          String       @default("Registered") // Registered / Bidding / Sold / Unsold
+  soldPrice       Int?
+  teamId          String?
+  team            Team?        @relation(fields: [teamId], references: [id])
+  bids            BidHistory[]
+  createdAt       DateTime     @default(now())
+}
+
+model BidHistory {
+  id              String        @id @default(uuid())
+  playerId        String
+  player          PlayerProfile @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  teamId          String
+  team            Team          @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  amount          Int
+  createdAt       DateTime      @default(now())
+}
+
+model AdPlacement {
+  id        String   @id @default(uuid())
+  title     String
+  imageUrl  String
+  targetUrl String
+  position  String   // "TOP_BANNER", "SIDEBAR", "FOOTER"
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
