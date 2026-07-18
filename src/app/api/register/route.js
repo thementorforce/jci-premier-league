@@ -13,12 +13,14 @@ export async function POST(request) {
       jerseySize,
       preferredRole,
       experience,
-      photoBase64
+      photoBase64,
+      transactionId,
+      paymentScreenshot
     } = body;
 
     // Basic Validation
-    if (!fullName || !mobileNumber || !organization || !gender || !ageGroup || !jerseySize || !preferredRole || !experience) {
-      return NextResponse.json({ error: 'All mandatory fields must be filled' }, { status: 400 });
+    if (!fullName || !mobileNumber || !organization || !gender || !ageGroup || !jerseySize || !preferredRole || !experience || !transactionId) {
+      return NextResponse.json({ error: 'All mandatory fields and UPI transaction ID must be filled' }, { status: 400 });
     }
 
     // Save player profile to DB
@@ -32,7 +34,11 @@ export async function POST(request) {
         jerseySize,
         preferredRole,
         experience,
-        photoUrl: photoBase64 || null, // Storing base64 string directly for simplicity (in a production setup this can be a GCS URL)
+        photoUrl: photoBase64 || null,
+        transactionId,
+        paymentScreenshot: paymentScreenshot || null,
+        paymentStatus: 'Pending',
+        status: 'Pending' // Pending admin approval to draft
       }
     });
 

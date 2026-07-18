@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Play, Check, X, Shield, Plus, Trash2, RotateCcw, AlertTriangle } from 'lucide-react';
+import { Play, Check, X, Shield, Plus, Trash2, RotateCcw, AlertTriangle, Users, Award, ShieldAlert } from 'lucide-react';
 
 export default function AdminConsole() {
   const [activeTab, setActiveTab] = useState('bidding');
@@ -13,6 +13,7 @@ export default function AdminConsole() {
   const [draftPool, setDraftPool] = useState([]);
   const [teams, setTeams] = useState([]);
   const [ads, setAds] = useState([]);
+  const [pendingPlayers, setPendingPlayers] = useState([]);
   
   // Forms State
   const [bidForm, setBidForm] = useState({ teamId: '', amount: '' });
@@ -38,6 +39,12 @@ export default function AdminConsole() {
       if (adsRes.ok) {
         const adsData = await adsRes.json();
         setAds(adsData);
+      }
+
+      const pendingRes = await fetch('/api/admin/approve-player');
+      if (pendingRes.ok) {
+        const pendingData = await pendingRes.json();
+        setPendingPlayers(pendingData);
       }
     } catch (e) {
       console.error(e);
@@ -137,6 +144,25 @@ export default function AdminConsole() {
     }
   };
 
+  const handleApprovePlayer = async (playerId, action) => {
+    try {
+      const res = await fetch('/api/admin/approve-player', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ playerId, action })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        showStatus('success', action === 'approve' ? 'Player payment approved & added to draft!' : 'Player registration deleted.');
+        fetchConsoleData();
+      } else {
+        showStatus('error', data.error);
+      }
+    } catch (e) {
+      showStatus('error', 'Server connection error');
+    }
+  };
+
   const handleAddAd = async (e) => {
     e.preventDefault();
     try {
@@ -204,7 +230,7 @@ export default function AdminConsole() {
       {/* Title */}
       <div>
         <h1 className="gold-gradient-text" style={{ fontSize: '36px', fontWeight: '800' }}>🛠️ Admin Bidding Console</h1>
-        <p style={{ color: 'var(--text-secondary)' }}>Control the live auction flow, manage advertisements, and reset database</p>
+        <p style={{ color: 'var(--text-secondary)' }}>Control the live auction flow, approve UPI payments, manage ads, and reset database</p>
       </div>
 
       {/* Dynamic Status Banner */}
@@ -223,13 +249,20 @@ export default function AdminConsole() {
       )}
 
       {/* Console Tab Links */}
-      <div style={{ display: 'flex', gap: '12px', borderBottom: '1px solid var(--card-border)', paddingBottom: '12px' }}>
+      <div style={{ display: 'flex', gap: '12px', borderBottom: '1px solid var(--card-border)', paddingBottom: '12px', flexWrap: 'wrap' }}>
         <button 
           onClick={() => setActiveTab('bidding')} 
           className={activeTab === 'bidding' ? 'premium-button' : 'premium-button-secondary'}
           style={{ borderRadius: '8px', padding: '8px 20px', fontSize: '14px' }}
         >
           Auction Control
+        </button>
+        <button 
+          onClick={() => setActiveTab('approvals')} 
+          className={activeTab === 'approvals' ? 'premium-button' : 'premium-button-secondary'}
+          style={{ borderRadius: '8px', padding: '8px 20px', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}
+        >
+          Pending Payments ({pendingPlayers.length})
         </button>
         <button 
           onClick={() => setActiveTab('ads')} 
@@ -383,6 +416,80 @@ export default function AdminConsole() {
             </div>
           </div>
 
+        </div>
+      )}
+
+      {/* Tab: Pending Payments Approval */}
+      {activeTab === 'approvals' && (
+        <div className="premium-card" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <h2 style={{ fontSize: '20px', fontWeight: '800', color: 'var(--accent-gold)' }}>💳 Pending Player Registrations & Payments ({pendingPlayers.length})</h2>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '13px' }}>Verify the UPI UTR Transaction Reference ID against your bank statement before approving players for the draft.</p>
+          
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {pendingPlayers.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '40px 10px', color: 'var(--text-secondary)', fontStyle: 'italic' }}>
+                No pending registrations waiting for verification.
+              </div>
+            ) : (
+              pendingPlayers.map(p => (
+                <div key={p.id} style={{ border: '1px solid var(--card-border)', borderRadius: '12px', padding: '20px', background: 'rgba(7, 11, 25, 0.4)', display: 'flex', gap: '20px', flexWrap: 'wrap', justifyContent: 'space-between' }}>
+                  
+                  {/* Photo & Profile */}
+                  <div style={{ display: 'flex', gap: '16px', alignItems: 'center', minWidth: '250px' }}>
+                    <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: 'var(--bg-tertiary)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      {p.photoUrl ? (
+                        <img src={p.photoUrl} alt="active" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      ) : (
+                        <span style={{ fontSize: '24px' }}>👤</span>
+                      )}
+                    </div>
+                    <div>
+                      <h3 style={{ fontSize: '16px', fontWeight: '800' }}>{p.fullName}</h3>
+                      <p style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Role: <strong>{p.preferredRole}</strong></p>
+                      <p style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Mobile: {p.mobileNumber} • Org: {p.organization}</p>
+                    </div>
+                  </div>
+
+                  {/* Payment Verification Data */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', minWidth: '200px' }}>
+                    <p style={{ fontSize: '13px' }}>UTR Transaction Ref ID:</p>
+                    <p style={{ fontFamily: 'monospace', fontWeight: '800', color: 'var(--accent-teal)', fontSize: '16px', letterSpacing: '0.05em' }}>{p.transactionId}</p>
+                    
+                    {p.paymentScreenshot && (
+                      <a 
+                        href={p.paymentScreenshot} 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="premium-button-secondary" 
+                        style={{ padding: '4px 10px', fontSize: '11px', alignSelf: 'flex-start', marginTop: '4px' }}
+                      >
+                        🖼️ View Receipt Screenshot
+                      </a>
+                    )}
+                  </div>
+
+                  {/* Actions */}
+                  <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                    <button 
+                      onClick={() => handleApprovePlayer(p.id, 'approve')}
+                      className="premium-button"
+                      style={{ background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', padding: '10px 18px', fontSize: '13px' }}
+                    >
+                      <Check size={16} /> Approve Payment
+                    </button>
+                    <button 
+                      onClick={() => handleApprovePlayer(p.id, 'reject')}
+                      className="premium-button-secondary"
+                      style={{ border: '1px solid var(--danger)', color: 'var(--danger)', background: 'rgba(239, 68, 68, 0.05)', padding: '10px 18px', fontSize: '13px' }}
+                    >
+                      <X size={16} /> Reject / Delete
+                    </button>
+                  </div>
+
+                </div>
+              ))
+            )}
+          </div>
         </div>
       )}
 

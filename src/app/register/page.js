@@ -1,9 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { Camera, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Camera, CheckCircle2, AlertCircle, QrCode, CreditCard, ArrowRight, ArrowLeft } from 'lucide-react';
 
 export default function Register() {
+  const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
     fullName: '',
     mobileNumber: '',
@@ -13,7 +14,9 @@ export default function Register() {
     jerseySize: 'L',
     preferredRole: 'All-Rounder',
     experience: 'Intermediate',
-    photoBase64: ''
+    photoBase64: '',
+    transactionId: '',
+    paymentScreenshot: ''
   });
 
   const [loading, setLoading] = useState(false);
@@ -23,23 +26,42 @@ export default function Register() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleFileChange = (e) => {
+  const handleFileChange = (e, field) => {
     const file = e.target.files[0];
     if (file) {
       if (file.size > 2 * 1024 * 1024) {
-        setStatus({ type: 'error', message: 'Photo size should be less than 2MB' });
+        setStatus({ type: 'error', message: 'File size should be less than 2MB' });
         return;
       }
       const reader = new FileReader();
       reader.onloadend = () => {
-        setFormData({ ...formData, photoBase64: reader.result });
+        setFormData({ ...formData, [field]: reader.result });
       };
       reader.readAsDataURL(file);
     }
   };
 
+  const nextStep = () => {
+    if (!formData.fullName || !formData.mobileNumber) {
+      setStatus({ type: 'error', message: 'Please enter your Full Name and Mobile Number first.' });
+      return;
+    }
+    setStatus({ type: null, message: '' });
+    setStep(2);
+  };
+
+  const prevStep = () => {
+    setStatus({ type: null, message: '' });
+    setStep(1);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!formData.transactionId) {
+      setStatus({ type: 'error', message: 'UPI Transaction Reference ID is required.' });
+      return;
+    }
+
     setLoading(true);
     setStatus({ type: null, message: '' });
 
@@ -53,8 +75,8 @@ export default function Register() {
       const data = await response.json();
 
       if (response.ok) {
-        setStatus({ type: 'success', message: 'Registration successful! You are now added to the auction draft.' });
-        // Reset form
+        setStatus({ type: 'success', message: 'Registration & payment submitted! Your profile is pending verification by the admin.' });
+        // Reset form and go back to step 1
         setFormData({
           fullName: '',
           mobileNumber: '',
@@ -64,8 +86,11 @@ export default function Register() {
           jerseySize: 'L',
           preferredRole: 'All-Rounder',
           experience: 'Intermediate',
-          photoBase64: ''
+          photoBase64: '',
+          transactionId: '',
+          paymentScreenshot: ''
         });
+        setStep(1);
       } else {
         setStatus({ type: 'error', message: data.error || 'Something went wrong. Please try again.' });
       }
@@ -75,6 +100,13 @@ export default function Register() {
       setLoading(false);
     }
   };
+
+  // UPI configuration parameters
+  const upiId = "evenzo@okaxis"; // You can change this to your actual UPI ID
+  const payeeName = "JCI Premier League";
+  const regFee = "500"; // Registration Fee in INR
+  const upiUrl = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${regFee}&cu=INR&tn=FCL%20Registration`;
+  const qrCodeApi = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(upiUrl)}`;
 
   return (
     <div style={{ maxWidth: '650px', margin: '40px auto', padding: '0 20px' }}>
@@ -99,184 +131,312 @@ export default function Register() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          
-          {/* Full Name */}
-          <div>
-            <label className="form-label">1. Full Name *</label>
-            <input 
-              type="text" 
-              name="fullName" 
-              value={formData.fullName} 
-              onChange={handleChange} 
-              required 
-              placeholder="Enter your full name" 
-              className="premium-input"
-            />
+        {/* Step Indicator */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0 20px', position: 'relative', marginBottom: '10px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 1 }}>
+            <span style={{ width: '32px', height: '32px', borderRadius: '50%', background: step >= 1 ? 'var(--accent-gold)' : 'var(--bg-tertiary)', color: '#070b19', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '800', fontSize: '14px' }}>1</span>
+            <span style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '4px' }}>Profile Details</span>
           </div>
-
-          {/* Mobile Number */}
-          <div>
-            <label className="form-label">2. Mobile Number *</label>
-            <input 
-              type="tel" 
-              name="mobileNumber" 
-              value={formData.mobileNumber} 
-              onChange={handleChange} 
-              required 
-              placeholder="Enter 10-digit mobile number" 
-              className="premium-input"
-            />
+          <div style={{ position: 'absolute', top: '16px', left: '10%', right: '10%', height: '2px', background: step === 2 ? 'var(--accent-gold)' : 'var(--bg-tertiary)', zIndex: 0 }}></div>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 1 }}>
+            <span style={{ width: '32px', height: '32px', borderRadius: '50%', background: step === 2 ? 'var(--accent-gold)' : 'var(--bg-tertiary)', color: step === 2 ? '#070b19' : 'var(--text-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '800', fontSize: '14px' }}>2</span>
+            <span style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '4px' }}>UPI Payment</span>
           </div>
+        </div>
 
-          {/* Organization */}
-          <div>
-            <label className="form-label">3. Organization *</label>
-            <select 
-              name="organization" 
-              value={formData.organization} 
-              onChange={handleChange} 
-              className="premium-select"
-            >
-              <option value="JCI Tumkur Metro">JCI Tumkur Metro</option>
-              <option value="JCOM">JCOM</option>
-              <option value="JAC">JAC</option>
-              <option value="Rotary Tumkur Prerana">Rotary Tumkur Prerana</option>
-            </select>
-          </div>
-
-          {/* Gender & Age Group in a 2-column layout */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+        {step === 1 ? (
+          /* STEP 1: PLAYER PROFILE FORM */
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            
+            {/* Full Name */}
             <div>
-              <label className="form-label">4. Gender *</label>
+              <label className="form-label">1. Full Name *</label>
+              <input 
+                type="text" 
+                name="fullName" 
+                value={formData.fullName} 
+                onChange={handleChange} 
+                required 
+                placeholder="Enter your full name" 
+                className="premium-input"
+              />
+            </div>
+
+            {/* Mobile Number */}
+            <div>
+              <label className="form-label">2. Mobile Number *</label>
+              <input 
+                type="tel" 
+                name="mobileNumber" 
+                value={formData.mobileNumber} 
+                onChange={handleChange} 
+                required 
+                placeholder="Enter 10-digit mobile number" 
+                className="premium-input"
+              />
+            </div>
+
+            {/* Organization */}
+            <div>
+              <label className="form-label">3. Organization *</label>
               <select 
-                name="gender" 
-                value={formData.gender} 
+                name="organization" 
+                value={formData.organization} 
                 onChange={handleChange} 
                 className="premium-select"
               >
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
+                <option value="JCI Tumkur Metro">JCI Tumkur Metro</option>
+                <option value="JCOM">JCOM</option>
+                <option value="JAC">JAC</option>
+                <option value="Rotary Tumkur Prerana">Rotary Tumkur Prerana</option>
               </select>
             </div>
-            <div>
-              <label className="form-label">5. Age Group *</label>
-              <select 
-                name="ageGroup" 
-                value={formData.ageGroup} 
-                onChange={handleChange} 
-                className="premium-select"
-              >
-                <option value="Below 25 Years">Below 25 Years</option>
-                <option value="25–40 Years">25–40 Years</option>
-                <option value="Above 40 Years">Above 40 Years</option>
-              </select>
-            </div>
-          </div>
 
-          {/* Jersey Size & Preferred Playing Role */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-            <div>
-              <label className="form-label">6. Jersey Size *</label>
-              <select 
-                name="jerseySize" 
-                value={formData.jerseySize} 
-                onChange={handleChange} 
-                className="premium-select"
-              >
-                <option value="S">S</option>
-                <option value="M">M</option>
-                <option value="L">L</option>
-                <option value="XL">XL</option>
-                <option value="XXL">XXL</option>
-                <option value="XXXL">XXXL</option>
-              </select>
-            </div>
-            <div>
-              <label className="form-label">7. Preferred Playing Role *</label>
-              <select 
-                name="preferredRole" 
-                value={formData.preferredRole} 
-                onChange={handleChange} 
-                className="premium-select"
-              >
-                <option value="Batsman">Batsman</option>
-                <option value="Bowler">Bowler</option>
-                <option value="All-Rounder">All-Rounder</option>
-                <option value="Wicketkeeper">Wicketkeeper</option>
-                <option value="Any Role">Any Role</option>
-              </select>
-            </div>
-          </div>
-
-          {/* Cricket Playing Experience */}
-          <div>
-            <label className="form-label">8. Cricket Playing Experience *</label>
-            <select 
-              name="experience" 
-              value={formData.experience} 
-              onChange={handleChange} 
-              className="premium-select"
-            >
-              <option value="Beginner">Beginner – Play occasionally</option>
-              <option value="Intermediate">Intermediate – Play fairly regularly</option>
-              <option value="Experienced">Experienced – Have played tournaments</option>
-            </select>
-          </div>
-
-          {/* Upload Photo */}
-          <div>
-            <label className="form-label">9. Upload Your Photo (Optional)</label>
-            <div style={{ display: 'flex', gap: '16px', alignItems: 'center', marginTop: '4px' }}>
-              <div 
-                style={{ 
-                  width: '80px', 
-                  height: '80px', 
-                  borderRadius: '8px', 
-                  background: 'rgba(7, 11, 25, 0.8)', 
-                  border: '1px dashed var(--card-border)', 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center', 
-                  overflow: 'hidden' 
-                }}
-              >
-                {formData.photoBase64 ? (
-                  <img src={formData.photoBase64} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                ) : (
-                  <Camera size={24} color="var(--text-secondary)" />
-                )}
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <input 
-                  type="file" 
-                  accept="image/*" 
-                  id="photo-upload" 
-                  onChange={handleFileChange}
-                  style={{ display: 'none' }}
-                />
-                <label 
-                  htmlFor="photo-upload" 
-                  className="premium-button-secondary" 
-                  style={{ padding: '8px 16px', fontSize: '14px', cursor: 'pointer' }}
+            {/* Gender & Age Group in a 2-column layout */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+              <div>
+                <label className="form-label">4. Gender *</label>
+                <select 
+                  name="gender" 
+                  value={formData.gender} 
+                  onChange={handleChange} 
+                  className="premium-select"
                 >
-                  Choose Image
-                </label>
-                <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Max file size: 2MB</span>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                </select>
+              </div>
+              <div>
+                <label className="form-label">5. Age Group *</label>
+                <select 
+                  name="ageGroup" 
+                  value={formData.ageGroup} 
+                  onChange={handleChange} 
+                  className="premium-select"
+                >
+                  <option value="Below 25 Years">Below 25 Years</option>
+                  <option value="25–40 Years">25–40 Years</option>
+                  <option value="Above 40 Years">Above 40 Years</option>
+                </select>
               </div>
             </div>
+
+            {/* Jersey Size & Preferred Playing Role */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+              <div>
+                <label className="form-label">6. Jersey Size *</label>
+                <select 
+                  name="jerseySize" 
+                  value={formData.jerseySize} 
+                  onChange={handleChange} 
+                  className="premium-select"
+                >
+                  <option value="S">S</option>
+                  <option value="M">M</option>
+                  <option value="L">L</option>
+                  <option value="XL">XL</option>
+                  <option value="XXL">XXL</option>
+                  <option value="XXXL">XXXL</option>
+                </select>
+              </div>
+              <div>
+                <label className="form-label">7. Preferred Playing Role *</label>
+                <select 
+                  name="preferredRole" 
+                  value={formData.preferredRole} 
+                  onChange={handleChange} 
+                  className="premium-select"
+                >
+                  <option value="Batsman">Batsman</option>
+                  <option value="Bowler">Bowler</option>
+                  <option value="All-Rounder">All-Rounder</option>
+                  <option value="Wicketkeeper">Wicketkeeper</option>
+                  <option value="Any Role">Any Role</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Cricket Playing Experience */}
+            <div>
+              <label className="form-label">8. Cricket Playing Experience *</label>
+              <select 
+                name="experience" 
+                value={formData.experience} 
+                onChange={handleChange} 
+                className="premium-select"
+              >
+                <option value="Beginner">Beginner – Play occasionally</option>
+                <option value="Intermediate">Intermediate – Play fairly regularly</option>
+                <option value="Experienced">Experienced – Have played tournaments</option>
+              </select>
+            </div>
+
+            {/* Upload Photo */}
+            <div>
+              <label className="form-label">9. Upload Your Photo (Optional)</label>
+              <div style={{ display: 'flex', gap: '16px', alignItems: 'center', marginTop: '4px' }}>
+                <div 
+                  style={{ 
+                    width: '80px', 
+                    height: '80px', 
+                    borderRadius: '8px', 
+                    background: 'rgba(7, 11, 25, 0.8)', 
+                    border: '1px dashed var(--card-border)', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center', 
+                    overflow: 'hidden' 
+                  }}
+                >
+                  {formData.photoBase64 ? (
+                    <img src={formData.photoBase64} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  ) : (
+                    <Camera size={24} color="var(--text-secondary)" />
+                  )}
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <input 
+                    type="file" 
+                    accept="image/*" 
+                    id="photo-upload" 
+                    onChange={(e) => handleFileChange(e, 'photoBase64')}
+                    style={{ display: 'none' }}
+                  />
+                  <label 
+                    htmlFor="photo-upload" 
+                    className="premium-button-secondary" 
+                    style={{ padding: '8px 16px', fontSize: '14px', cursor: 'pointer' }}
+                  >
+                    Choose Image
+                  </label>
+                  <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Max file size: 2MB</span>
+                </div>
+              </div>
+            </div>
+
+            <button 
+              type="button" 
+              onClick={nextStep} 
+              className="premium-button" 
+              style={{ width: '100%', justifyContent: 'center', marginTop: '12px' }}
+            >
+              Continue to Payment <ArrowRight size={18} />
+            </button>
+
           </div>
+        ) : (
+          /* STEP 2: UPI PAYMENT GATEWAY */
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            
+            <div style={{ background: 'rgba(6, 182, 212, 0.05)', border: '1px solid var(--card-border)', borderRadius: '12px', padding: '16px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--accent-teal)' }}>
+                <CreditCard size={20} />
+                <span style={{ fontWeight: '700', fontSize: '14px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>League Registration Fee</span>
+              </div>
+              <p style={{ fontSize: '32px', fontWeight: '800', color: 'var(--text-primary)' }}>₹{regFee}</p>
 
-          <button 
-            type="submit" 
-            disabled={loading} 
-            className="premium-button" 
-            style={{ width: '100%', justifyContent: 'center', marginTop: '12px' }}
-          >
-            {loading ? 'Submitting...' : 'Register Player'}
-          </button>
+              {/* QR Code */}
+              <div style={{ background: 'white', padding: '12px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid var(--accent-gold)' }}>
+                <img src={qrCodeApi} alt="UPI QR Code" style={{ width: '150px', height: '150px' }} />
+              </div>
 
-        </form>
+              <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Scan QR Code with GPay, PhonePe, or Paytm</span>
+                <p style={{ fontWeight: '600', fontSize: '13px' }}>UPI ID: <span style={{ color: 'var(--accent-gold)' }}>{upiId}</span></p>
+                
+                {/* Mobile Pay deep link button */}
+                <a 
+                  href={upiUrl} 
+                  className="premium-button-secondary" 
+                  style={{ padding: '6px 14px', fontSize: '12px', marginTop: '8px', alignSelf: 'center', display: 'inline-flex', gap: '4px' }}
+                >
+                  📱 Pay via UPI App
+                </a>
+              </div>
+            </div>
+
+            {/* UPI Reference ID */}
+            <div>
+              <label className="form-label">UPI Transaction Reference ID (UTR) *</label>
+              <input 
+                type="text" 
+                name="transactionId" 
+                required
+                maxLength="12"
+                placeholder="Enter 12-digit transaction number" 
+                value={formData.transactionId}
+                onChange={handleChange}
+                className="premium-input"
+              />
+              <span style={{ fontSize: '10px', color: 'var(--text-secondary)', display: 'block', marginTop: '4px' }}>Check your payment receipt for the 12-digit transaction ID or Ref ID.</span>
+            </div>
+
+            {/* Screenshot Upload */}
+            <div>
+              <label className="form-label">Upload Payment Screenshot (Optional)</label>
+              <div style={{ display: 'flex', gap: '16px', alignItems: 'center', marginTop: '4px' }}>
+                <div 
+                  style={{ 
+                    width: '80px', 
+                    height: '80px', 
+                    borderRadius: '8px', 
+                    background: 'rgba(7, 11, 25, 0.8)', 
+                    border: '1px dashed var(--card-border)', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center', 
+                    overflow: 'hidden' 
+                  }}
+                >
+                  {formData.paymentScreenshot ? (
+                    <img src={formData.paymentScreenshot} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  ) : (
+                    <Camera size={24} color="var(--text-secondary)" />
+                  )}
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <input 
+                    type="file" 
+                    accept="image/*" 
+                    id="screenshot-upload" 
+                    onChange={(e) => handleFileChange(e, 'paymentScreenshot')}
+                    style={{ display: 'none' }}
+                  />
+                  <label 
+                    htmlFor="screenshot-upload" 
+                    className="premium-button-secondary" 
+                    style={{ padding: '8px 16px', fontSize: '14px', cursor: 'pointer' }}
+                  >
+                    Choose Image
+                  </label>
+                  <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Max file size: 2MB</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Form buttons */}
+            <div style={{ display: 'flex', gap: '16px', marginTop: '12px' }}>
+              <button 
+                type="button" 
+                onClick={prevStep} 
+                className="premium-button-secondary" 
+                style={{ flex: '1', justifyContent: 'center' }}
+              >
+                <ArrowLeft size={18} /> Back
+              </button>
+              <button 
+                type="submit" 
+                disabled={loading} 
+                className="premium-button" 
+                style={{ flex: '2', justifyContent: 'center' }}
+              >
+                {loading ? 'Submitting...' : 'Complete Registration'}
+              </button>
+            </div>
+
+          </form>
+        )}
+
       </div>
     </div>
   );

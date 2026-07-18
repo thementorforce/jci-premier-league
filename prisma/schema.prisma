@@ -43,12 +43,15 @@ model PlayerProfile {
   preferredRole   String       // Batsman / Bowler / All-Rounder / Wicketkeeper / Any Role
   experience      String       // Beginner / Intermediate / Experienced
   photoUrl        String?      // Optional photo url
-  status          String       @default("Registered") // Registered / Bidding / Sold / Unsold
-  soldPrice       Int?
-  teamId          String?
-  team            Team?        @relation(fields: [teamId], references: [id])
-  bids            BidHistory[]
-  createdAt       DateTime     @default(now())
+  status            String       @default("Registered") // Registered / Bidding / Sold / Unsold
+  soldPrice         Int?
+  teamId            String?
+  team              Team?        @relation(fields: [teamId], references: [id])
+  bids              BidHistory[]
+  paymentStatus     String       @default("Pending") // Pending / Approved
+  transactionId     String?
+  paymentScreenshot String?      // base64 screenshot
+  createdAt         DateTime     @default(now())
 }
 
 model BidHistory {
