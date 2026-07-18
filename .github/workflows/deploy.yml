@@ -8,7 +8,7 @@ on:
 env:
   PROJECT_ID: jci-premier-league # Hardcoded GCP Project ID
   SERVICE_NAME: franchise-cricket-league
-  REGION: us-central1
+  REGION: asia-south1
 
 jobs:
   deploy:
@@ -33,27 +33,27 @@ jobs:
       # Configure Docker to use Artifact Registry
       - name: Authorize Docker
         run: |
-          gcloud auth configure-docker us-central1-docker.pkg.dev --quiet
+          gcloud auth configure-docker asia-south1-docker.pkg.dev --quiet
 
       # Create Artifact Registry Repository if not exists
       - name: Create Registry Repository
         run: |
           gcloud artifacts repositories create fcl-repo \
             --repository-format=docker \
-            --location=us-central1 \
+            --location=asia-south1 \
             --quiet || true
 
       # Build and Push Docker Image
       - name: Build and Push Docker Image
         run: |
-          docker build -t us-central1-docker.pkg.dev/${{ env.PROJECT_ID }}/fcl-repo/${{ env.SERVICE_NAME }}:${{ github.sha }} .
-          docker push us-central1-docker.pkg.dev/${{ env.PROJECT_ID }}/fcl-repo/${{ env.SERVICE_NAME }}:${{ github.sha }}
+          docker build -t asia-south1-docker.pkg.dev/${{ env.PROJECT_ID }}/fcl-repo/${{ env.SERVICE_NAME }}:${{ github.sha }} .
+          docker push asia-south1-docker.pkg.dev/${{ env.PROJECT_ID }}/fcl-repo/${{ env.SERVICE_NAME }}:${{ github.sha }}
 
       # Deploy to Google Cloud Run
       - name: Deploy to Cloud Run
         run: |
           gcloud run deploy ${{ env.SERVICE_NAME }} \
-            --image us-central1-docker.pkg.dev/${{ env.PROJECT_ID }}/fcl-repo/${{ env.SERVICE_NAME }}:${{ github.sha }} \
+            --image asia-south1-docker.pkg.dev/${{ env.PROJECT_ID }}/fcl-repo/${{ env.SERVICE_NAME }}:${{ github.sha }} \
             --platform managed \
             --region ${{ env.REGION }} \
             --allow-unauthenticated \
