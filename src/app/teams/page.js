@@ -87,21 +87,24 @@ export default async function TeamsPage() {
                   {team.players.length === 0 ? (
                     <p style={{ fontStyle: 'italic', color: 'var(--text-secondary)', fontSize: '14px' }}>No players drafted yet.</p>
                   ) : (
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '16px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '20px', justifyItems: 'center' }}>
                       {team.players.map((player) => (
-                        <div key={player.id} style={{ background: 'rgba(7, 11, 25, 0.5)', border: '1px solid rgba(255, 183, 3, 0.1)', borderRadius: '12px', padding: '12px', display: 'flex', gap: '12px', alignItems: 'center' }}>
-                          <div style={{ width: '48px', height: '48px', borderRadius: '50%', overflow: 'hidden', background: 'var(--bg-tertiary)', display: 'flex', alignItems: 'center', justifyObject: 'center', flexShrink: 0 }}>
+                        <div key={player.id} className="fut-card">
+                          <div className="fut-photo-container">
                             {player.photoUrl ? (
                               <img src={player.photoUrl} alt={player.fullName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                             ) : (
-                              <div style={{ fontSize: '20px', margin: 'auto' }}>👤</div>
+                              <div style={{ fontSize: '32px' }}>👤</div>
                             )}
                           </div>
-                          <div style={{ overflow: 'hidden' }}>
-                            <p style={{ fontWeight: '700', fontSize: '14px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{player.fullName}</p>
-                            <p style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{player.preferredRole} • {player.organization}</p>
-                            <p style={{ fontSize: '12px', color: 'var(--accent-gold)', fontWeight: '800', marginTop: '2px' }}>{player.soldPrice?.toLocaleString()} pts</p>
+                          <div className="fut-badge-role">{player.preferredRole}</div>
+                          
+                          <div className="fut-details">
+                            <h4 className="fut-name">{player.fullName}</h4>
+                            <p className="fut-org">{player.organization}</p>
                           </div>
+
+                          <div className="fut-price-tag">{player.soldPrice?.toLocaleString()} pts</div>
                         </div>
                       ))}
                     </div>
