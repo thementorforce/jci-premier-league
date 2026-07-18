@@ -1,10 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { Camera, CheckCircle2, AlertCircle, QrCode, CreditCard, ArrowRight, ArrowLeft } from 'lucide-react';
+import { Camera, CheckCircle2, AlertCircle, CreditCard, ArrowRight, ArrowLeft, Copy, Check } from 'lucide-react';
 
 export default function Register() {
   const [step, setStep] = useState(1);
+  const [copied, setCopied] = useState(false);
   const [formData, setFormData] = useState({
     fullName: '',
     mobileNumber: '',
@@ -55,10 +56,16 @@ export default function Register() {
     setStep(1);
   };
 
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(upiId);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.transactionId) {
-      setStatus({ type: 'error', message: 'UPI Transaction Reference ID is required.' });
+    if (!formData.transactionId || formData.transactionId.length !== 12) {
+      setStatus({ type: 'error', message: 'UPI UTR / Transaction Reference ID must be exactly 12 numeric digits.' });
       return;
     }
 
@@ -75,8 +82,7 @@ export default function Register() {
       const data = await response.json();
 
       if (response.ok) {
-        setStatus({ type: 'success', message: 'Registration & payment submitted! Your profile is pending verification by the admin.' });
-        // Reset form and go back to step 1
+        setStatus({ type: 'success', message: '🎉 Registration & payment submitted! Your profile is pending verification by the admin.' });
         setFormData({
           fullName: '',
           mobileNumber: '',
@@ -101,12 +107,13 @@ export default function Register() {
     }
   };
 
-  // UPI configuration parameters
-  const upiId = "evenzo@okaxis"; // You can change this to your actual UPI ID
+  const upiId = "evenzo@okaxis";
   const payeeName = "JCI Premier League";
-  const regFee = "500"; // Registration Fee in INR
+  const regFee = "500";
   const upiUrl = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${regFee}&cu=INR&tn=FCL%20Registration`;
   const qrCodeApi = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(upiUrl)}`;
+
+  const isUtrValid = formData.transactionId.length === 12 && /^\d+$/.test(formData.transactionId);
 
   return (
     <div style={{ maxWidth: '650px', margin: '40px auto', padding: '0 20px' }}>
@@ -328,27 +335,38 @@ export default function Register() {
           /* STEP 2: UPI PAYMENT GATEWAY */
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             
-            <div style={{ background: 'rgba(6, 182, 212, 0.05)', border: '1px solid var(--card-border)', borderRadius: '12px', padding: '16px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
+            <div className="checkout-box" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--accent-teal)' }}>
                 <CreditCard size={20} />
                 <span style={{ fontWeight: '700', fontSize: '14px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>League Registration Fee</span>
               </div>
-              <p style={{ fontSize: '32px', fontWeight: '800', color: 'var(--text-primary)' }}>₹{regFee}</p>
+              <p style={{ fontSize: '36px', fontWeight: '900', color: 'var(--text-primary)' }}>₹{regFee}</p>
 
               {/* QR Code */}
-              <div style={{ background: 'white', padding: '12px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid var(--accent-gold)' }}>
+              <div style={{ background: 'white', padding: '12px', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '3px solid var(--accent-gold)' }}>
                 <img src={qrCodeApi} alt="UPI QR Code" style={{ width: '150px', height: '150px' }} />
               </div>
 
-              <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '6px', width: '100%' }}>
                 <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Scan QR Code with GPay, PhonePe, or Paytm</span>
-                <p style={{ fontWeight: '600', fontSize: '13px' }}>UPI ID: <span style={{ color: 'var(--accent-gold)' }}>{upiId}</span></p>
+                
+                {/* Copyable UPI Box */}
+                <div style={{ display: 'flex', background: 'rgba(3, 7, 18, 0.6)', border: '1px solid var(--card-border)', borderRadius: '10px', padding: '8px 12px', alignItems: 'center', justifyContent: 'space-between', margin: '4px 0' }}>
+                  <span style={{ fontFamily: 'monospace', fontWeight: '700', fontSize: '14px', color: 'var(--accent-gold)' }}>{upiId}</span>
+                  <button 
+                    type="button" 
+                    onClick={copyToClipboard}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: copied ? 'var(--success)' : 'var(--text-secondary)' }}
+                  >
+                    {copied ? <Check size={16} /> : <Copy size={16} />}
+                  </button>
+                </div>
                 
                 {/* Mobile Pay deep link button */}
                 <a 
                   href={upiUrl} 
                   className="premium-button-secondary" 
-                  style={{ padding: '6px 14px', fontSize: '12px', marginTop: '8px', alignSelf: 'center', display: 'inline-flex', gap: '4px' }}
+                  style={{ padding: '8px 16px', fontSize: '13px', marginTop: '6px', alignSelf: 'center', display: 'inline-flex', gap: '6px' }}
                 >
                   📱 Pay via UPI App
                 </a>
@@ -357,7 +375,10 @@ export default function Register() {
 
             {/* UPI Reference ID */}
             <div>
-              <label className="form-label">UPI Transaction Reference ID (UTR) *</label>
+              <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span>UPI Transaction Reference ID (UTR) *</span>
+                {isUtrValid && <span style={{ color: 'var(--success)', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '4px' }}><CheckCircle2 size={12} /> Valid Format</span>}
+              </label>
               <input 
                 type="text" 
                 name="transactionId" 
@@ -367,8 +388,9 @@ export default function Register() {
                 value={formData.transactionId}
                 onChange={handleChange}
                 className="premium-input"
+                style={{ border: isUtrValid ? '1.5px solid var(--success)' : '1px solid rgba(0, 245, 212, 0.15)' }}
               />
-              <span style={{ fontSize: '10px', color: 'var(--text-secondary)', display: 'block', marginTop: '4px' }}>Check your payment receipt for the 12-digit transaction ID or Ref ID.</span>
+              <span style={{ fontSize: '10px', color: 'var(--text-secondary)', display: 'block', marginTop: '4px' }}>Please double-check and input the exact 12-digit UTR/Ref number from your payment receipt.</span>
             </div>
 
             {/* Screenshot Upload */}
@@ -426,9 +448,9 @@ export default function Register() {
               </button>
               <button 
                 type="submit" 
-                disabled={loading} 
+                disabled={loading || !isUtrValid} 
                 className="premium-button" 
-                style={{ flex: '2', justifyContent: 'center' }}
+                style={{ flex: '2', justifyContent: 'center', opacity: (!isUtrValid || loading) ? 0.7 : 1 }}
               >
                 {loading ? 'Submitting...' : 'Complete Registration'}
               </button>
