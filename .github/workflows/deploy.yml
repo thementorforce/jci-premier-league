@@ -43,6 +43,11 @@ jobs:
             --location=asia-south1 \
             --quiet || true
 
+      # Switch Prisma provider to PostgreSQL for production deployment
+      - name: Configure Prisma for PostgreSQL
+        run: |
+          sed -i 's/provider = "sqlite"/provider = "postgresql"/' prisma/schema.prisma
+
       # Build and Push Docker Image
       - name: Build and Push Docker Image
         run: |
