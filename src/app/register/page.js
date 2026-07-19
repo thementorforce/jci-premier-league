@@ -139,7 +139,7 @@ export default function Register() {
   }, []);
 
   const upiUrl = `upi://pay?pa=${config.upiId}&pn=${encodeURIComponent(config.payeeName)}&am=${config.regFee}&cu=INR&tn=FCL%20Registration`;
-  const qrCodeApi = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(upiUrl)}`;
+  const qrCodeApi = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(upiUrl)}`;
 
   const isUtrValid = formData.transactionId.length === 12 && /^\d+$/.test(formData.transactionId);
 
@@ -422,7 +422,7 @@ export default function Register() {
                 {/* Mobile Pay deep link button */}
                 <a
                   href={upiUrl}
-                  className="premium-button-secondary"
+                  className="premium-button-secondary mobile-only"
                   style={{ padding: '8px 16px', fontSize: '13px', marginTop: '6px', alignSelf: 'center', display: 'inline-flex', gap: '6px' }}
                 >
                   📱 Pay via UPI App
