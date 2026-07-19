@@ -49,6 +49,9 @@ COPY --from=builder --chown=nextjs:nodejs /app/node_modules/prisma ./node_module
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@prisma ./node_modules/@prisma
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.bin ./node_modules/.bin
 
+# Ensure query engines are executable by nextjs user
+RUN find ./node_modules/ -type f -name "query-engine-*" -exec chmod +x {} \;
+
 USER nextjs
 
 EXPOSE 8080
