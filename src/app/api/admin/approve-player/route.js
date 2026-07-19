@@ -8,7 +8,7 @@ export async function GET() {
 
   try {
     const pendingPlayers = await prisma.playerProfile.findMany({
-      where: { status: 'Pending' },
+      where: { paymentStatus: 'Pending' },
       orderBy: { createdAt: 'desc' }
     });
     return NextResponse.json(pendingPlayers);

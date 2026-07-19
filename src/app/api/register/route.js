@@ -48,7 +48,7 @@ export async function POST(request) {
         transactionId,
         paymentScreenshot: paymentScreenshot || null,
         paymentStatus: 'Pending',
-        status: 'Pending'
+        status: 'Registered'
       }
     });
 
