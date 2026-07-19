@@ -12,7 +12,8 @@
         "run": {
           "serviceId": "franchise-cricket-league",
           "region": "asia-south1"
-        }
+        },
+        "sessionCookies": true
       }
     ]
   }
