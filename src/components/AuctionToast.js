@@ -32,6 +32,10 @@ export default function AuctionToast() {
 
   const config = STATUS_CONFIG[status] || STATUS_CONFIG.NOT_STARTED;
 
+  // The auction page and the new league hub already explain inactive states.
+  // Reserve the floating alert for the one moment that needs immediate attention.
+  if (status !== 'LIVE') return null;
+
   return (
     <div
       className="auction-toast"

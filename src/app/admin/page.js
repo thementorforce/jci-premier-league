@@ -1,13 +1,8 @@
-import { redirect } from 'next/navigation';
-import { getSession } from '@/lib/auth';
-import AdminConsole from './AdminConsole';
+import AdminAccessGate from './AdminAccessGate';
 
-export default async function AdminPage() {
-  const session = await getSession();
-
-  if (!session || session.role !== 'ADMIN') {
-    redirect('/admin/login');
-  }
-
-  return <AdminConsole username={session.username} />;
+export default function AdminPage() {
+  // Authentication is verified in the client gate. This supports Firebase Hosting,
+  // where an API response cookie can occasionally be stripped before a server
+  // navigation, while the signed bearer token remains available in the browser.
+  return <AdminAccessGate />;
 }

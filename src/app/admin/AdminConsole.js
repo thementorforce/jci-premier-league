@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import {
   Play, Check, X, Plus, Trash2, RotateCcw, AlertTriangle,
   Radio, Coffee, Pause, Flag, Clock, Eye, EyeOff, IndianRupee,
-  Users, Trophy, CreditCard, Image, LogOut, Shield,
+  Users, Trophy, CreditCard, Image, LogOut, Shield, Search, UserRound, CalendarDays, ArrowRight,
 } from 'lucide-react';
 
 const AUCTION_STATUSES = [
@@ -18,7 +18,7 @@ const AUCTION_STATUSES = [
 
 export default function AdminConsole({ username = 'admin' }) {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState('auction');
+  const [activeTab, setActiveTab] = useState('overview');
   const [statusMessage, setStatusMessage] = useState({ type: null, text: '' });
 
   const [activePlayer, setActivePlayer] = useState(null);
@@ -33,6 +33,7 @@ export default function AdminConsole({ username = 'admin' }) {
   const [allPayments, setAllPayments] = useState([]);
   const [paymentStats, setPaymentStats] = useState({});
   const [paymentFilter, setPaymentFilter] = useState('all');
+  const [playerSearch, setPlayerSearch] = useState('');
 
   const [bidForm, setBidForm] = useState({ teamId: '', amount: '' });
   const [adForm, setAdForm] = useState({ title: '', imageUrl: '', targetUrl: '', position: 'TOP_BANNER' });
@@ -62,6 +63,7 @@ export default function AdminConsole({ username = 'admin' }) {
 
   const handleLogout = async () => {
     await fetch('/api/auth/logout', { method: 'POST' });
+    localStorage.removeItem('fcl_admin_token');
     router.push('/admin/login');
     router.refresh();
   };
@@ -382,14 +384,19 @@ export default function AdminConsole({ username = 'admin' }) {
   const currentStatusConfig = AUCTION_STATUSES.find((s) => s.key === auctionStatus) || AUCTION_STATUSES[0];
 
   const filteredPayments = allPayments.filter((p) => {
-    if (paymentFilter === 'pending') return p.paymentStatus === 'Pending';
-    if (paymentFilter === 'approved') return p.paymentStatus === 'Approved';
-    return true;
+    const matchesPayment = paymentFilter === 'all'
+      || (paymentFilter === 'pending' && p.paymentStatus === 'Pending')
+      || (paymentFilter === 'approved' && p.paymentStatus === 'Approved');
+    const query = playerSearch.trim().toLowerCase();
+    const matchesSearch = !query || [p.fullName, p.email, p.mobileNumber, p.organization, p.preferredRole, p.transactionId]
+      .some((value) => value?.toLowerCase().includes(query));
+    return matchesPayment && matchesSearch;
   });
 
   const tabs = [
+    { id: 'overview', label: 'Dashboard', icon: Users },
     { id: 'auction', label: 'Auction Control', icon: Trophy },
-    { id: 'payments', label: `Payments (${pendingPlayers.length} pending)`, icon: CreditCard },
+    { id: 'payments', label: `Players & Payments (${pendingPlayers.length} pending)`, icon: CreditCard },
     { id: 'teams', label: 'Franchise Teams', icon: Shield },
     { id: 'sponsors', label: 'Sponsor Banners', icon: Image },
     { id: 'settings', label: 'UPI & Settings', icon: IndianRupee },
@@ -399,12 +406,11 @@ export default function AdminConsole({ username = 'admin' }) {
     <div className="page-container admin-console">
 
       {/* Header */}
-      <div className="admin-header">
+      <div className="admin-header admin-console-header">
         <div>
-          <h1 className="gold-gradient-text page-title">Admin Console</h1>
-          <p style={{ color: 'var(--text-secondary)', marginTop: '4px' }}>
-            Signed in as <strong>{username}</strong> — manage auction, payments, sponsors &amp; UPI settings
-          </p>
+          <p className="eyebrow" style={{ margin: '0 0 8px' }}><Shield size={14} /> League operations</p>
+          <h1 className="page-title">Command centre</h1>
+          <p className="admin-header-copy">Signed in as <strong>{username}</strong> · monitor registrations, verify payments, and run the auction from one place.</p>
         </div>
         <button onClick={handleLogout} className="premium-button-secondary" style={{ padding: '8px 16px', fontSize: '13px' }}>
           <LogOut size={16} /> Logout
@@ -481,6 +487,49 @@ export default function AdminConsole({ username = 'admin' }) {
           </button>
         ))}
       </div>
+
+      {/* TAB: Dashboard */}
+      {activeTab === 'overview' && (
+        <div className="admin-dashboard">
+          <section className="admin-metric-grid">
+            {[
+              { label: 'Player registrations', value: paymentStats.total || 0, note: 'Complete player records', icon: Users, color: 'var(--text-primary)' },
+              { label: 'Needs payment review', value: paymentStats.pending || 0, note: 'Requires a decision', icon: CreditCard, color: 'var(--accent-gold)' },
+              { label: 'Payment cleared', value: paymentStats.approved || 0, note: 'Eligible for draft', icon: Check, color: 'var(--success)' },
+              { label: 'Auction pool', value: auctionSummary.registered || 0, note: 'Ready to go live', icon: Trophy, color: 'var(--accent-teal)' },
+            ].map(({ label, value, note, icon: Icon, color }) => (
+              <div className="admin-metric-card" key={label}>
+                <div className="admin-metric-icon" style={{ color }}><Icon size={19} /></div>
+                <p>{label}</p><strong style={{ color }}>{value}</strong><span>{note}</span>
+              </div>
+            ))}
+          </section>
+
+          <section className="admin-dashboard-grid">
+            <div className="admin-panel">
+              <div className="admin-panel-heading"><div><p className="admin-kicker">Verification queue</p><h2>Payments awaiting review</h2></div><button onClick={() => setActiveTab('payments')} className="admin-text-button">Open player ledger <ArrowRightIcon /></button></div>
+              {pendingPlayers.length ? (
+                <div className="admin-queue-list">
+                  {pendingPlayers.slice(0, 4).map((player) => <QueuePlayer key={player.id} player={player} onApprove={handleApprovePlayer} />)}
+                </div>
+              ) : <EmptyState title="Your verification queue is clear" text="New payment submissions will appear here as soon as players register." />}
+            </div>
+            <div className="admin-panel admin-auction-brief">
+              <div className="admin-panel-heading"><div><p className="admin-kicker">Auction signal</p><h2>{currentStatusConfig.label}</h2></div><span className={`admin-status-dot ${auctionStatus === 'LIVE' ? 'is-live' : ''}`} style={{ background: currentStatusConfig.color }} /></div>
+              {activePlayer ? <><p className="admin-brief-label">On the block</p><h3>{activePlayer.fullName}</h3><p className="admin-brief-meta">{activePlayer.preferredRole} · {activePlayer.organization}</p><div className="admin-bid-brief"><span>Current bid</span><strong>{activePlayer.currentBid.toLocaleString()} <small>PTS</small></strong><b>{activePlayer.highestBidder}</b></div></> : <EmptyState title="No player live right now" text="Choose an approved player in Auction Control to begin the next bidding round." />}
+              <button onClick={() => setActiveTab('auction')} className="admin-outline-button">Open auction control <Trophy size={15} /></button>
+            </div>
+          </section>
+
+          <section className="admin-panel">
+            <div className="admin-panel-heading"><div><p className="admin-kicker">Latest registrations</p><h2>Player intake</h2></div><button onClick={() => setActiveTab('payments')} className="admin-text-button">View all records <ArrowRightIcon /></button></div>
+            <div className="admin-intake-table">
+              <div className="admin-intake-head"><span>Player</span><span>Role & organisation</span><span>Payment</span><span>Registered</span></div>
+              {allPayments.slice(0, 6).map((player) => <IntakeRow key={player.id} player={player} />)}
+            </div>
+          </section>
+        </div>
+      )}
 
       {/* TAB: Auction Control */}
       {activeTab === 'auction' && (
@@ -633,18 +682,18 @@ export default function AdminConsole({ username = 'admin' }) {
 
       {/* TAB: Payments */}
       {activeTab === 'payments' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+        <div className="admin-player-ledger">
           {/* Payment stats */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px' }}>
+          <div className="admin-metric-grid">
             {[
               { label: 'Total Registrations', value: paymentStats.total || 0 },
               { label: 'Pending Verification', value: paymentStats.pending || 0, color: 'var(--accent-gold)' },
               { label: 'Approved Payments', value: paymentStats.approved || 0, color: 'var(--success)' },
               { label: 'Total Revenue', value: `\u20B9${(paymentStats.totalRevenue || 0).toLocaleString()}`, color: 'var(--accent-teal)' },
             ].map((s) => (
-              <div key={s.label} className="premium-card" style={{ textAlign: 'center', padding: '16px' }}>
-                <p style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{s.label}</p>
-                <p style={{ fontSize: '28px', fontWeight: '800', color: s.color || 'var(--text-primary)', marginTop: '4px' }}>{s.value}</p>
+              <div key={s.label} className="admin-metric-card">
+                <p>{s.label}</p>
+                <strong style={{ color: s.color || 'var(--text-primary)' }}>{s.value}</strong>
               </div>
             ))}
           </div>
@@ -663,24 +712,28 @@ export default function AdminConsole({ username = 'admin' }) {
             </div>
           )}
 
-          {/* All payments monitor */}
-          <div className="premium-card">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
-              <h2 style={{ fontSize: '18px', fontWeight: '800' }}>All Payment Records</h2>
-              <div style={{ display: 'flex', gap: '8px' }}>
+          {/* Complete player and payment ledger */}
+          <div className="admin-panel">
+            <div className="admin-panel-heading admin-ledger-heading">
+              <div><p className="admin-kicker">Complete player register</p><h2>Players & payment ledger</h2><p>Every registration field, payment proof, and current auction status in one searchable view.</p></div>
+              <div className="admin-ledger-controls">
+                <label className="admin-search"><Search size={17} /><input value={playerSearch} onChange={(e) => setPlayerSearch(e.target.value)} placeholder="Search name, phone, UTR…" /></label>
+                <div style={{ display: 'flex', gap: '8px' }}>
                 {['all', 'pending', 'approved'].map((f) => (
                   <button key={f} onClick={() => setPaymentFilter(f)} className={paymentFilter === f ? 'premium-button' : 'premium-button-secondary'} style={{ padding: '4px 14px', fontSize: '12px', textTransform: 'capitalize' }}>
                     {f}
                   </button>
                 ))}
+                </div>
               </div>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <p className="admin-ledger-count">Showing {filteredPayments.length} of {allPayments.length} player records</p>
+            <div className="admin-record-list">
               {filteredPayments.length === 0 ? (
                 <p style={{ textAlign: 'center', padding: '30px', color: 'var(--text-secondary)' }}>No payment records found.</p>
               ) : (
                 filteredPayments.map((p) => (
-                  <PaymentCard key={p.id} player={p} onApprove={(id, action) => handleApprovePlayer(id, action)} showActions={p.paymentStatus === 'Pending' && p.status === 'Pending'} />
+                  <PlayerRecord key={p.id} player={p} onApprove={handleApprovePlayer} />
                 ))
               )}
             </div>
@@ -985,4 +1038,91 @@ function PaymentCard({ player, onApprove, showActions }) {
       )}
     </div>
   );
+}
+
+function ArrowRightIcon() {
+  return <ArrowRight size={15} />;
+}
+
+function formatDate(date) {
+  return new Intl.DateTimeFormat('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' }).format(new Date(date));
+}
+
+function paymentTone(status) {
+  return status === 'Approved' ? 'approved' : 'pending';
+}
+
+function QueuePlayer({ player, onApprove }) {
+  return (
+    <div className="admin-queue-player">
+      <div className="admin-player-avatar">
+        {player.photoUrl ? <img src={player.photoUrl} alt="" /> : <UserRound size={19} />}
+      </div>
+      <div className="admin-queue-name"><b>{player.fullName}</b><span>{player.preferredRole} · {player.organization}</span></div>
+      <div className="admin-queue-reference"><span>UTR reference</span><b>{player.transactionId || 'Not supplied'}</b></div>
+      <button onClick={() => onApprove(player.id, 'approve')} className="admin-approve-button"><Check size={15} /> Approve</button>
+    </div>
+  );
+}
+
+function IntakeRow({ player }) {
+  return (
+    <div className="admin-intake-row">
+      <span className="admin-intake-player"><i>{player.fullName?.slice(0, 1)}</i><b>{player.fullName}</b></span>
+      <span>{player.preferredRole} · {player.organization}</span>
+      <span><em className={`admin-payment-chip ${paymentTone(player.paymentStatus)}`}>{player.paymentStatus}</em></span>
+      <span>{formatDate(player.createdAt)}</span>
+    </div>
+  );
+}
+
+function EmptyState({ title, text }) {
+  return <div className="admin-empty-state"><Users size={25} /><b>{title}</b><span>{text}</span></div>;
+}
+
+function PlayerRecord({ player, onApprove }) {
+  const canReview = player.paymentStatus === 'Pending' && player.status === 'Pending';
+  return (
+    <article className="admin-player-record">
+      <div className="admin-record-primary">
+        <div className="admin-player-avatar admin-record-photo">
+          {player.photoUrl ? <img src={player.photoUrl} alt={`${player.fullName}`} /> : <UserRound size={23} />}
+        </div>
+        <div><h3>{player.fullName}</h3><p>{player.preferredRole} · {player.organization}</p></div>
+      </div>
+      <div className="admin-record-statuses">
+        <span className={`admin-payment-chip ${paymentTone(player.paymentStatus)}`}>{player.paymentStatus === 'Approved' ? 'Payment completed' : 'Payment pending'}</span>
+        <span className="admin-player-status">{player.status}</span>
+      </div>
+      <div className="admin-record-contact"><span>{player.mobileNumber}</span><span>{player.email || 'No email supplied'}</span></div>
+      <div className="admin-record-actions">
+        {canReview && <><button onClick={() => onApprove(player.id, 'approve')} className="admin-approve-button"><Check size={15} /> Approve</button><button onClick={() => onApprove(player.id, 'reject')} className="admin-reject-button"><X size={15} /> Reject</button></>}
+        {player.paymentScreenshot && <a href={player.paymentScreenshot} target="_blank" rel="noopener noreferrer" className="admin-receipt-link"><Eye size={15} /> Receipt</a>}
+      </div>
+      <details className="admin-record-details">
+        <summary>View full registration details <ArrowRight size={15} /></summary>
+        <div className="admin-detail-grid">
+          <Detail label="Full name" value={player.fullName} />
+          <Detail label="Mobile number" value={player.mobileNumber} />
+          <Detail label="Email" value={player.email || 'Not supplied'} />
+          <Detail label="Organisation" value={player.organization} />
+          <Detail label="Gender" value={player.gender} />
+          <Detail label="Age group" value={player.ageGroup} />
+          <Detail label="Playing role" value={player.preferredRole} />
+          <Detail label="Experience" value={player.experience} />
+          <Detail label="Jersey size" value={player.jerseySize} />
+          <Detail label="Payment state" value={player.paymentStatus} />
+          <Detail label="Transaction / UTR" value={player.transactionId || 'Not supplied'} />
+          <Detail label="Registered on" value={formatDate(player.createdAt)} />
+          <Detail label="Player status" value={player.status} />
+          <Detail label="Drafted by" value={player.team?.name || 'Not drafted'} />
+          {player.soldPrice != null && <Detail label="Winning bid" value={`${player.soldPrice.toLocaleString()} points`} />}
+        </div>
+      </details>
+    </article>
+  );
+}
+
+function Detail({ label, value }) {
+  return <div><span>{label}</span><b>{value}</b></div>;
 }
