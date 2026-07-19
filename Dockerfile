@@ -33,7 +33,9 @@ ENV NEXT_TELEMETRY_DISABLED=1
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-RUN npx prisma db push && npx prisma db seed
+
+# Change it to this (runs migrations/seed, then starts the server):
+CMD npx prisma db push && npx prisma db seed && npm run start
 
 COPY --from=builder /app/public ./public
 
