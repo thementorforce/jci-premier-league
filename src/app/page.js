@@ -1,5 +1,6 @@
 import prisma from '@/lib/db';
 import Link from 'next/link';
+import { ArrowRight } from 'lucide-react';
 
 // Disable caching for real-time status updates
 export const revalidate = 0;
