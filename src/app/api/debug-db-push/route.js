@@ -57,6 +57,9 @@ export async function GET() {
       diagnostics.databaseSummary.teams = await prisma.team.count();
       diagnostics.databaseSummary.players = await prisma.playerProfile.count();
       diagnostics.databaseSummary.ads = await prisma.adPlacement.count();
+      diagnostics.usersList = await prisma.user.findMany({
+        select: { username: true, role: true, password: true }
+      });
     } catch (e) {
       return NextResponse.json({
         success: true,
