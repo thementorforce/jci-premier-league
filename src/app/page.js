@@ -8,6 +8,7 @@ export default async function Home() {
   let stats = { playerCount: 0, teamCount: 0, soldCount: 0, totalPurse: 0 };
   let ads = [];
   let dbError = false;
+  let errorMessage = '';
 
   try {
     const playerCount = await prisma.playerProfile.count();
@@ -21,6 +22,7 @@ export default async function Home() {
   } catch (error) {
     console.error("Database seed/connection issue on landing page:", error);
     dbError = true;
+    errorMessage = error.message || String(error);
   }
 
   // Fallback sample ads if db not configured/seeded
@@ -99,6 +101,13 @@ export default async function Home() {
               <br />
               3. <strong>Restart your development server</strong> (<code>npm run dev</code>) so Next.js loads the new <code>.env</code> variables.
             </p>
+            {errorMessage && (
+              <div style={{ marginTop: '12px', padding: '10px', background: 'rgba(0, 0, 0, 0.4)', borderRadius: '4px', borderLeft: '3px solid var(--danger)', fontFamily: 'monospace', fontSize: '12px', overflowX: 'auto', whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>
+                <strong>Error Details:</strong>
+                <br />
+                {errorMessage}
+              </div>
+            )}
           </div>
         )}
 
