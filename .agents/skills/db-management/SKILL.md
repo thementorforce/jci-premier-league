@@ -53,8 +53,8 @@ When deploying database changes to the production environment:
    npx prisma db seed
    ```
 
-3. **Containerized Entrypoint**:
-   Both schema sync and seeding are run automatically at container startup via the `Dockerfile` `CMD` before launching the Next.js server.
+3. **Containerized Startup**:
+   Both schema sync and seeding are executed asynchronously in the background at container startup (with a short delay to allow the Cloud SQL proxy to initialize). This prevents database initialization errors or latency from blocking the Next.js server startup or failing the Cloud Run port health check.
 
 ---
 
