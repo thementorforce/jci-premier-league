@@ -8,6 +8,7 @@ export default async function TeamsPage() {
   let teams = [];
   let ads = [];
   let dbError = false;
+  let errorMessage = '';
 
   try {
     teams = await prisma.team.findMany({
@@ -24,6 +25,7 @@ export default async function TeamsPage() {
   } catch (error) {
     console.error("Error loading teams:", error);
     dbError = true;
+    errorMessage = error.message || String(error);
   }
 
   return (
@@ -36,8 +38,15 @@ export default async function TeamsPage() {
       </div>
 
       {dbError && (
-        <div style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid var(--danger)', padding: '16px', borderRadius: '8px', textAlign: 'center' }}>
+        <div style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid var(--danger)', padding: '16px', borderRadius: '8px', textAlign: 'center', color: 'var(--text-primary)' }}>
           <p>Database connection issues. Please make sure the migrations and seeds are applied.</p>
+          {errorMessage && (
+            <div style={{ marginTop: '12px', padding: '10px', background: 'rgba(0, 0, 0, 0.4)', borderRadius: '4px', borderLeft: '3px solid var(--danger)', fontFamily: 'monospace', fontSize: '12px', overflowX: 'auto', whiteSpace: 'pre-wrap', textAlign: 'left', wordBreak: 'break-all' }}>
+              <strong>Error Details:</strong>
+              <br />
+              {errorMessage}
+            </div>
+          )}
         </div>
       )}
 
