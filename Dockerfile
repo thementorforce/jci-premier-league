@@ -57,4 +57,4 @@ ENV PORT=8080
 ENV HOSTNAME="0.0.0.0"
 
 # Sync schema to production database, seed system metadata in the background, and start the standalone server immediately in the foreground
-CMD ["sh", "-c", "(sleep 2 && node node_modules/prisma/build/index.js db push --accept-data-loss && node prisma/seed.js || echo 'Database initialization failed') & exec node server.js"]
+CMD ["sh", "-c", "[ -n \"$DATABASE_URL\" ] && export DATABASE_URL=$(echo \"$DATABASE_URL\" | sed 's|@/|@localhost/|') ; (sleep 2 && node node_modules/prisma/build/index.js db push --accept-data-loss && node prisma/seed.js || echo 'Database initialization failed') & exec node server.js"]
