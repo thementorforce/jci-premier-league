@@ -137,8 +137,8 @@ export default async function Home() {
         )}
 
         <div className="flex-buttons">
-          <Link href="/register" className="premium-button">
-            Register as Player
+          <Link href="/register-player" className="premium-button">
+            Register Player <ArrowRight size={18} />
           </Link>
           <Link href="/auction" className="premium-button-secondary">
             View Live Auction

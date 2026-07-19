@@ -23,7 +23,7 @@ export default function Navbar() {
 
   const navLinks = [
     { href: '/', label: 'Home' },
-    { href: '/register', label: 'Player Register' },
+    { href: '/register-player', label: 'Player Register' },
     { href: '/teams', label: 'Teams' },
     { href: '/auction', label: 'Live Auction' },
   ];
