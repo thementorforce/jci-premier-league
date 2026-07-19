@@ -4,7 +4,61 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('Seeding database...');
 
-  // Clean existing data
+  // Avoid wiping database in production!
+  if (process.env.NODE_ENV === 'production') {
+    console.log('Production detected. Skipping clean step, only checking for missing data.');
+    
+    // Seed default admin if missing
+    const adminExists = await prisma.user.findFirst({ where: { role: 'ADMIN' } });
+    if (!adminExists) {
+      await prisma.user.create({
+        data: {
+          username: 'admin',
+          password: 'adminpassword',
+          role: 'ADMIN',
+        },
+      });
+      console.log('Seeded default admin user in production.');
+    }
+    
+    // Seed teams if missing
+    const teamCount = await prisma.team.count();
+    if (teamCount === 0) {
+      const defaultTeams = [
+        { name: 'Tumkur Titans', ownerName: 'Rajesh Gowda', pointsPurse: 100000, pointsSpent: 0 },
+        { name: 'Metro Mavericks', ownerName: 'Amit Shah', pointsPurse: 100000, pointsSpent: 0 },
+        { name: 'Prerana Panthers', ownerName: 'Dr. Ramesh', pointsPurse: 100000, pointsSpent: 0 },
+        { name: 'JCI Warriors', ownerName: 'Kiran Kumar', pointsPurse: 100000, pointsSpent: 0 },
+        { name: 'Royal Challengers Tumkur', ownerName: 'Sanjay Murthy', pointsPurse: 100000, pointsSpent: 0 },
+      ];
+      
+      const seededTeams = [];
+      for (const t of defaultTeams) {
+        const team = await prisma.team.create({ data: t });
+        seededTeams.push(team);
+      }
+      console.log('Seeded default teams in production.');
+      
+      // Also seed owner users for these teams
+      for (const team of seededTeams) {
+        const username = `owner_${team.name.toLowerCase().replace(/\s+/g, '_')}`;
+        await prisma.user.create({
+          data: {
+            username,
+            password: 'password123',
+            role: 'OWNER',
+            teamId: team.id,
+          },
+        });
+      }
+      console.log('Seeded owner users in production.');
+    }
+    
+    console.log('Production seed completed successfully!');
+    return;
+  }
+
+  // Clean existing data (only run in local development)
   await prisma.bidHistory.deleteMany({});
   await prisma.playerProfile.deleteMany({});
   await prisma.user.deleteMany({});
