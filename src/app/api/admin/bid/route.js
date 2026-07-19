@@ -1,7 +1,11 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/db';
+import { requireAdmin } from '@/lib/auth';
 
 export async function POST(request) {
+  const auth = await requireAdmin();
+  if (auth.response) return auth.response;
+
   try {
     const { playerId, teamId, amount } = await request.json();
 

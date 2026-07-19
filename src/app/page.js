@@ -26,29 +26,54 @@ export default async function Home() {
   }
 
   // Fallback sample ads if db not configured/seeded
-  const activeAds = ads.length > 0 ? ads : [
+  const defaultBanners = [
     {
       id: 'default-1',
       title: 'Tournament Sponsor',
       imageUrl: 'https://images.unsplash.com/photo-1531415074968-036ba1b575da?auto=format&fit=crop&w=1200&q=80',
       targetUrl: '#',
       position: 'TOP_BANNER'
-    }
+    },
+    {
+      id: 'default-2',
+      title: 'Sports Gear Partner',
+      imageUrl: 'https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?auto=format&fit=crop&w=1200&q=80',
+      targetUrl: '#',
+      position: 'TOP_BANNER'
+    },
+    {
+      id: 'default-3',
+      title: 'Local Business Sponsor',
+      imageUrl: 'https://images.unsplash.com/photo-1461896836934-ffe607be7e72?auto=format&fit=crop&w=1200&q=80',
+      targetUrl: '#',
+      position: 'TOP_BANNER'
+    },
+    {
+      id: 'default-4',
+      title: 'Community Partner',
+      imageUrl: 'https://images.unsplash.com/photo-1624526267662-791473f29493?auto=format&fit=crop&w=1200&q=80',
+      targetUrl: '#',
+      position: 'TOP_BANNER'
+    },
   ];
 
-  const topBanners = activeAds.filter(a => a.position === 'TOP_BANNER');
-  const marqueeAds = topBanners.length > 0 ? topBanners : activeAds;
+  const topBanners = ads.filter(a => a.position === 'TOP_BANNER');
+  const bannerSource = topBanners.length > 0 ? topBanners : defaultBanners;
+  const marqueeAds = Array.from({ length: 4 }, (_, i) => ({
+    ...bannerSource[i % bannerSource.length],
+    id: `${bannerSource[i % bannerSource.length].id}-slot-${i}`,
+  }));
 
   return (
-    <div className="hero-gradient" style={{ padding: '60px 20px', display: 'flex', flexDirection: 'column', gap: '48px', alignItems: 'center' }}>
+    <div className="hero-gradient hero-section">
 
       {/* Continuous Scrolling Banners */}
-      <div className="marquee-container" style={{ width: '100vw', maxWidth: '100%', position: 'relative', left: '50%', transform: 'translateX(-50%)' }}>
-        <div className="marquee-content">
+      <div className="marquee-container marquee-container-rtl">
+        <div className="marquee-content marquee-content-rtl">
           {[...Array(2)].map((_, groupIndex) => (
             <div key={groupIndex} style={{ display: 'flex' }}>
               {marqueeAds.map((ad) => (
-                <div key={`${groupIndex}-${ad.id}`} className="marquee-item" style={{ width: '620px', height: '220px' }}>
+                <div key={`${groupIndex}-${ad.id}`} className="marquee-item marquee-item-responsive">
                   <a
                     href={ad.targetUrl || '#'}
                     target="_blank"
@@ -81,11 +106,11 @@ export default async function Home() {
 
       {/* Main Hero Header */}
       <div style={{ textAlign: 'center', maxWidth: '1000px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-        <h1 style={{ fontSize: '4.5rem', fontWeight: '800', lineHeight: '1.2' }}>
+        <h1 className="hero-title" style={{ textAlign: 'center' }}>
           Welcome to the <br />
           <span className="gold-gradient-text">Franchise Cricket League</span>
         </h1>
-        <p style={{ color: 'var(--text-secondary)', fontSize: '1.25rem', maxWidth: '600px', margin: '0 auto' }}>
+        <p style={{ color: 'var(--text-secondary)', fontSize: 'clamp(1rem, 2.5vw, 1.25rem)', maxWidth: '600px', margin: '0 auto', textAlign: 'center' }}>
           Tumkur's premium points-based cricket auction and tournament. Register today, and get picked by top franchises!
         </p>
 
@@ -111,7 +136,7 @@ export default async function Home() {
           </div>
         )}
 
-        <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', marginTop: '20px' }}>
+        <div className="flex-buttons">
           <Link href="/register" className="premium-button">
             Register as Player
           </Link>

@@ -27,11 +27,11 @@ export default async function TeamsPage() {
   }
 
   return (
-    <div style={{ maxWidth: '1200px', margin: '40px auto', padding: '0 20px', display: 'flex', flexDirection: 'column', gap: '32px' }}>
+    <div className="page-container-lg">
       
       {/* Title */}
       <div style={{ textAlign: 'center' }}>
-        <h1 className="gold-gradient-text" style={{ fontSize: '36px', fontWeight: '800' }}>🏆 Franchise Squads</h1>
+        <h1 className="gold-gradient-text section-title">🏆 Franchise Squads</h1>
         <p style={{ color: 'var(--text-secondary)' }}>View team budgets, purses, and recruited player lists</p>
       </div>
 
@@ -42,7 +42,7 @@ export default async function TeamsPage() {
       )}
 
       {/* Main Layout Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: '3fr 1fr', gap: '32px' }}>
+      <div className="grid-teams-layout">
         
         {/* Teams List */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
@@ -119,7 +119,7 @@ export default async function TeamsPage() {
 
         {/* Sidebar Ads */}
         <div>
-          <div style={{ position: 'sticky', top: '100px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          <div className="sidebar-sticky">
             <h3 style={{ fontSize: '14px', textTransform: 'uppercase', color: 'var(--text-secondary)', letterSpacing: '0.05em' }}>Sponsors</h3>
             
             {ads.length > 0 ? (
@@ -142,7 +142,7 @@ export default async function TeamsPage() {
             ) : (
               <div className="premium-card" style={{ padding: '16px', textAlign: 'center', background: 'rgba(6, 182, 212, 0.05)' }}>
                 <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Support Franchise Cricket League by placing ads here!</p>
-                <Link href="/admin" style={{ fontSize: '11px', color: 'var(--accent-teal)', marginTop: '8px', display: 'inline-block', fontWeight: '600' }}>Manage Ads &rarr;</Link>
+                <Link href="/admin/login" style={{ fontSize: '11px', color: 'var(--accent-teal)', marginTop: '8px', display: 'inline-block', fontWeight: '600' }}>Manage Ads &rarr;</Link>
               </div>
             )}
           </div>

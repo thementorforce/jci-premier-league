@@ -56,6 +56,7 @@ async function main() {
   const players = [
     {
       fullName: 'Anil Kumar',
+      email: 'anil.kumar@example.com',
       mobileNumber: '9876543210',
       organization: 'JCI Tumkur Metro',
       gender: 'Male',
@@ -63,10 +64,12 @@ async function main() {
       jerseySize: 'L',
       preferredRole: 'All-Rounder',
       experience: 'Experienced',
+      photoUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80',
       status: 'Registered',
     },
     {
       fullName: 'Sunil Prasad',
+      email: 'sunil.prasad@example.com',
       mobileNumber: '9876543211',
       organization: 'JCOM',
       gender: 'Male',
@@ -74,10 +77,12 @@ async function main() {
       jerseySize: 'M',
       preferredRole: 'Batsman',
       experience: 'Experienced',
+      photoUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80',
       status: 'Registered',
     },
     {
       fullName: 'Rahul M',
+      email: 'rahul.m@example.com',
       mobileNumber: '9876543212',
       organization: 'JAC',
       gender: 'Male',
@@ -85,10 +90,12 @@ async function main() {
       jerseySize: 'XL',
       preferredRole: 'Bowler',
       experience: 'Intermediate',
+      photoUrl: 'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?auto=format&fit=crop&w=200&q=80',
       status: 'Registered',
     },
     {
       fullName: 'Sneha Gowda',
+      email: 'sneha.gowda@example.com',
       mobileNumber: '9876543213',
       organization: 'Rotary Tumkur Prerana',
       gender: 'Female',
@@ -96,10 +103,12 @@ async function main() {
       jerseySize: 'S',
       preferredRole: 'Wicketkeeper',
       experience: 'Intermediate',
+      photoUrl: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=200&q=80',
       status: 'Registered',
     },
     {
       fullName: 'Vijay R',
+      email: 'vijay.r@example.com',
       mobileNumber: '9876543214',
       organization: 'JCI Tumkur Metro',
       gender: 'Male',
@@ -107,6 +116,7 @@ async function main() {
       jerseySize: 'XXL',
       preferredRole: 'Batsman',
       experience: 'Beginner',
+      photoUrl: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=200&q=80',
       status: 'Registered',
     },
   ];
@@ -122,6 +132,24 @@ async function main() {
       title: 'Decathlon Sports Tumkur',
       imageUrl: 'https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?auto=format&fit=crop&w=800&q=80',
       targetUrl: 'https://www.decathlon.in',
+      position: 'TOP_BANNER',
+    },
+    {
+      title: 'Tumkur Cricket Academy',
+      imageUrl: 'https://images.unsplash.com/photo-1531415074968-036ba1b575da?auto=format&fit=crop&w=800&q=80',
+      targetUrl: '#',
+      position: 'TOP_BANNER',
+    },
+    {
+      title: 'JCI Tumkur Metro',
+      imageUrl: 'https://images.unsplash.com/photo-1461896836934-ffe607be7e72?auto=format&fit=crop&w=800&q=80',
+      targetUrl: '#',
+      position: 'TOP_BANNER',
+    },
+    {
+      title: 'Local Sports Partner',
+      imageUrl: 'https://images.unsplash.com/photo-1624526267662-791473f29493?auto=format&fit=crop&w=800&q=80',
+      targetUrl: '#',
       position: 'TOP_BANNER',
     },
     {

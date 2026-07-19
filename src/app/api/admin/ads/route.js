@@ -1,7 +1,11 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/db';
+import { requireAdmin } from '@/lib/auth';
 
 export async function GET() {
+  const auth = await requireAdmin();
+  if (auth.response) return auth.response;
+
   try {
     const ads = await prisma.adPlacement.findMany({ orderBy: { createdAt: 'desc' } });
     return NextResponse.json(ads);
@@ -11,6 +15,9 @@ export async function GET() {
 }
 
 export async function POST(request) {
+  const auth = await requireAdmin();
+  if (auth.response) return auth.response;
+
   try {
     const { title, imageUrl, targetUrl, position } = await request.json();
 
@@ -36,6 +43,9 @@ export async function POST(request) {
 }
 
 export async function DELETE(request) {
+  const auth = await requireAdmin();
+  if (auth.response) return auth.response;
+
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
@@ -53,6 +63,9 @@ export async function DELETE(request) {
 }
 
 export async function PATCH(request) {
+  const auth = await requireAdmin();
+  if (auth.response) return auth.response;
+
   try {
     const { id, active } = await request.json();
 

@@ -8,6 +8,7 @@ export default function Register() {
   const [copied, setCopied] = useState(false);
   const [formData, setFormData] = useState({
     fullName: '',
+    email: '',
     mobileNumber: '',
     organization: 'JCI Tumkur Metro',
     gender: 'Male',
@@ -43,8 +44,16 @@ export default function Register() {
   };
 
   const nextStep = () => {
-    if (!formData.fullName || !formData.mobileNumber) {
-      setStatus({ type: 'error', message: 'Please enter your Full Name and Mobile Number first.' });
+    if (!formData.fullName || !formData.mobileNumber || !formData.email) {
+      setStatus({ type: 'error', message: 'Please enter your Full Name, Email, and Mobile Number.' });
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
+      setStatus({ type: 'error', message: 'Please enter a valid email address.' });
+      return;
+    }
+    if (!formData.photoBase64) {
+      setStatus({ type: 'error', message: 'Please upload your photo before continuing to payment.' });
       return;
     }
     setStatus({ type: null, message: '' });
@@ -85,6 +94,7 @@ export default function Register() {
         setStatus({ type: 'success', message: '🎉 Registration & payment submitted! Your profile is pending verification by the admin.' });
         setFormData({
           fullName: '',
+          email: '',
           mobileNumber: '',
           organization: 'JCI Tumkur Metro',
           gender: 'Male',
@@ -134,7 +144,7 @@ export default function Register() {
   const isUtrValid = formData.transactionId.length === 12 && /^\d+$/.test(formData.transactionId);
 
   return (
-    <div style={{ maxWidth: '750px', margin: '40px auto', padding: '0 20px' }}>
+    <div className="page-container-sm">
       <div className="premium-kk" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
 
         <div style={{ textAlign: 'center' }}>
@@ -201,9 +211,23 @@ export default function Register() {
               />
             </div>
 
+            {/* Email */}
+            <div>
+              <label className="form-label">3. Email Address *</label>
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                required
+                placeholder="you@example.com"
+                className="premium-input"
+              />
+            </div>
+
             {/* Organization */}
             <div>
-              <label className="form-label">3. Organization *</label>
+              <label className="form-label">4. Organization *</label>
               <select
                 name="organization"
                 value={formData.organization}
@@ -218,9 +242,9 @@ export default function Register() {
             </div>
 
             {/* Gender & Age Group in a 2-column layout */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            <div className="grid-2-col">
               <div>
-                <label className="form-label">4. Gender *</label>
+                <label className="form-label">5. Gender *</label>
                 <select
                   name="gender"
                   value={formData.gender}
@@ -232,7 +256,7 @@ export default function Register() {
                 </select>
               </div>
               <div>
-                <label className="form-label">5. Age Group *</label>
+                <label className="form-label">6. Age Group *</label>
                 <select
                   name="ageGroup"
                   value={formData.ageGroup}
@@ -247,9 +271,9 @@ export default function Register() {
             </div>
 
             {/* Jersey Size & Preferred Playing Role */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            <div className="grid-2-col">
               <div>
-                <label className="form-label">6. Jersey Size *</label>
+                <label className="form-label">7. Jersey Size *</label>
                 <select
                   name="jerseySize"
                   value={formData.jerseySize}
@@ -265,7 +289,7 @@ export default function Register() {
                 </select>
               </div>
               <div>
-                <label className="form-label">7. Preferred Playing Role *</label>
+                <label className="form-label">8. Preferred Playing Role *</label>
                 <select
                   name="preferredRole"
                   value={formData.preferredRole}
@@ -283,7 +307,7 @@ export default function Register() {
 
             {/* Cricket Playing Experience */}
             <div>
-              <label className="form-label">8. Cricket Playing Experience *</label>
+              <label className="form-label">9. Cricket Playing Experience *</label>
               <select
                 name="experience"
                 value={formData.experience}
@@ -298,7 +322,7 @@ export default function Register() {
 
             {/* Upload Photo */}
             <div>
-              <label className="form-label">9. Upload Your Photo (Optional)</label>
+              <label className="form-label">10. Upload Your Photo *</label>
               <div style={{ display: 'flex', gap: '16px', alignItems: 'center', marginTop: '4px' }}>
                 <div
                   style={{
@@ -306,7 +330,7 @@ export default function Register() {
                     height: '80px',
                     borderRadius: '8px',
                     background: 'rgba(7, 11, 25, 0.8)',
-                    border: '1px dashed var(--card-border)',
+                    border: formData.photoBase64 ? '2px solid var(--success)' : '1px dashed var(--danger)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -324,6 +348,7 @@ export default function Register() {
                     type="file"
                     accept="image/*"
                     id="photo-upload"
+                    required
                     onChange={(e) => handleFileChange(e, 'photoBase64')}
                     style={{ display: 'none' }}
                   />
@@ -334,7 +359,7 @@ export default function Register() {
                   >
                     Choose Image
                   </label>
-                  <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Max file size: 2MB</span>
+                  <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Required · Max file size: 2MB</span>
                 </div>
               </div>
             </div>
@@ -360,9 +385,23 @@ export default function Register() {
               </div>
               <p style={{ fontSize: '36px', fontWeight: '900', color: 'var(--text-primary)' }}>₹{config.regFee}</p>
 
-              {/* QR Code */}
-              <div style={{ background: 'white', padding: '12px', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '3px solid var(--accent-gold)' }}>
-                <img src={qrCodeApi} alt="UPI QR Code" style={{ width: '150px', height: '150px' }} />
+              {/* UPI QR Code */}
+              <div className="upi-qr-block">
+                <p style={{ fontSize: '12px', fontWeight: '700', color: 'var(--accent-teal)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                  Scan UPI QR Code
+                </p>
+                <div className="upi-qr-frame">
+                  <img
+                    src={qrCodeApi}
+                    alt={`UPI QR for ${config.upiId}`}
+                    width={200}
+                    height={200}
+                    style={{ width: '200px', height: '200px', display: 'block' }}
+                  />
+                </div>
+                <p style={{ fontFamily: 'monospace', fontWeight: '800', fontSize: '16px', color: 'var(--accent-gold)' }}>
+                  {config.upiId}
+                </p>
               </div>
 
               <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '6px', width: '100%' }}>

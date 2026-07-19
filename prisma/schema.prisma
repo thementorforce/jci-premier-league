@@ -35,6 +35,7 @@ model Team {
 model PlayerProfile {
   id              String       @id @default(uuid())
   fullName        String
+  email           String
   mobileNumber    String
   organization    String       // JCI Tumkur Metro / JCOM / JAC / Rotary Tumkur Prerana / Other
   gender          String       // Male / Female
@@ -42,7 +43,7 @@ model PlayerProfile {
   jerseySize      String       // S / M / L / XL / XXL / XXXL
   preferredRole   String       // Batsman / Bowler / All-Rounder / Wicketkeeper / Any Role
   experience      String       // Beginner / Intermediate / Experienced
-  photoUrl        String?      // Optional photo url
+  photoUrl        String       // Player photo (required)
   status            String       @default("Registered") // Registered / Bidding / Sold / Unsold
   soldPrice         Int?
   teamId            String?

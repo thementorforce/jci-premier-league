@@ -33,24 +33,14 @@ export default function AuctionToast() {
   const config = STATUS_CONFIG[status] || STATUS_CONFIG.NOT_STARTED;
 
   return (
-    <div style={{
-      position: 'fixed',
-      bottom: '24px',
-      right: '24px',
-      background: 'rgba(10, 33, 0, 0.91)',
-      backdropFilter: 'blur(16px)',
-      border: `1px solid ${config.color}`,
-      boxShadow: `0 4px 20px ${config.color}40`,
-      borderRadius: '12px',
-      padding: '16px 20px',
-      display: 'flex',
-      alignItems: 'center',
-      gap: '12px',
-      zIndex: 9999,
-      maxWidth: '300px',
-      transition: 'all 0.3s ease',
-      animation: status === 'LIVE' ? 'pulse-glow 2s infinite' : 'none',
-    }}>
+    <div
+      className="auction-toast"
+      style={{
+        border: `1px solid ${config.color}`,
+        boxShadow: `0 4px 20px ${config.color}40`,
+        animation: status === 'LIVE' ? 'pulse-glow 2s infinite' : 'none',
+      }}
+    >
       <div style={{ fontSize: '24px', animation: status === 'LIVE' ? 'float 2s ease-in-out infinite' : 'none' }}>
         {config.icon}
       </div>

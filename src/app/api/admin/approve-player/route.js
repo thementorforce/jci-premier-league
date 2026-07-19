@@ -1,7 +1,11 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/db';
+import { requireAdmin } from '@/lib/auth';
 
 export async function GET() {
+  const auth = await requireAdmin();
+  if (auth.response) return auth.response;
+
   try {
     const pendingPlayers = await prisma.playerProfile.findMany({
       where: { status: 'Pending' },
@@ -14,6 +18,9 @@ export async function GET() {
 }
 
 export async function POST(request) {
+  const auth = await requireAdmin();
+  if (auth.response) return auth.response;
+
   try {
     const { playerId, action } = await request.json();
 

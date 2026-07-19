@@ -1,11 +1,15 @@
 import { NextResponse } from 'next/server';
 import { readConfig, writeConfig, VALID_AUCTION_STATUSES } from '@/lib/config';
+import { requireAdmin } from '@/lib/auth';
 
 export async function GET() {
   return NextResponse.json(readConfig());
 }
 
 export async function POST(request) {
+  const auth = await requireAdmin();
+  if (auth.response) return auth.response;
+
   try {
     const body = await request.json();
     const current = readConfig();

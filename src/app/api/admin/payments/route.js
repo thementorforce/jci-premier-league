@@ -1,8 +1,12 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/db';
 import { readConfig } from '@/lib/config';
+import { requireAdmin } from '@/lib/auth';
 
 export async function GET() {
+  const auth = await requireAdmin();
+  if (auth.response) return auth.response;
+
   try {
     const config = readConfig();
     const regFee = parseInt(config.regFee, 10) || 0;
@@ -13,6 +17,7 @@ export async function GET() {
         select: {
           id: true,
           fullName: true,
+          email: true,
           mobileNumber: true,
           organization: true,
           preferredRole: true,

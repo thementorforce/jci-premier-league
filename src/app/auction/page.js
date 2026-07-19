@@ -71,12 +71,12 @@ export default function LiveAuction() {
   const { activePlayer, soldPlayers, unsoldPlayers, teams } = data;
 
   return (
-    <div style={{ maxWidth: '1200px', margin: '40px auto', padding: '0 20px', display: 'flex', flexDirection: 'column', gap: '32px' }}>
+    <div className="page-container-lg">
       
       {/* Header Dashboard */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
         <div>
-          <h1 className="gold-gradient-text" style={{ fontSize: '36px', fontWeight: '800' }}>⚡ Live Auction Arena</h1>
+          <h1 className="gold-gradient-text section-title">⚡ Live Auction Arena</h1>
           <p style={{ color: 'var(--text-secondary)' }}>Real-time updates directly from the bidding console</p>
         </div>
 
@@ -92,7 +92,7 @@ export default function LiveAuction() {
       </div>
 
       {/* Main Grid: Active Bid (left/center) and Teams Purse Standings (right) */}
-      <div style={{ display: 'grid', gridTemplateColumns: '7fr 4fr', gap: '32px' }}>
+      <div className="grid-auction-main">
         
         {/* Left Side: Live Auction Box */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
@@ -161,7 +161,7 @@ export default function LiveAuction() {
           )}
 
           {/* Sold and Unsold Players (Tabs / Split View) */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+          <div className="grid-sold-unsold">
             
             {/* Recently Sold */}
             <div className="premium-card" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
