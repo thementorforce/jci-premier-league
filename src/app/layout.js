@@ -1,5 +1,6 @@
 import "./globals.css";
 import Link from 'next/link';
+import AuctionToast from '@/components/AuctionToast';
 
 export const metadata = {
   title: "Franchise Cricket League (FCL) - Tumkur",
@@ -39,6 +40,8 @@ export default function RootLayout({ children }) {
           <p>© {new Date().getFullYear()} Franchise Cricket League (FCL). All Rights Reserved.</p>
           <p style={{ marginTop: '8px', fontSize: '12px' }}>Created for JCI Tumkur Metro, JCOM, JAC, and Rotary Tumkur Prerana.</p>
         </footer>
+        
+        <AuctionToast />
       </body>
     </html>
   );

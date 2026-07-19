@@ -116,9 +116,9 @@ export default function Register() {
   const isUtrValid = formData.transactionId.length === 12 && /^\d+$/.test(formData.transactionId);
 
   return (
-    <div style={{ maxWidth: '650px', margin: '40px auto', padding: '0 20px' }}>
-      <div className="premium-card" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-        
+    <div style={{ maxWidth: '750px', margin: '40px auto', padding: '0 20px' }}>
+      <div className="premium-kk" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+
         <div style={{ textAlign: 'center' }}>
           <h1 className="gold-gradient-text" style={{ fontSize: '28px', fontWeight: '800' }}>🏏 Player Registration</h1>
           <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginTop: '4px' }}>Franchise Cricket League – Season Draft</p>
@@ -154,17 +154,17 @@ export default function Register() {
         {step === 1 ? (
           /* STEP 1: PLAYER PROFILE FORM */
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            
+
             {/* Full Name */}
             <div>
               <label className="form-label">1. Full Name *</label>
-              <input 
-                type="text" 
-                name="fullName" 
-                value={formData.fullName} 
-                onChange={handleChange} 
-                required 
-                placeholder="Enter your full name" 
+              <input
+                type="text"
+                name="fullName"
+                value={formData.fullName}
+                onChange={handleChange}
+                required
+                placeholder="Enter your full name"
                 className="premium-input"
               />
             </div>
@@ -172,13 +172,13 @@ export default function Register() {
             {/* Mobile Number */}
             <div>
               <label className="form-label">2. Mobile Number *</label>
-              <input 
-                type="tel" 
-                name="mobileNumber" 
-                value={formData.mobileNumber} 
-                onChange={handleChange} 
-                required 
-                placeholder="Enter 10-digit mobile number" 
+              <input
+                type="tel"
+                name="mobileNumber"
+                value={formData.mobileNumber}
+                onChange={handleChange}
+                required
+                placeholder="Enter 10-digit mobile number"
                 className="premium-input"
               />
             </div>
@@ -186,10 +186,10 @@ export default function Register() {
             {/* Organization */}
             <div>
               <label className="form-label">3. Organization *</label>
-              <select 
-                name="organization" 
-                value={formData.organization} 
-                onChange={handleChange} 
+              <select
+                name="organization"
+                value={formData.organization}
+                onChange={handleChange}
                 className="premium-select"
               >
                 <option value="JCI Tumkur Metro">JCI Tumkur Metro</option>
@@ -203,10 +203,10 @@ export default function Register() {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
               <div>
                 <label className="form-label">4. Gender *</label>
-                <select 
-                  name="gender" 
-                  value={formData.gender} 
-                  onChange={handleChange} 
+                <select
+                  name="gender"
+                  value={formData.gender}
+                  onChange={handleChange}
                   className="premium-select"
                 >
                   <option value="Male">Male</option>
@@ -215,10 +215,10 @@ export default function Register() {
               </div>
               <div>
                 <label className="form-label">5. Age Group *</label>
-                <select 
-                  name="ageGroup" 
-                  value={formData.ageGroup} 
-                  onChange={handleChange} 
+                <select
+                  name="ageGroup"
+                  value={formData.ageGroup}
+                  onChange={handleChange}
                   className="premium-select"
                 >
                   <option value="Below 25 Years">Below 25 Years</option>
@@ -232,10 +232,10 @@ export default function Register() {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
               <div>
                 <label className="form-label">6. Jersey Size *</label>
-                <select 
-                  name="jerseySize" 
-                  value={formData.jerseySize} 
-                  onChange={handleChange} 
+                <select
+                  name="jerseySize"
+                  value={formData.jerseySize}
+                  onChange={handleChange}
                   className="premium-select"
                 >
                   <option value="S">S</option>
@@ -248,10 +248,10 @@ export default function Register() {
               </div>
               <div>
                 <label className="form-label">7. Preferred Playing Role *</label>
-                <select 
-                  name="preferredRole" 
-                  value={formData.preferredRole} 
-                  onChange={handleChange} 
+                <select
+                  name="preferredRole"
+                  value={formData.preferredRole}
+                  onChange={handleChange}
                   className="premium-select"
                 >
                   <option value="Batsman">Batsman</option>
@@ -266,10 +266,10 @@ export default function Register() {
             {/* Cricket Playing Experience */}
             <div>
               <label className="form-label">8. Cricket Playing Experience *</label>
-              <select 
-                name="experience" 
-                value={formData.experience} 
-                onChange={handleChange} 
+              <select
+                name="experience"
+                value={formData.experience}
+                onChange={handleChange}
                 className="premium-select"
               >
                 <option value="Beginner">Beginner – Play occasionally</option>
@@ -282,17 +282,17 @@ export default function Register() {
             <div>
               <label className="form-label">9. Upload Your Photo (Optional)</label>
               <div style={{ display: 'flex', gap: '16px', alignItems: 'center', marginTop: '4px' }}>
-                <div 
-                  style={{ 
-                    width: '80px', 
-                    height: '80px', 
-                    borderRadius: '8px', 
-                    background: 'rgba(7, 11, 25, 0.8)', 
-                    border: '1px dashed var(--card-border)', 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'center', 
-                    overflow: 'hidden' 
+                <div
+                  style={{
+                    width: '80px',
+                    height: '80px',
+                    borderRadius: '8px',
+                    background: 'rgba(7, 11, 25, 0.8)',
+                    border: '1px dashed var(--card-border)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    overflow: 'hidden'
                   }}
                 >
                   {formData.photoBase64 ? (
@@ -302,16 +302,16 @@ export default function Register() {
                   )}
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <input 
-                    type="file" 
-                    accept="image/*" 
-                    id="photo-upload" 
+                  <input
+                    type="file"
+                    accept="image/*"
+                    id="photo-upload"
                     onChange={(e) => handleFileChange(e, 'photoBase64')}
                     style={{ display: 'none' }}
                   />
-                  <label 
-                    htmlFor="photo-upload" 
-                    className="premium-button-secondary" 
+                  <label
+                    htmlFor="photo-upload"
+                    className="premium-button-secondary"
                     style={{ padding: '8px 16px', fontSize: '14px', cursor: 'pointer' }}
                   >
                     Choose Image
@@ -321,10 +321,10 @@ export default function Register() {
               </div>
             </div>
 
-            <button 
-              type="button" 
-              onClick={nextStep} 
-              className="premium-button" 
+            <button
+              type="button"
+              onClick={nextStep}
+              className="premium-button"
               style={{ width: '100%', justifyContent: 'center', marginTop: '12px' }}
             >
               Continue to Payment <ArrowRight size={18} />
@@ -334,7 +334,7 @@ export default function Register() {
         ) : (
           /* STEP 2: UPI PAYMENT GATEWAY */
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            
+
             <div className="checkout-box" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--accent-teal)' }}>
                 <CreditCard size={20} />
@@ -349,23 +349,23 @@ export default function Register() {
 
               <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '6px', width: '100%' }}>
                 <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Scan QR Code with GPay, PhonePe, or Paytm</span>
-                
+
                 {/* Copyable UPI Box */}
                 <div style={{ display: 'flex', background: 'rgba(3, 7, 18, 0.6)', border: '1px solid var(--card-border)', borderRadius: '10px', padding: '8px 12px', alignItems: 'center', justifyContent: 'space-between', margin: '4px 0' }}>
                   <span style={{ fontFamily: 'monospace', fontWeight: '700', fontSize: '14px', color: 'var(--accent-gold)' }}>{upiId}</span>
-                  <button 
-                    type="button" 
+                  <button
+                    type="button"
                     onClick={copyToClipboard}
                     style={{ background: 'none', border: 'none', cursor: 'pointer', color: copied ? 'var(--success)' : 'var(--text-secondary)' }}
                   >
                     {copied ? <Check size={16} /> : <Copy size={16} />}
                   </button>
                 </div>
-                
+
                 {/* Mobile Pay deep link button */}
-                <a 
-                  href={upiUrl} 
-                  className="premium-button-secondary" 
+                <a
+                  href={upiUrl}
+                  className="premium-button-secondary"
                   style={{ padding: '8px 16px', fontSize: '13px', marginTop: '6px', alignSelf: 'center', display: 'inline-flex', gap: '6px' }}
                 >
                   📱 Pay via UPI App
@@ -379,12 +379,12 @@ export default function Register() {
                 <span>UPI Transaction Reference ID (UTR) *</span>
                 {isUtrValid && <span style={{ color: 'var(--success)', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '4px' }}><CheckCircle2 size={12} /> Valid Format</span>}
               </label>
-              <input 
-                type="text" 
-                name="transactionId" 
+              <input
+                type="text"
+                name="transactionId"
                 required
                 maxLength="12"
-                placeholder="Enter 12-digit transaction number" 
+                placeholder="Enter 12-digit transaction number"
                 value={formData.transactionId}
                 onChange={handleChange}
                 className="premium-input"
@@ -397,17 +397,17 @@ export default function Register() {
             <div>
               <label className="form-label">Upload Payment Screenshot (Optional)</label>
               <div style={{ display: 'flex', gap: '16px', alignItems: 'center', marginTop: '4px' }}>
-                <div 
-                  style={{ 
-                    width: '80px', 
-                    height: '80px', 
-                    borderRadius: '8px', 
-                    background: 'rgba(7, 11, 25, 0.8)', 
-                    border: '1px dashed var(--card-border)', 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'center', 
-                    overflow: 'hidden' 
+                <div
+                  style={{
+                    width: '80px',
+                    height: '80px',
+                    borderRadius: '8px',
+                    background: 'rgba(7, 11, 25, 0.8)',
+                    border: '1px dashed var(--card-border)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    overflow: 'hidden'
                   }}
                 >
                   {formData.paymentScreenshot ? (
@@ -417,16 +417,16 @@ export default function Register() {
                   )}
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <input 
-                    type="file" 
-                    accept="image/*" 
-                    id="screenshot-upload" 
+                  <input
+                    type="file"
+                    accept="image/*"
+                    id="screenshot-upload"
                     onChange={(e) => handleFileChange(e, 'paymentScreenshot')}
                     style={{ display: 'none' }}
                   />
-                  <label 
-                    htmlFor="screenshot-upload" 
-                    className="premium-button-secondary" 
+                  <label
+                    htmlFor="screenshot-upload"
+                    className="premium-button-secondary"
                     style={{ padding: '8px 16px', fontSize: '14px', cursor: 'pointer' }}
                   >
                     Choose Image
@@ -438,18 +438,18 @@ export default function Register() {
 
             {/* Form buttons */}
             <div style={{ display: 'flex', gap: '16px', marginTop: '12px' }}>
-              <button 
-                type="button" 
-                onClick={prevStep} 
-                className="premium-button-secondary" 
+              <button
+                type="button"
+                onClick={prevStep}
+                className="premium-button-secondary"
                 style={{ flex: '1', justifyContent: 'center' }}
               >
                 <ArrowLeft size={18} /> Back
               </button>
-              <button 
-                type="submit" 
-                disabled={loading || !isUtrValid} 
-                className="premium-button" 
+              <button
+                type="submit"
+                disabled={loading || !isUtrValid}
+                className="premium-button"
                 style={{ flex: '2', justifyContent: 'center', opacity: (!isUtrValid || loading) ? 0.7 : 1 }}
               >
                 {loading ? 'Submitting...' : 'Complete Registration'}
