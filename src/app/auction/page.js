@@ -1,8 +1,16 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Shield, Award, Users, Search, RefreshCw, Volume2 } from 'lucide-react';
+import { Award, Users, Search, RefreshCw, Volume2, Clock, Radio, Coffee, Pause, Flag } from 'lucide-react';
 import Link from 'next/link';
+
+const STATUS_CONFIG = {
+  NOT_STARTED: { label: 'Not Started', icon: Clock,  color: '#94a3b8', bg: 'rgba(148,163,184,0.1)', description: 'The auction has not started yet. Stay tuned!' },
+  LIVE:        { label: 'Live',        icon: Radio,  color: '#10b981', bg: 'rgba(16,185,129,0.12)', description: 'Bidding is live! Watch the draft in real time.' },
+  BREAK:       { label: 'On Break',    icon: Coffee, color: '#f59e0b', bg: 'rgba(245,158,11,0.12)', description: 'Short break in progress. Bidding resumes shortly.' },
+  PAUSED:      { label: 'Paused',      icon: Pause,  color: '#ef4444', bg: 'rgba(239,68,68,0.12)',  description: 'Auction is temporarily paused.' },
+  ENDED:       { label: 'Ended',       icon: Flag,   color: '#6366f1', bg: 'rgba(99,102,241,0.12)', description: 'The auction has concluded. Check the final squads!' },
+};
 
 export default function LiveAuction() {
   const [data, setData] = useState({
@@ -10,7 +18,8 @@ export default function LiveAuction() {
     soldPlayers: [],
     unsoldPlayers: [],
     draftPool: [],
-    teams: []
+    teams: [],
+    auctionStatus: 'NOT_STARTED'
   });
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -91,7 +100,44 @@ export default function LiveAuction() {
         </button>
       </div>
 
-      {/* Main Grid: Active Bid (left/center) and Teams Purse Standings (right) */}
+      {/* ── Auction Status Banner ── */}
+      {(() => {
+        const sc = STATUS_CONFIG[data.auctionStatus] || STATUS_CONFIG.NOT_STARTED;
+        const StatusIcon = sc.icon;
+        const isLive = data.auctionStatus === 'LIVE';
+        return (
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '14px',
+            padding: '14px 20px',
+            borderRadius: '12px',
+            background: sc.bg,
+            border: `1px solid ${sc.color}55`,
+            boxShadow: isLive ? `0 0 20px ${sc.color}33` : 'none',
+            animation: isLive ? 'pulse-glow 2s infinite' : 'none',
+          }}>
+            {/* Dot */}
+            <div style={{
+              width: '10px', height: '10px', borderRadius: '50%',
+              background: sc.color,
+              flexShrink: 0,
+              boxShadow: isLive ? `0 0 8px ${sc.color}` : 'none',
+              animation: isLive ? 'pulse-glow 1.5s infinite' : 'none',
+            }} />
+            <StatusIcon size={18} color={sc.color} style={{ flexShrink: 0 }} />
+            <div style={{ flex: 1 }}>
+              <span style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-secondary)' }}>Auction Status</span>
+              <p style={{ fontWeight: '800', fontSize: '15px', color: sc.color, margin: 0 }}>{sc.label}</p>
+            </div>
+            <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: 0, textAlign: 'right' }}>
+              {sc.description}
+            </p>
+          </div>
+        );
+      })()}
+
+
       <div className="grid-auction-main">
         
         {/* Left Side: Live Auction Box */}
@@ -149,6 +195,38 @@ export default function LiveAuction() {
                   </p>
                 </div>
               </div>
+            </div>
+          ) : data.auctionStatus === 'NOT_STARTED' ? (
+            <div className="premium-card" style={{ textAlign: 'center', padding: '60px 20px', border: '1px dashed var(--card-border)' }}>
+              <span style={{ fontSize: '48px', marginBottom: '16px', display: 'block' }}>⏳</span>
+              <h2 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '8px', color: 'var(--accent-gold)' }}>Not Started Yet</h2>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '14px', maxWidth: '400px', margin: '0 auto' }}>
+                The live auction has not started yet. Bidding will begin when the host activates the draft.
+              </p>
+            </div>
+          ) : data.auctionStatus === 'BREAK' ? (
+            <div className="premium-card" style={{ textAlign: 'center', padding: '60px 20px', border: '1px dashed var(--card-border)' }}>
+              <span style={{ fontSize: '48px', marginBottom: '16px', display: 'block' }}>☕</span>
+              <h2 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '8px', color: '#f59e0b' }}>On Break</h2>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '14px', maxWidth: '400px', margin: '0 auto' }}>
+                The auction is currently on break. The bidding session will resume shortly.
+              </p>
+            </div>
+          ) : data.auctionStatus === 'PAUSED' ? (
+            <div className="premium-card" style={{ textAlign: 'center', padding: '60px 20px', border: '1px dashed var(--card-border)' }}>
+              <span style={{ fontSize: '48px', marginBottom: '16px', display: 'block' }}>⏸️</span>
+              <h2 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '8px', color: '#ef4444' }}>Paused</h2>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '14px', maxWidth: '400px', margin: '0 auto' }}>
+                The live auction is currently paused. Bidding will resume as soon as the session starts again.
+              </p>
+            </div>
+          ) : data.auctionStatus === 'ENDED' ? (
+            <div className="premium-card" style={{ textAlign: 'center', padding: '60px 20px', border: '1px dashed var(--card-border)' }}>
+              <span style={{ fontSize: '48px', marginBottom: '16px', display: 'block' }}>🏁</span>
+              <h2 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '8px', color: '#6366f1' }}>Auction Ended</h2>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '14px', maxWidth: '400px', margin: '0 auto' }}>
+                The live auction has concluded! View the final squads in the Franchise Teams page.
+              </p>
             </div>
           ) : (
             <div className="premium-card" style={{ textAlign: 'center', padding: '60px 20px', border: '1px dashed var(--card-border)' }}>

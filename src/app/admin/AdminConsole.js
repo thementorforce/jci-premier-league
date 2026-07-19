@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import {
   Play, Check, X, Plus, Trash2, RotateCcw, AlertTriangle,
   Radio, Coffee, Pause, Flag, Clock, Eye, EyeOff, IndianRupee,
-  Users, Trophy, CreditCard, Image, LogOut,
+  Users, Trophy, CreditCard, Image, LogOut, Shield,
 } from 'lucide-react';
 
 const AUCTION_STATUSES = [
@@ -38,6 +38,8 @@ export default function AdminConsole({ username = 'admin' }) {
   const [adForm, setAdForm] = useState({ title: '', imageUrl: '', targetUrl: '', position: 'TOP_BANNER' });
   const [setupKey, setSetupKey] = useState('');
   const [configForm, setConfigForm] = useState({ upiId: '', payeeName: '', regFee: '', auctionStatus: 'NOT_STARTED' });
+  const [adminTeams, setAdminTeams] = useState([]);
+  const [teamForm, setTeamForm] = useState({ name: '', ownerName: '', pointsPurse: '100000' });
 
   const showStatus = (type, text) => {
     setStatusMessage({ type, text });
@@ -58,17 +60,29 @@ export default function AdminConsole({ username = 'admin' }) {
     router.refresh();
   };
 
+  const fetchConfig = useCallback(async () => {
+    try {
+      const res = await fetch('/api/config');
+      if (res.ok) {
+        const configData = await res.json();
+        setConfigForm(configData);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }, []);
+
   const fetchConsoleData = useCallback(async () => {
     try {
-      const [auctionRes, adsRes, pendingRes, paymentsRes, configRes] = await Promise.all([
+      const [auctionRes, adsRes, pendingRes, paymentsRes, adminTeamsRes] = await Promise.all([
         fetch('/api/auction/status'),
         fetch('/api/admin/ads'),
         fetch('/api/admin/approve-player'),
         fetch('/api/admin/payments'),
-        fetch('/api/config'),
+        fetch('/api/admin/teams'),
       ]);
 
-      if ([adsRes, pendingRes, paymentsRes].some((res) => handleUnauthorized(res))) return;
+      if ([adsRes, pendingRes, paymentsRes, adminTeamsRes].some((res) => handleUnauthorized(res))) return;
 
       if (auctionRes.ok) {
         const data = await auctionRes.json();
@@ -87,20 +101,59 @@ export default function AdminConsole({ username = 'admin' }) {
         setAllPayments(payData.players || []);
         setPaymentStats(payData.stats || {});
       }
-      if (configRes.ok) {
-        const configData = await configRes.json();
-        setConfigForm(configData);
+      if (adminTeamsRes.ok) {
+        setAdminTeams(await adminTeamsRes.json());
       }
     } catch (e) {
       console.error(e);
     }
   }, [router]);
 
+  const handleAddTeam = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await fetch('/api/admin/teams', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(teamForm),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        showStatus('success', `Franchise team "${data.team.name}" created successfully!`);
+        setTeamForm({ name: '', ownerName: '', pointsPurse: '100000' });
+        fetchConsoleData();
+      } else {
+        showStatus('error', data.error || 'Failed to create team');
+      }
+    } catch {
+      showStatus('error', 'Failed to create team due to server error');
+    }
+  };
+
+  const handleDeleteTeam = async (id) => {
+    if (!confirm('Delete this team? This will also delete the owner user account.')) return;
+    try {
+      const res = await fetch(`/api/admin/teams?id=${id}`, {
+        method: 'DELETE',
+      });
+      const data = await res.json();
+      if (res.ok) {
+        showStatus('success', 'Team deleted successfully');
+        fetchConsoleData();
+      } else {
+        showStatus('error', data.error || 'Failed to delete team');
+      }
+    } catch {
+      showStatus('error', 'Failed to delete team due to server error');
+    }
+  };
+
   useEffect(() => {
+    fetchConfig();
     fetchConsoleData();
     const interval = setInterval(fetchConsoleData, 3000);
     return () => clearInterval(interval);
-  }, [fetchConsoleData]);
+  }, [fetchConfig, fetchConsoleData]);
 
   const handleSetAuctionStatus = async (status) => {
     try {
@@ -329,6 +382,7 @@ export default function AdminConsole({ username = 'admin' }) {
   const tabs = [
     { id: 'auction', label: 'Auction Control', icon: Trophy },
     { id: 'payments', label: `Payments (${pendingPlayers.length} pending)`, icon: CreditCard },
+    { id: 'teams', label: 'Franchise Teams', icon: Shield },
     { id: 'sponsors', label: 'Sponsor Banners', icon: Image },
     { id: 'settings', label: 'UPI & Settings', icon: IndianRupee },
   ];
@@ -620,6 +674,135 @@ export default function AdminConsole({ username = 'admin' }) {
                 filteredPayments.map((p) => (
                   <PaymentCard key={p.id} player={p} onApprove={(id, action) => handleApprovePlayer(id, action)} showActions={p.paymentStatus === 'Pending' && p.status === 'Pending'} />
                 ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB: Franchise Teams */}
+      {activeTab === 'teams' && (
+        <div className="grid-admin-sponsors" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))' }}>
+          
+          {/* Add Team Card */}
+          <div className="premium-card">
+            <h2 style={{ fontSize: '18px', fontWeight: '800', marginBottom: '16px', color: 'var(--accent-teal)' }}>
+              Add Franchise Team
+            </h2>
+            <form onSubmit={handleAddTeam} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div>
+                <label className="form-label">Team Name *</label>
+                <input 
+                  type="text" 
+                  required 
+                  placeholder="e.g. Tumkur Titans" 
+                  value={teamForm.name} 
+                  onChange={(e) => setTeamForm({ ...teamForm, name: e.target.value })} 
+                  className="premium-input" 
+                />
+              </div>
+              <div>
+                <label className="form-label">Owner Name *</label>
+                <input 
+                  type="text" 
+                  required 
+                  placeholder="e.g. Rajesh Gowda" 
+                  value={teamForm.ownerName} 
+                  onChange={(e) => setTeamForm({ ...teamForm, ownerName: e.target.value })} 
+                  className="premium-input" 
+                />
+              </div>
+              <div>
+                <label className="form-label">Points Purse (Total Budget)</label>
+                <input 
+                  type="number" 
+                  placeholder="100000" 
+                  value={teamForm.pointsPurse} 
+                  onChange={(e) => setTeamForm({ ...teamForm, pointsPurse: e.target.value })} 
+                  className="premium-input" 
+                />
+                <p style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                  Default is 100,000 points if left empty.
+                </p>
+              </div>
+              <button type="submit" className="premium-button" style={{ justifyContent: 'center' }}>
+                <Plus size={18} /> Add Franchise Team
+              </button>
+            </form>
+          </div>
+
+          {/* Teams List Card */}
+          <div className="premium-card">
+            <h2 style={{ fontSize: '18px', fontWeight: '800', marginBottom: '16px' }}>
+              Franchise Teams ({adminTeams.length})
+            </h2>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', maxHeight: '600px', overflowY: 'auto' }}>
+              {adminTeams.length === 0 ? (
+                <p style={{ color: 'var(--text-secondary)', fontStyle: 'italic' }}>
+                  No franchise teams configured. Use the form to add one.
+                </p>
+              ) : (
+                adminTeams.map((t) => {
+                  const remainingPurse = t.pointsPurse - t.pointsSpent;
+                  const draftedCount = t.players?.length || 0;
+                  return (
+                    <div 
+                      key={t.id} 
+                      style={{ 
+                        display: 'flex', 
+                        flexDirection: 'column', 
+                        gap: '12px', 
+                        background: 'rgba(7, 11, 25, 0.4)', 
+                        border: '1px solid var(--card-border)', 
+                        padding: '16px', 
+                        borderRadius: '10px' 
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                          <Shield size={20} color="var(--accent-gold)" />
+                          <div>
+                            <p style={{ fontWeight: '800', fontSize: '15px' }}>{t.name}</p>
+                            <p style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
+                              Owner: <strong>{t.ownerName}</strong>
+                            </p>
+                          </div>
+                        </div>
+                        <button 
+                          onClick={() => handleDeleteTeam(t.id)} 
+                          className="premium-button-secondary" 
+                          style={{ 
+                            padding: '6px', 
+                            borderRadius: '50%', 
+                            border: draftedCount > 0 ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid var(--danger)', 
+                            color: draftedCount > 0 ? 'var(--text-secondary)' : 'var(--danger)',
+                            opacity: draftedCount > 0 ? 0.4 : 1
+                          }} 
+                          disabled={draftedCount > 0}
+                          title={draftedCount > 0 ? 'Cannot delete team with drafted players' : 'Delete Team'}
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+
+                      {/* Stats Grid */}
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', textAlign: 'center', fontSize: '12px' }}>
+                        <div style={{ background: 'rgba(7, 11, 25, 0.3)', padding: '6px', borderRadius: '4px' }}>
+                          <span style={{ fontSize: '9px', color: 'var(--text-secondary)', display: 'block' }}>Budget Purse</span>
+                          <strong style={{ color: 'var(--text-primary)' }}>{t.pointsPurse.toLocaleString()}</strong>
+                        </div>
+                        <div style={{ background: 'rgba(7, 11, 25, 0.3)', padding: '6px', borderRadius: '4px' }}>
+                          <span style={{ fontSize: '9px', color: 'var(--text-secondary)', display: 'block' }}>Spent</span>
+                          <strong style={{ color: 'var(--danger)' }}>{t.pointsSpent.toLocaleString()}</strong>
+                        </div>
+                        <div style={{ background: 'rgba(7, 11, 25, 0.3)', padding: '6px', borderRadius: '4px' }}>
+                          <span style={{ fontSize: '9px', color: 'var(--text-secondary)', display: 'block' }}>Drafted</span>
+                          <strong style={{ color: 'var(--success)' }}>{draftedCount}</strong>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
               )}
             </div>
           </div>
