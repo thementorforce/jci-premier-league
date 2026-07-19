@@ -24,6 +24,9 @@ RUN npx prisma generate
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN npm run build
 
+# Prune devDependencies to keep production node_modules clean
+RUN npm prune --production
+
 # Production image, copy all the files and run next
 FROM base AS runner
 WORKDIR /app
@@ -41,13 +44,10 @@ COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.prisma ./node_modules/.prisma
-
-# Copy migrations and seed utility files
 COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/prisma ./node_modules/prisma
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@prisma ./node_modules/@prisma
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.bin ./node_modules/.bin
+
+# Copy all production node_modules (ensures Prisma CLI and its dependencies like 'effect' are present)
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
 
 # Ensure query engines are executable by nextjs user
 RUN find ./node_modules/ -type f -name "query-engine-*" -exec chmod +x {} \;
