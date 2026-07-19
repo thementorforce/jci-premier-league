@@ -27,12 +27,15 @@ export default async function Home() {
   const activeAds = ads.length > 0 ? ads : [
     {
       id: 'default-1',
-      title: 'Tumkur Premium Cricket Academy',
+      title: 'Tournament Sponsor',
       imageUrl: 'https://images.unsplash.com/photo-1531415074968-036ba1b575da?auto=format&fit=crop&w=1200&q=80',
       targetUrl: '#',
       position: 'TOP_BANNER'
     }
   ];
+
+  const topBanners = activeAds.filter(a => a.position === 'TOP_BANNER');
+  const marqueeAds = topBanners.length > 0 ? topBanners : activeAds;
 
   return (
     <div className="hero-gradient" style={{ padding: '60px 20px', display: 'flex', flexDirection: 'column', gap: '48px', alignItems: 'center' }}>
@@ -42,10 +45,10 @@ export default async function Home() {
         <div className="marquee-content">
           {[...Array(2)].map((_, groupIndex) => (
             <div key={groupIndex} style={{ display: 'flex' }}>
-              {[1, 2, 3, 4, 5].map((itemIndex) => (
-                <div key={itemIndex} className="marquee-item" style={{ width: '620px', height: '220px' }}>
+              {marqueeAds.map((ad) => (
+                <div key={`${groupIndex}-${ad.id}`} className="marquee-item" style={{ width: '620px', height: '220px' }}>
                   <a
-                    href="#"
+                    href={ad.targetUrl || '#'}
                     target="_blank"
                     rel="noopener noreferrer"
                     style={{
@@ -58,12 +61,12 @@ export default async function Home() {
                     }}
                   >
                     <img
-                      src="https://images.unsplash.com/photo-1531415074968-036ba1b575da?auto=format&fit=crop&w=1200&q=80"
-                      alt="Tournament Sponsor"
+                      src={ad.imageUrl}
+                      alt={ad.title}
                       style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                     />
                     <div style={{ position: 'absolute', bottom: '0', left: '0', right: '0', background: 'rgba(7, 11, 25, 0.8)', padding: '6px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ fontSize: '14px', fontWeight: '600' }}>Tournament Sponsor</span>
+                      <span style={{ fontSize: '14px', fontWeight: '600' }}>{ad.title}</span>
                       <span style={{ fontSize: '10px', background: 'var(--accent-gold)', color: '#070b19', padding: '2px 6px', borderRadius: '4px', fontWeight: '800' }}>Sponsored</span>
                     </div>
                   </a>
@@ -90,9 +93,11 @@ export default async function Home() {
             <p style={{ fontSize: '14px', lineHeight: '1.5' }}>
               Database is not connected or initialized yet. To initialize:
               <br />
-              1. Start the PostgreSQL database using <code>docker compose up -d</code>.
+              1. Ensure <code>DATABASE_URL="file:./dev.db"</code> is set in your <code>.env</code> file.
               <br />
-              2. Run migrations and seed the database using <code>npx prisma db push && npx prisma db seed</code>.
+              2. Initialize the database schema and seed data using <code>npx prisma db push && npx prisma db seed</code>.
+              <br />
+              3. <strong>Restart your development server</strong> (<code>npm run dev</code>) so Next.js loads the new <code>.env</code> variables.
             </p>
           </div>
         )}

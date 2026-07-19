@@ -1,5 +1,6 @@
 import prisma from '@/lib/db';
 import { Shield, Coins, Users, Trophy } from 'lucide-react';
+import Link from 'next/link';
 
 export const revalidate = 0;
 

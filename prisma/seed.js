@@ -17,6 +17,7 @@ async function main() {
     { name: 'Metro Mavericks', ownerName: 'Amit Shah', pointsPurse: 100000, pointsSpent: 0 },
     { name: 'Prerana Panthers', ownerName: 'Dr. Ramesh', pointsPurse: 100000, pointsSpent: 0 },
     { name: 'JCI Warriors', ownerName: 'Kiran Kumar', pointsPurse: 100000, pointsSpent: 0 },
+    { name: 'Royal Challengers Tumkur', ownerName: 'Sanjay Murthy', pointsPurse: 100000, pointsSpent: 0 },
   ];
 
   const seededTeams = [];

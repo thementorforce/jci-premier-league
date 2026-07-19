@@ -1,64 +1,80 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/db';
+import { readConfig } from '@/lib/config';
 
 export const revalidate = 0;
 
 export async function GET() {
   try {
-    // 1. Fetch player currently undergoing bidding
+    const config = readConfig();
+
     const activePlayer = await prisma.playerProfile.findFirst({
       where: { status: 'Bidding' },
       include: {
         bids: {
           orderBy: { amount: 'desc' },
-          take: 1,
-          include: { team: true }
-        }
-      }
+          include: { team: true },
+        },
+      },
     });
 
-    // 2. Fetch recently sold players (up to 10)
-    const soldPlayers = await prisma.playerProfile.findMany({
-      where: { status: 'Sold' },
-      orderBy: { updatedAt: 'desc' },
-      take: 10,
-      include: { team: true }
-    });
+    const [soldPlayers, unsoldPlayers, draftPool, teams, soldCount, unsoldCount, registeredCount] =
+      await Promise.all([
+        prisma.playerProfile.findMany({
+          where: { status: 'Sold' },
+          orderBy: { updatedAt: 'desc' },
+          take: 10,
+          include: { team: true },
+        }),
+        prisma.playerProfile.findMany({
+          where: { status: 'Unsold' },
+          orderBy: { fullName: 'asc' },
+        }),
+        prisma.playerProfile.findMany({
+          where: { status: 'Registered' },
+          orderBy: { fullName: 'asc' },
+        }),
+        prisma.team.findMany({ orderBy: { name: 'asc' } }),
+        prisma.playerProfile.count({ where: { status: 'Sold' } }),
+        prisma.playerProfile.count({ where: { status: 'Unsold' } }),
+        prisma.playerProfile.count({ where: { status: 'Registered' } }),
+      ]);
 
-    // 3. Fetch unsold players
-    const unsoldPlayers = await prisma.playerProfile.findMany({
-      where: { status: 'Unsold' },
-      orderBy: { fullName: 'asc' }
-    });
-
-    // 4. Fetch yet-to-be-auctioned players (Registered status)
-    const draftPool = await prisma.playerProfile.findMany({
-      where: { status: 'Registered' },
-      orderBy: { fullName: 'asc' }
-    });
-
-    // 5. Fetch teams stats (budget standing)
-    const teams = await prisma.team.findMany({
-      orderBy: { name: 'asc' }
-    });
+    const highestBid = activePlayer?.bids[0];
 
     return NextResponse.json({
-      activePlayer: activePlayer ? {
-        id: activePlayer.id,
-        fullName: activePlayer.fullName,
-        organization: activePlayer.organization,
-        preferredRole: activePlayer.preferredRole,
-        experience: activePlayer.experience,
-        photoUrl: activePlayer.photoUrl,
-        jerseySize: activePlayer.jerseySize,
-        currentBid: activePlayer.bids[0] ? activePlayer.bids[0].amount : 0,
-        highestBidder: activePlayer.bids[0] ? activePlayer.bids[0].team.name : 'No Bids Yet',
-        highestBidderId: activePlayer.bids[0] ? activePlayer.bids[0].team.id : null,
-      } : null,
+      auctionStatus: config.auctionStatus,
+      activePlayer: activePlayer
+        ? {
+            id: activePlayer.id,
+            fullName: activePlayer.fullName,
+            organization: activePlayer.organization,
+            preferredRole: activePlayer.preferredRole,
+            experience: activePlayer.experience,
+            photoUrl: activePlayer.photoUrl,
+            jerseySize: activePlayer.jerseySize,
+            currentBid: highestBid ? highestBid.amount : 0,
+            highestBidder: highestBid ? highestBid.team.name : 'No Bids Yet',
+            highestBidderId: highestBid ? highestBid.team.id : null,
+            bidHistory: activePlayer.bids.map((b) => ({
+              id: b.id,
+              amount: b.amount,
+              teamName: b.team.name,
+              teamId: b.team.id,
+              createdAt: b.createdAt,
+            })),
+          }
+        : null,
       soldPlayers,
       unsoldPlayers,
       draftPool,
-      teams
+      teams,
+      summary: {
+        sold: soldCount,
+        unsold: unsoldCount,
+        registered: registeredCount,
+        total: soldCount + unsoldCount + registeredCount + (activePlayer ? 1 : 0),
+      },
     });
   } catch (error) {
     console.error('Error fetching auction status:', error);

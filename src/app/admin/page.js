@@ -1,80 +1,122 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Play, Check, X, Shield, Plus, Trash2, RotateCcw, AlertTriangle, Users, Award, ShieldAlert } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import {
+  Play, Check, X, Plus, Trash2, RotateCcw, AlertTriangle,
+  Radio, Coffee, Pause, Flag, Clock, Eye, EyeOff, IndianRupee,
+  Users, Trophy, CreditCard, Image,
+} from 'lucide-react';
+
+const AUCTION_STATUSES = [
+  { key: 'NOT_STARTED', label: 'Not Started', icon: Clock, color: '#94a3b8' },
+  { key: 'LIVE', label: 'Live', icon: Radio, color: '#10b981' },
+  { key: 'BREAK', label: 'On Break', icon: Coffee, color: '#f59e0b' },
+  { key: 'PAUSED', label: 'Paused', icon: Pause, color: '#ef4444' },
+  { key: 'ENDED', label: 'Ended', icon: Flag, color: '#6366f1' },
+];
 
 export default function AdminConsole() {
-  const [activeTab, setActiveTab] = useState('bidding');
-  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('auction');
   const [statusMessage, setStatusMessage] = useState({ type: null, text: '' });
-  
-  // Data State
+
   const [activePlayer, setActivePlayer] = useState(null);
   const [draftPool, setDraftPool] = useState([]);
   const [teams, setTeams] = useState([]);
+  const [soldPlayers, setSoldPlayers] = useState([]);
+  const [auctionSummary, setAuctionSummary] = useState({});
+  const [auctionStatus, setAuctionStatus] = useState('NOT_STARTED');
+
   const [ads, setAds] = useState([]);
   const [pendingPlayers, setPendingPlayers] = useState([]);
-  
-  // Forms State
+  const [allPayments, setAllPayments] = useState([]);
+  const [paymentStats, setPaymentStats] = useState({});
+  const [paymentFilter, setPaymentFilter] = useState('all');
+
   const [bidForm, setBidForm] = useState({ teamId: '', amount: '' });
-  const [adForm, setAdForm] = useState({ title: '', imageUrl: '', targetUrl: '', position: 'SIDEBAR' });
+  const [adForm, setAdForm] = useState({ title: '', imageUrl: '', targetUrl: '', position: 'TOP_BANNER' });
   const [setupKey, setSetupKey] = useState('');
+  const [configForm, setConfigForm] = useState({ upiId: '', payeeName: '', regFee: '', auctionStatus: 'NOT_STARTED' });
 
   const showStatus = (type, text) => {
     setStatusMessage({ type, text });
     setTimeout(() => setStatusMessage({ type: null, text: '' }), 5000);
   };
 
-  const fetchConsoleData = async () => {
+  const fetchConsoleData = useCallback(async () => {
     try {
-      const res = await fetch('/api/auction/status');
-      if (res.ok) {
-        const data = await res.json();
+      const [auctionRes, adsRes, pendingRes, paymentsRes, configRes] = await Promise.all([
+        fetch('/api/auction/status'),
+        fetch('/api/admin/ads'),
+        fetch('/api/admin/approve-player'),
+        fetch('/api/admin/payments'),
+        fetch('/api/config'),
+      ]);
+
+      if (auctionRes.ok) {
+        const data = await auctionRes.json();
         setActivePlayer(data.activePlayer);
         setDraftPool(data.draftPool);
         setTeams(data.teams);
-      }
-      
-      const adsRes = await fetch('/api/admin/ads');
-      if (adsRes.ok) {
-        const adsData = await adsRes.json();
-        setAds(adsData);
+        setSoldPlayers(data.soldPlayers || []);
+        setAuctionSummary(data.summary || {});
+        setAuctionStatus(data.auctionStatus || 'NOT_STARTED');
       }
 
-      const pendingRes = await fetch('/api/admin/approve-player');
-      if (pendingRes.ok) {
-        const pendingData = await pendingRes.json();
-        setPendingPlayers(pendingData);
+      if (adsRes.ok) setAds(await adsRes.json());
+      if (pendingRes.ok) setPendingPlayers(await pendingRes.json());
+      if (paymentsRes.ok) {
+        const payData = await paymentsRes.json();
+        setAllPayments(payData.players || []);
+        setPaymentStats(payData.stats || {});
+      }
+      if (configRes.ok) {
+        const configData = await configRes.json();
+        setConfigForm(configData);
       }
     } catch (e) {
       console.error(e);
-    } finally {
-      setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchConsoleData();
     const interval = setInterval(fetchConsoleData, 3000);
     return () => clearInterval(interval);
-  }, []);
+  }, [fetchConsoleData]);
+
+  const handleSetAuctionStatus = async (status) => {
+    try {
+      const res = await fetch('/api/config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...configForm, auctionStatus: status }),
+      });
+      if (res.ok) {
+        setAuctionStatus(status);
+        setConfigForm((prev) => ({ ...prev, auctionStatus: status }));
+        showStatus('success', `Auction status set to ${status.replace('_', ' ')}`);
+      }
+    } catch {
+      showStatus('error', 'Failed to update auction status');
+    }
+  };
 
   const handleStartBidding = async (playerId) => {
     try {
       const res = await fetch('/api/admin/draft', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ playerId })
+        body: JSON.stringify({ playerId }),
       });
       const data = await res.json();
       if (res.ok) {
-        showStatus('success', `Active bidding started for ${data.player.fullName}`);
+        showStatus('success', `${data.player.fullName} is now LIVE on the auction block`);
         fetchConsoleData();
       } else {
         showStatus('error', data.error);
       }
-    } catch (e) {
-      showStatus('error', 'Failed to communicate with server');
+    } catch {
+      showStatus('error', 'Failed to start bidding');
     }
   };
 
@@ -88,38 +130,39 @@ export default function AdminConsole() {
         body: JSON.stringify({
           playerId: activePlayer.id,
           teamId: bidForm.teamId,
-          amount: parseInt(bidForm.amount, 10)
-        })
+          amount: parseInt(bidForm.amount, 10),
+        }),
       });
       const data = await res.json();
       if (res.ok) {
-        showStatus('success', 'Bid placed successfully!');
-        setBidForm({ ...bidForm, amount: '' }); // reset amount
+        showStatus('success', 'Bid placed successfully');
+        setBidForm({ ...bidForm, amount: '' });
         fetchConsoleData();
       } else {
         showStatus('error', data.error);
       }
-    } catch (e) {
+    } catch {
       showStatus('error', 'Failed to place bid');
     }
   };
 
   const handleCompleteSale = async () => {
     if (!activePlayer) return;
+    if (!confirm(`Assign ${activePlayer.fullName} to ${activePlayer.highestBidder} for ${activePlayer.currentBid.toLocaleString()} pts?`)) return;
     try {
       const res = await fetch('/api/admin/complete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ playerId: activePlayer.id })
+        body: JSON.stringify({ playerId: activePlayer.id }),
       });
       const data = await res.json();
       if (res.ok) {
-        showStatus('success', data.message || 'Player sold successfully!');
+        showStatus('success', data.message || 'Player added to team');
         fetchConsoleData();
       } else {
         showStatus('error', data.error);
       }
-    } catch (e) {
+    } catch {
       showStatus('error', 'Failed to record sale');
     }
   };
@@ -130,16 +173,16 @@ export default function AdminConsole() {
       const res = await fetch('/api/admin/unsold', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ playerId: activePlayer.id })
+        body: JSON.stringify({ playerId: activePlayer.id }),
       });
       const data = await res.json();
       if (res.ok) {
-        showStatus('success', 'Player marked as Unsold.');
+        showStatus('success', 'Player marked as unsold');
         fetchConsoleData();
       } else {
         showStatus('error', data.error);
       }
-    } catch (e) {
+    } catch {
       showStatus('error', 'Failed to mark unsold');
     }
   };
@@ -149,16 +192,16 @@ export default function AdminConsole() {
       const res = await fetch('/api/admin/approve-player', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ playerId, action })
+        body: JSON.stringify({ playerId, action }),
       });
       const data = await res.json();
       if (res.ok) {
-        showStatus('success', action === 'approve' ? 'Player payment approved & added to draft!' : 'Player registration deleted.');
+        showStatus('success', action === 'approve' ? 'Payment approved - player added to draft pool' : 'Registration rejected');
         fetchConsoleData();
       } else {
         showStatus('error', data.error);
       }
-    } catch (e) {
+    } catch {
       showStatus('error', 'Server connection error');
     }
   };
@@ -169,47 +212,80 @@ export default function AdminConsole() {
       const res = await fetch('/api/admin/ads', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(adForm)
+        body: JSON.stringify(adForm),
       });
       if (res.ok) {
-        showStatus('success', 'Ad added successfully!');
-        setAdForm({ title: '', imageUrl: '', targetUrl: '', position: 'SIDEBAR' });
+        showStatus('success', 'Sponsor banner added');
+        setAdForm({ title: '', imageUrl: '', targetUrl: '', position: 'TOP_BANNER' });
         fetchConsoleData();
       } else {
         const data = await res.json();
         showStatus('error', data.error);
       }
-    } catch (e) {
-      showStatus('error', 'Failed to create ad');
+    } catch {
+      showStatus('error', 'Failed to create banner');
+    }
+  };
+
+  const handleToggleAd = async (id, active) => {
+    try {
+      const res = await fetch('/api/admin/ads', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, active }),
+      });
+      if (res.ok) {
+        showStatus('success', active ? 'Banner activated' : 'Banner hidden');
+        fetchConsoleData();
+      }
+    } catch {
+      showStatus('error', 'Failed to update banner');
     }
   };
 
   const handleDeleteAd = async (id) => {
+    if (!confirm('Delete this sponsor banner?')) return;
     try {
       const res = await fetch(`/api/admin/ads?id=${id}`, { method: 'DELETE' });
       if (res.ok) {
-        showStatus('success', 'Ad deleted successfully!');
+        showStatus('success', 'Banner deleted');
         fetchConsoleData();
-      } else {
-        showStatus('error', 'Failed to delete ad');
       }
-    } catch (e) {
-      showStatus('error', 'Server error during deletion');
+    } catch {
+      showStatus('error', 'Failed to delete banner');
+    }
+  };
+
+  const handleUpdateConfig = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await fetch('/api/config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(configForm),
+      });
+      if (res.ok) {
+        showStatus('success', 'UPI & fee settings saved');
+      } else {
+        const data = await res.json();
+        showStatus('error', data.error);
+      }
+    } catch {
+      showStatus('error', 'Failed to update settings');
     }
   };
 
   const handleResetSystem = async () => {
     if (setupKey !== 'RESET') {
-      showStatus('error', "Type 'RESET' in the confirmation box to run database initialization.");
+      showStatus('error', "Type 'RESET' to confirm");
       return;
     }
-    if (!confirm('Are you sure you want to reset all players, bids, and teams? This action is destructive.')) return;
-    
+    if (!confirm('Reset all players, bids, teams, and ads? This cannot be undone.')) return;
     try {
       const res = await fetch('/api/admin/setup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'reset_all' })
+        body: JSON.stringify({ action: 'reset_all' }),
       });
       const data = await res.json();
       if (res.ok) {
@@ -219,404 +295,461 @@ export default function AdminConsole() {
       } else {
         showStatus('error', data.error);
       }
-    } catch (e) {
+    } catch {
       showStatus('error', 'Failed to reset database');
     }
   };
 
+  const currentStatusConfig = AUCTION_STATUSES.find((s) => s.key === auctionStatus) || AUCTION_STATUSES[0];
+
+  const filteredPayments = allPayments.filter((p) => {
+    if (paymentFilter === 'pending') return p.paymentStatus === 'Pending';
+    if (paymentFilter === 'approved') return p.paymentStatus === 'Approved';
+    return true;
+  });
+
+  const tabs = [
+    { id: 'auction', label: 'Auction Control', icon: Trophy },
+    { id: 'payments', label: `Payments (${pendingPlayers.length} pending)`, icon: CreditCard },
+    { id: 'sponsors', label: 'Sponsor Banners', icon: Image },
+    { id: 'settings', label: 'UPI & Settings', icon: IndianRupee },
+  ];
+
   return (
-    <div style={{ maxWidth: '1200px', margin: '40px auto', padding: '0 20px', display: 'flex', flexDirection: 'column', gap: '32px' }}>
-      
-      {/* Title */}
+    <div style={{ maxWidth: '1280px', margin: '32px auto', padding: '0 20px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+
+      {/* Header */}
       <div>
-        <h1 className="gold-gradient-text" style={{ fontSize: '36px', fontWeight: '800' }}>🛠️ Admin Bidding Console</h1>
-        <p style={{ color: 'var(--text-secondary)' }}>Control the live auction flow, approve UPI payments, manage ads, and reset database</p>
+        <h1 className="gold-gradient-text" style={{ fontSize: '32px', fontWeight: '800' }}>Admin Console</h1>
+        <p style={{ color: 'var(--text-secondary)', marginTop: '4px' }}>
+          Manage live auction, payments, sponsor banners, and system settings
+        </p>
       </div>
 
-      {/* Dynamic Status Banner */}
+      {/* Status toast */}
       {statusMessage.text && (
         <div style={{
           background: statusMessage.type === 'success' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)',
           border: `1px solid ${statusMessage.type === 'success' ? 'var(--success)' : 'var(--danger)'}`,
-          color: 'var(--text-primary)',
-          padding: '12px 20px',
-          borderRadius: '8px',
-          fontWeight: '600',
-          fontSize: '14px'
+          padding: '12px 20px', borderRadius: '8px', fontWeight: '600', fontSize: '14px',
         }}>
           {statusMessage.text}
         </div>
       )}
 
-      {/* Console Tab Links */}
-      <div style={{ display: 'flex', gap: '12px', borderBottom: '1px solid var(--card-border)', paddingBottom: '12px', flexWrap: 'wrap' }}>
-        <button 
-          onClick={() => setActiveTab('bidding')} 
-          className={activeTab === 'bidding' ? 'premium-button' : 'premium-button-secondary'}
-          style={{ borderRadius: '8px', padding: '8px 20px', fontSize: '14px' }}
-        >
-          Auction Control
-        </button>
-        <button 
-          onClick={() => setActiveTab('approvals')} 
-          className={activeTab === 'approvals' ? 'premium-button' : 'premium-button-secondary'}
-          style={{ borderRadius: '8px', padding: '8px 20px', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}
-        >
-          Pending Payments ({pendingPlayers.length})
-        </button>
-        <button 
-          onClick={() => setActiveTab('ads')} 
-          className={activeTab === 'ads' ? 'premium-button' : 'premium-button-secondary'}
-          style={{ borderRadius: '8px', padding: '8px 20px', fontSize: '14px' }}
-        >
-          Sponsor Banners
-        </button>
-        <button 
-          onClick={() => setActiveTab('system')} 
-          className={activeTab === 'system' ? 'premium-button' : 'premium-button-secondary'}
-          style={{ borderRadius: '8px', padding: '8px 20px', fontSize: '14px' }}
-        >
-          System Setup
-        </button>
+      {/* Auction Status Control Bar */}
+      <div className="premium-card" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{
+              width: '12px', height: '12px', borderRadius: '50%',
+              background: currentStatusConfig.color,
+              boxShadow: auctionStatus === 'LIVE' ? `0 0 12px ${currentStatusConfig.color}` : 'none',
+              animation: auctionStatus === 'LIVE' ? 'pulse-glow 2s infinite' : 'none',
+            }} />
+            <div>
+              <p style={{ fontSize: '11px', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Auction Status</p>
+              <p style={{ fontSize: '18px', fontWeight: '800', color: currentStatusConfig.color }}>{currentStatusConfig.label}</p>
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            {AUCTION_STATUSES.map(({ key, label, icon: Icon, color }) => (
+              <button
+                key={key}
+                onClick={() => handleSetAuctionStatus(key)}
+                className={auctionStatus === key ? 'premium-button' : 'premium-button-secondary'}
+                style={{
+                  padding: '6px 14px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px',
+                  ...(auctionStatus === key ? { background: `linear-gradient(135deg, ${color} 0%, ${color}99 100%)`, color: '#070b19' } : {}),
+                }}
+              >
+                <Icon size={14} /> {label}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '12px' }}>
+          {[
+            { label: 'Sold', value: auctionSummary.sold || 0, color: 'var(--success)' },
+            { label: 'Unsold', value: auctionSummary.unsold || 0, color: 'var(--danger)' },
+            { label: 'In Draft Pool', value: auctionSummary.registered || 0, color: 'var(--accent-teal)' },
+            { label: 'Live Now', value: activePlayer ? 1 : 0, color: 'var(--accent-gold)' },
+          ].map((s) => (
+            <div key={s.label} style={{ background: 'rgba(7, 11, 25, 0.5)', border: '1px solid var(--card-border)', borderRadius: '8px', padding: '10px 14px', textAlign: 'center' }}>
+              <p style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{s.label}</p>
+              <p style={{ fontSize: '22px', fontWeight: '800', color: s.color }}>{s.value}</p>
+            </div>
+          ))}
+        </div>
       </div>
 
-      {/* Tab: Bidding Console */}
-      {activeTab === 'bidding' && (
-        <div style={{ display: 'grid', gridTemplateColumns: '7fr 5fr', gap: '32px' }}>
-          
-          {/* Active Player Live Bid Form */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+      {/* Tab Navigation */}
+      <div style={{ display: 'flex', gap: '8px', borderBottom: '1px solid var(--card-border)', paddingBottom: '12px', flexWrap: 'wrap' }}>
+        {tabs.map(({ id, label, icon: Icon }) => (
+          <button
+            key={id}
+            onClick={() => setActiveTab(id)}
+            className={activeTab === id ? 'premium-button' : 'premium-button-secondary'}
+            style={{ borderRadius: '8px', padding: '8px 18px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
+          >
+            <Icon size={16} /> {label}
+          </button>
+        ))}
+      </div>
+
+      {/* TAB: Auction Control */}
+      {activeTab === 'auction' && (
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: '24px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+
+            {/* Active Player Desk */}
             <div className="premium-card">
-              <h2 style={{ fontSize: '20px', fontWeight: '800', marginBottom: '16px', color: 'var(--accent-teal)' }}>Active Bid Desk</h2>
-              
+              <h2 style={{ fontSize: '18px', fontWeight: '800', marginBottom: '16px', color: 'var(--accent-teal)' }}>
+                Live Auction Desk
+              </h2>
               {activePlayer ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                   <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-                    <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: 'var(--bg-tertiary)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'var(--bg-tertiary)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid var(--accent-gold)' }}>
                       {activePlayer.photoUrl ? (
-                        <img src={activePlayer.photoUrl} alt="active" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        <img src={activePlayer.photoUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                       ) : (
-                        <span style={{ fontSize: '24px' }}>👤</span>
+                        <Users size={28} color="var(--text-secondary)" />
                       )}
                     </div>
                     <div>
-                      <h3 style={{ fontSize: '18px', fontWeight: '800' }}>{activePlayer.fullName}</h3>
-                      <p style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{activePlayer.preferredRole} • {activePlayer.organization}</p>
+                      <h3 style={{ fontSize: '20px', fontWeight: '800' }}>{activePlayer.fullName}</h3>
+                      <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
+                        {activePlayer.preferredRole} &bull; {activePlayer.organization} &bull; {activePlayer.experience}
+                      </p>
                     </div>
                   </div>
 
-                  <div style={{ background: 'var(--bg-secondary)', padding: '12px 16px', borderRadius: '8px', border: '1px solid var(--card-border)', display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
+                  <div style={{ background: 'var(--bg-secondary)', padding: '16px', borderRadius: '8px', border: '1px solid var(--card-border)', display: 'flex', justifyContent: 'space-between' }}>
                     <div>
-                      <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Current Bid Holder</span>
-                      <p style={{ fontWeight: '700', color: 'var(--accent-gold)' }}>{activePlayer.highestBidder}</p>
+                      <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Highest Bidder</span>
+                      <p style={{ fontWeight: '700', color: 'var(--accent-gold)', fontSize: '16px' }}>{activePlayer.highestBidder}</p>
                     </div>
                     <div style={{ textAlign: 'right' }}>
-                      <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Current Amount</span>
-                      <p style={{ fontWeight: '800', color: 'var(--accent-gold)' }}>{activePlayer.currentBid.toLocaleString()} pts</p>
+                      <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Current Bid</span>
+                      <p style={{ fontWeight: '800', color: 'var(--accent-gold)', fontSize: '24px' }}>{activePlayer.currentBid.toLocaleString()} pts</p>
                     </div>
                   </div>
 
-                  {/* Add Bid Form */}
+                  {/* Bid form */}
                   <form onSubmit={handlePlaceBid} style={{ display: 'flex', gap: '12px', alignItems: 'flex-end', flexWrap: 'wrap' }}>
                     <div style={{ flex: '2', minWidth: '180px' }}>
-                      <label className="form-label">Bidding Franchise</label>
-                      <select 
-                        required
-                        value={bidForm.teamId} 
-                        onChange={(e) => setBidForm({ ...bidForm, teamId: e.target.value })}
-                        className="premium-select"
-                      >
+                      <label className="form-label">Franchise Team</label>
+                      <select required value={bidForm.teamId} onChange={(e) => setBidForm({ ...bidForm, teamId: e.target.value })} className="premium-select">
                         <option value="">Select Team</option>
-                        {teams.map(t => (
-                          <option key={t.id} value={t.id}>{t.name} (Purse: {(t.pointsPurse - t.pointsSpent).toLocaleString()})</option>
+                        {teams.map((t) => (
+                          <option key={t.id} value={t.id}>{t.name} (Left: {(t.pointsPurse - t.pointsSpent).toLocaleString()})</option>
                         ))}
                       </select>
                     </div>
                     <div style={{ flex: '1', minWidth: '100px' }}>
-                      <label className="form-label">Points Bid</label>
-                      <input 
-                        type="number" 
-                        required
-                        placeholder="Bid" 
-                        value={bidForm.amount} 
-                        onChange={(e) => setBidForm({ ...bidForm, amount: e.target.value })}
-                        className="premium-input"
-                      />
+                      <label className="form-label">Bid Amount</label>
+                      <input type="number" required placeholder="Points" value={bidForm.amount} onChange={(e) => setBidForm({ ...bidForm, amount: e.target.value })} className="premium-input" />
                     </div>
-                    <button type="submit" className="premium-button" style={{ height: '48px', padding: '0 24px' }}>
-                      Place
-                    </button>
+                    <button type="submit" className="premium-button" style={{ height: '48px', padding: '0 24px' }}>Place Bid</button>
                   </form>
 
-                  {/* Bidding Completion Buttons */}
-                  <div style={{ display: 'flex', gap: '16px', marginTop: '12px' }}>
-                    <button 
-                      onClick={handleCompleteSale} 
-                      className="premium-button" 
-                      style={{ flex: '1', background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', boxShadow: '0 4px 14px rgba(16, 185, 129, 0.3)' }}
-                    >
-                      <Check size={18} /> Record Sold
+                  {/* Bid history */}
+                  {activePlayer.bidHistory?.length > 0 && (
+                    <div>
+                      <p style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-secondary)', marginBottom: '8px' }}>BID HISTORY</p>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '150px', overflowY: 'auto' }}>
+                        {activePlayer.bidHistory.map((b, i) => (
+                          <div key={b.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 12px', background: i === 0 ? 'rgba(16, 185, 129, 0.1)' : 'rgba(7, 11, 25, 0.4)', borderRadius: '6px', fontSize: '13px', border: i === 0 ? '1px solid var(--success)' : '1px solid var(--card-border)' }}>
+                            <span>{b.teamName}</span>
+                            <span style={{ fontWeight: '700', color: 'var(--accent-gold)' }}>{b.amount.toLocaleString()} pts</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Complete sale / unsold */}
+                  <div style={{ display: 'flex', gap: '12px' }}>
+                    <button onClick={handleCompleteSale} className="premium-button" style={{ flex: 1, background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)' }}>
+                      <Check size={18} /> Add to Purchased Team
                     </button>
-                    <button 
-                      onClick={handleMarkUnsold} 
-                      className="premium-button-secondary" 
-                      style={{ flex: '1', border: '1px solid var(--danger)', color: 'var(--danger)', background: 'rgba(239, 68, 68, 0.05)' }}
-                    >
+                    <button onClick={handleMarkUnsold} className="premium-button-secondary" style={{ flex: 1, border: '1px solid var(--danger)', color: 'var(--danger)' }}>
                       <X size={18} /> Mark Unsold
                     </button>
                   </div>
                 </div>
               ) : (
-                <div style={{ textAlign: 'center', padding: '30px 10px', color: 'var(--text-secondary)', fontStyle: 'italic', fontSize: '14px' }}>
-                  No active player selected. Select a player from the Draft Pool to begin.
+                <div style={{ textAlign: 'center', padding: '40px 10px', color: 'var(--text-secondary)' }}>
+                  <Users size={40} style={{ margin: '0 auto 12px', opacity: 0.4 }} />
+                  <p>No player is live. Select a registered player from the draft pool to start bidding.</p>
                 </div>
               )}
             </div>
 
-            {/* Team Standing quick snapshot */}
+            {/* Team purses */}
             <div className="premium-card">
-              <h2 style={{ fontSize: '18px', fontWeight: '800', marginBottom: '16px' }}>💰 Franchise Purse Status</h2>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px' }}>
-                {teams.map(t => (
-                  <div key={t.id} style={{ background: 'rgba(7, 11, 25, 0.6)', border: '1px solid var(--card-border)', padding: '12px', borderRadius: '8px' }}>
-                    <p style={{ fontWeight: '700', fontSize: '14px' }}>{t.name}</p>
+              <h2 style={{ fontSize: '16px', fontWeight: '800', marginBottom: '12px' }}>Franchise Purse Status</h2>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '12px' }}>
+                {teams.map((t) => (
+                  <div key={t.id} style={{ background: 'rgba(7, 11, 25, 0.5)', border: '1px solid var(--card-border)', padding: '12px', borderRadius: '8px' }}>
+                    <p style={{ fontWeight: '700', fontSize: '13px' }}>{t.name}</p>
                     <p style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Spent: {t.pointsSpent.toLocaleString()}</p>
-                    <p style={{ fontSize: '14px', fontWeight: '800', color: 'var(--accent-teal)', marginTop: '4px' }}>Purse: {(t.pointsPurse - t.pointsSpent).toLocaleString()}</p>
+                    <p style={{ fontSize: '15px', fontWeight: '800', color: 'var(--accent-teal)', marginTop: '4px' }}>{(t.pointsPurse - t.pointsSpent).toLocaleString()} left</p>
                   </div>
                 ))}
               </div>
             </div>
+
+            {/* Recently sold */}
+            {soldPlayers.length > 0 && (
+              <div className="premium-card">
+                <h2 style={{ fontSize: '16px', fontWeight: '800', marginBottom: '12px', color: 'var(--success)' }}>Recently Sold</h2>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {soldPlayers.slice(0, 5).map((p) => (
+                    <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 12px', background: 'rgba(7, 11, 25, 0.4)', borderRadius: '6px', fontSize: '13px' }}>
+                      <span style={{ fontWeight: '600' }}>{p.fullName}</span>
+                      <span>{p.team?.name} &mdash; <strong style={{ color: 'var(--accent-gold)' }}>{p.soldPrice?.toLocaleString()} pts</strong></span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* Right Side: Draft Pool Selector */}
-          <div className="premium-card" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <h2 style={{ fontSize: '20px', fontWeight: '800', color: 'var(--accent-gold)' }}>📋 Draft Pool ({draftPool.length})</h2>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '13px' }}>Select a registered player to start bidding in the live auction arena:</p>
-            
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '500px', overflowY: 'auto' }}>
+          {/* Draft Pool */}
+          <div className="premium-card" style={{ alignSelf: 'start' }}>
+            <h2 style={{ fontSize: '18px', fontWeight: '800', color: 'var(--accent-gold)', marginBottom: '8px' }}>
+              Draft Pool ({draftPool.length})
+            </h2>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '12px', marginBottom: '16px' }}>
+              Approved players ready to go live on auction
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '600px', overflowY: 'auto' }}>
               {draftPool.length === 0 ? (
-                <p style={{ fontSize: '14px', fontStyle: 'italic', color: 'var(--text-secondary)' }}>No registered players waiting to be drafted.</p>
+                <p style={{ fontSize: '13px', color: 'var(--text-secondary)', fontStyle: 'italic' }}>No players in draft pool. Approve payments first.</p>
               ) : (
-                draftPool.map(p => (
+                draftPool.map((p) => (
                   <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px', background: 'rgba(7, 11, 25, 0.4)', border: '1px solid var(--card-border)', borderRadius: '8px' }}>
                     <div>
                       <p style={{ fontWeight: '700', fontSize: '14px' }}>{p.fullName}</p>
-                      <p style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{p.preferredRole} • {p.organization}</p>
+                      <p style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{p.preferredRole} &bull; {p.organization}</p>
                     </div>
-                    <button 
-                      onClick={() => handleStartBidding(p.id)}
-                      className="premium-button-secondary"
-                      style={{ padding: '6px 12px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}
-                    >
-                      <Play size={12} /> Start Bid
+                    <button onClick={() => handleStartBidding(p.id)} className="premium-button" style={{ padding: '6px 12px', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <Play size={12} /> Go Live
                     </button>
                   </div>
                 ))
               )}
             </div>
           </div>
-
         </div>
       )}
 
-      {/* Tab: Pending Payments Approval */}
-      {activeTab === 'approvals' && (
-        <div className="premium-card" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          <h2 style={{ fontSize: '20px', fontWeight: '800', color: 'var(--accent-gold)' }}>💳 Pending Player Registrations & Payments ({pendingPlayers.length})</h2>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '13px' }}>Verify the UPI UTR Transaction Reference ID against your bank statement before approving players for the draft.</p>
-          
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            {pendingPlayers.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '40px 10px', color: 'var(--text-secondary)', fontStyle: 'italic' }}>
-                No pending registrations waiting for verification.
+      {/* TAB: Payments */}
+      {activeTab === 'payments' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          {/* Payment stats */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px' }}>
+            {[
+              { label: 'Total Registrations', value: paymentStats.total || 0 },
+              { label: 'Pending Verification', value: paymentStats.pending || 0, color: 'var(--accent-gold)' },
+              { label: 'Approved Payments', value: paymentStats.approved || 0, color: 'var(--success)' },
+              { label: 'Total Revenue', value: `\u20B9${(paymentStats.totalRevenue || 0).toLocaleString()}`, color: 'var(--accent-teal)' },
+            ].map((s) => (
+              <div key={s.label} className="premium-card" style={{ textAlign: 'center', padding: '16px' }}>
+                <p style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{s.label}</p>
+                <p style={{ fontSize: '28px', fontWeight: '800', color: s.color || 'var(--text-primary)', marginTop: '4px' }}>{s.value}</p>
               </div>
-            ) : (
-              pendingPlayers.map(p => (
-                <div key={p.id} style={{ border: '1px solid var(--card-border)', borderRadius: '12px', padding: '20px', background: 'rgba(7, 11, 25, 0.4)', display: 'flex', gap: '20px', flexWrap: 'wrap', justifyContent: 'space-between' }}>
-                  
-                  {/* Photo & Profile */}
-                  <div style={{ display: 'flex', gap: '16px', alignItems: 'center', minWidth: '250px' }}>
-                    <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: 'var(--bg-tertiary)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      {p.photoUrl ? (
-                        <img src={p.photoUrl} alt="active" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                      ) : (
-                        <span style={{ fontSize: '24px' }}>👤</span>
-                      )}
-                    </div>
-                    <div>
-                      <h3 style={{ fontSize: '16px', fontWeight: '800' }}>{p.fullName}</h3>
-                      <p style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Role: <strong>{p.preferredRole}</strong></p>
-                      <p style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Mobile: {p.mobileNumber} • Org: {p.organization}</p>
-                    </div>
-                  </div>
+            ))}
+          </div>
 
-                  {/* Payment Verification Data */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', minWidth: '200px' }}>
-                    <p style={{ fontSize: '13px' }}>UTR Transaction Ref ID:</p>
-                    <p style={{ fontFamily: 'monospace', fontWeight: '800', color: 'var(--accent-teal)', fontSize: '16px', letterSpacing: '0.05em' }}>{p.transactionId}</p>
-                    
-                    {p.paymentScreenshot && (
-                      <a 
-                        href={p.paymentScreenshot} 
-                        target="_blank" 
-                        rel="noopener noreferrer" 
-                        className="premium-button-secondary" 
-                        style={{ padding: '4px 10px', fontSize: '11px', alignSelf: 'flex-start', marginTop: '4px' }}
-                      >
-                        🖼️ View Receipt Screenshot
-                      </a>
-                    )}
-                  </div>
+          {/* Pending approvals */}
+          {pendingPlayers.length > 0 && (
+            <div className="premium-card">
+              <h2 style={{ fontSize: '18px', fontWeight: '800', color: 'var(--accent-gold)', marginBottom: '16px' }}>
+                Pending Verification ({pendingPlayers.length})
+              </h2>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                {pendingPlayers.map((p) => (
+                  <PaymentCard key={p.id} player={p} onApprove={(id, action) => handleApprovePlayer(id, action)} showActions />
+                ))}
+              </div>
+            </div>
+          )}
 
-                  {/* Actions */}
-                  <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                    <button 
-                      onClick={() => handleApprovePlayer(p.id, 'approve')}
-                      className="premium-button"
-                      style={{ background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', padding: '10px 18px', fontSize: '13px' }}
-                    >
-                      <Check size={16} /> Approve Payment
-                    </button>
-                    <button 
-                      onClick={() => handleApprovePlayer(p.id, 'reject')}
-                      className="premium-button-secondary"
-                      style={{ border: '1px solid var(--danger)', color: 'var(--danger)', background: 'rgba(239, 68, 68, 0.05)', padding: '10px 18px', fontSize: '13px' }}
-                    >
-                      <X size={16} /> Reject / Delete
-                    </button>
-                  </div>
-
-                </div>
-              ))
-            )}
+          {/* All payments monitor */}
+          <div className="premium-card">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
+              <h2 style={{ fontSize: '18px', fontWeight: '800' }}>All Payment Records</h2>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                {['all', 'pending', 'approved'].map((f) => (
+                  <button key={f} onClick={() => setPaymentFilter(f)} className={paymentFilter === f ? 'premium-button' : 'premium-button-secondary'} style={{ padding: '4px 14px', fontSize: '12px', textTransform: 'capitalize' }}>
+                    {f}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {filteredPayments.length === 0 ? (
+                <p style={{ textAlign: 'center', padding: '30px', color: 'var(--text-secondary)' }}>No payment records found.</p>
+              ) : (
+                filteredPayments.map((p) => (
+                  <PaymentCard key={p.id} player={p} onApprove={(id, action) => handleApprovePlayer(id, action)} showActions={p.paymentStatus === 'Pending' && p.status === 'Pending'} />
+                ))
+              )}
+            </div>
           </div>
         </div>
       )}
 
-      {/* Tab: Sponsor Banners */}
-      {activeTab === 'ads' && (
-        <div style={{ display: 'grid', gridTemplateColumns: '5fr 7fr', gap: '32px' }}>
-          
-          {/* Add Sponsor Ad form */}
+      {/* TAB: Sponsor Banners */}
+      {activeTab === 'sponsors' && (
+        <div style={{ display: 'grid', gridTemplateColumns: '380px 1fr', gap: '24px' }}>
           <div className="premium-card">
-            <h2 style={{ fontSize: '20px', fontWeight: '800', marginBottom: '16px', color: 'var(--accent-teal)' }}>Add Sponsor Placement</h2>
-            <form onSubmit={handleAddAd} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <h2 style={{ fontSize: '18px', fontWeight: '800', marginBottom: '16px', color: 'var(--accent-teal)' }}>Add Sponsor Banner</h2>
+            <form onSubmit={handleAddAd} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
               <div>
                 <label className="form-label">Sponsor Title</label>
-                <input 
-                  type="text" 
-                  required
-                  placeholder="e.g. Decathlon Tumkur" 
-                  value={adForm.title} 
-                  onChange={(e) => setAdForm({ ...adForm, title: e.target.value })}
-                  className="premium-input"
-                />
+                <input type="text" required placeholder="e.g. Decathlon Tumkur" value={adForm.title} onChange={(e) => setAdForm({ ...adForm, title: e.target.value })} className="premium-input" />
               </div>
               <div>
-                <label className="form-label">Image URL</label>
-                <input 
-                  type="url" 
-                  required
-                  placeholder="https://example.com/banner.jpg" 
-                  value={adForm.imageUrl} 
-                  onChange={(e) => setAdForm({ ...adForm, imageUrl: e.target.value })}
-                  className="premium-input"
-                />
+                <label className="form-label">Banner Image URL</label>
+                <input type="url" required placeholder="https://example.com/banner.jpg" value={adForm.imageUrl} onChange={(e) => setAdForm({ ...adForm, imageUrl: e.target.value })} className="premium-input" />
               </div>
               <div>
-                <label className="form-label">Target Link URL</label>
-                <input 
-                  type="text" 
-                  placeholder="https://target-sponsor.com" 
-                  value={adForm.targetUrl} 
-                  onChange={(e) => setAdForm({ ...adForm, targetUrl: e.target.value })}
-                  className="premium-input"
-                />
+                <label className="form-label">Click-through URL</label>
+                <input type="text" placeholder="https://sponsor-website.com" value={adForm.targetUrl} onChange={(e) => setAdForm({ ...adForm, targetUrl: e.target.value })} className="premium-input" />
               </div>
               <div>
-                <label className="form-label">Banner Position</label>
-                <select 
-                  value={adForm.position} 
-                  onChange={(e) => setAdForm({ ...adForm, position: e.target.value })}
-                  className="premium-select"
-                >
-                  <option value="TOP_BANNER">Top Horizontal Banner (Main page)</option>
-                  <option value="SIDEBAR">Sidebar Banner (Teams page)</option>
+                <label className="form-label">Placement</label>
+                <select value={adForm.position} onChange={(e) => setAdForm({ ...adForm, position: e.target.value })} className="premium-select">
+                  <option value="TOP_BANNER">Top Banner (Home page marquee)</option>
+                  <option value="SIDEBAR">Sidebar (Teams page)</option>
+                  <option value="FOOTER">Footer</option>
                 </select>
               </div>
-              <button type="submit" className="premium-button" style={{ marginTop: '8px', justifyContent: 'center' }}>
-                <Plus size={18} /> Add Advertisement
-              </button>
+              <button type="submit" className="premium-button" style={{ justifyContent: 'center' }}><Plus size={18} /> Add Banner</button>
             </form>
           </div>
 
-          {/* Current Sponsor Placements */}
           <div className="premium-card">
-            <h2 style={{ fontSize: '20px', fontWeight: '800', marginBottom: '16px' }}>Active Ad Banner Placements ({ads.length})</h2>
-            
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', maxHeight: '500px', overflowY: 'auto' }}>
+            <h2 style={{ fontSize: '18px', fontWeight: '800', marginBottom: '16px' }}>Banner Placements ({ads.length})</h2>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', maxHeight: '600px', overflowY: 'auto' }}>
               {ads.length === 0 ? (
-                <p style={{ fontStyle: 'italic', color: 'var(--text-secondary)', fontSize: '14px' }}>No sponsorships configured.</p>
+                <p style={{ color: 'var(--text-secondary)', fontStyle: 'italic' }}>No sponsor banners configured.</p>
               ) : (
-                ads.map(ad => (
-                  <div key={ad.id} style={{ display: 'flex', gap: '16px', background: 'rgba(7, 11, 25, 0.4)', border: '1px solid var(--card-border)', padding: '12px', borderRadius: '12px', alignItems: 'center' }}>
-                    <img src={ad.imageUrl} alt={ad.title} style={{ width: '80px', height: '60px', objectFit: 'cover', borderRadius: '6px' }} />
-                    <div style={{ flex: '1' }}>
+                ads.map((ad) => (
+                  <div key={ad.id} style={{ display: 'flex', gap: '14px', background: 'rgba(7, 11, 25, 0.4)', border: `1px solid ${ad.active ? 'var(--card-border)' : 'rgba(239,68,68,0.3)'}`, padding: '12px', borderRadius: '10px', alignItems: 'center', opacity: ad.active ? 1 : 0.6 }}>
+                    <img src={ad.imageUrl} alt={ad.title} style={{ width: '90px', height: '60px', objectFit: 'cover', borderRadius: '6px' }} />
+                    <div style={{ flex: 1 }}>
                       <p style={{ fontWeight: '700', fontSize: '14px' }}>{ad.title}</p>
-                      <span className="badge badge-registered" style={{ fontSize: '9px', marginTop: '4px' }}>{ad.position}</span>
+                      <div style={{ display: 'flex', gap: '6px', marginTop: '4px' }}>
+                        <span className="badge badge-registered" style={{ fontSize: '9px' }}>{ad.position}</span>
+                        <span className="badge" style={{ fontSize: '9px', background: ad.active ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)', color: ad.active ? 'var(--success)' : 'var(--danger)' }}>
+                          {ad.active ? 'Active' : 'Hidden'}
+                        </span>
+                      </div>
                     </div>
-                    <button 
-                      onClick={() => handleDeleteAd(ad.id)}
-                      className="premium-button-secondary"
-                      style={{ padding: '8px', border: '1px solid var(--danger)', color: 'var(--danger)', borderRadius: '50%', background: 'rgba(239, 68, 68, 0.05)' }}
-                    >
-                      <Trash2 size={16} />
-                    </button>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <button onClick={() => handleToggleAd(ad.id, !ad.active)} className="premium-button-secondary" style={{ padding: '8px', borderRadius: '50%' }} title={ad.active ? 'Hide' : 'Show'}>
+                        {ad.active ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
+                      <button onClick={() => handleDeleteAd(ad.id)} className="premium-button-secondary" style={{ padding: '8px', borderRadius: '50%', border: '1px solid var(--danger)', color: 'var(--danger)' }}>
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
                   </div>
                 ))
               )}
             </div>
           </div>
-
         </div>
       )}
 
-      {/* Tab: System Settings */}
-      {activeTab === 'system' && (
-        <div style={{ maxWidth: '650px', margin: '0 auto', width: '100%' }}>
-          <div className="premium-card" style={{ display: 'flex', flexDirection: 'column', gap: '20px', border: '1px solid var(--danger)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', color: 'var(--danger)' }}>
-              <AlertTriangle size={32} />
-              <h2 style={{ fontSize: '20px', fontWeight: '800' }}>System Reinitialization Area</h2>
-            </div>
-            
-            <p style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: '1.6' }}>
-              Resetting the system will clear all active player registrations, bid histories, team rosters, and ads. It will immediately re-initialize the 4 main Tumkur franchise teams (Tumkur Titans, Metro Mavericks, Prerana Panthers, JCI Warriors) with default 100,000 points purses.
+      {/* TAB: UPI & Settings */}
+      {activeTab === 'settings' && (
+        <div style={{ maxWidth: '600px', margin: '0 auto', width: '100%', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          <div className="premium-card">
+            <h2 style={{ fontSize: '18px', fontWeight: '800', color: 'var(--accent-teal)', marginBottom: '16px' }}>UPI Payment & Registration Fee</h2>
+            <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '16px' }}>
+              These settings appear on the player registration page for UPI QR code and payment instructions.
             </p>
+            <form onSubmit={handleUpdateConfig} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div>
+                <label className="form-label">UPI ID (VPA)</label>
+                <input type="text" required placeholder="e.g. pay@upi" value={configForm.upiId} onChange={(e) => setConfigForm({ ...configForm, upiId: e.target.value })} className="premium-input" />
+              </div>
+              <div>
+                <label className="form-label">Payee Name</label>
+                <input type="text" required placeholder="JCI Premier League" value={configForm.payeeName} onChange={(e) => setConfigForm({ ...configForm, payeeName: e.target.value })} className="premium-input" />
+              </div>
+              <div>
+                <label className="form-label">Registration Fee (&#8377;)</label>
+                <input type="number" required placeholder="500" value={configForm.regFee} onChange={(e) => setConfigForm({ ...configForm, regFee: e.target.value })} className="premium-input" />
+              </div>
+              <button type="submit" className="premium-button" style={{ justifyContent: 'center' }}>Save UPI Settings</button>
+            </form>
+          </div>
 
-            <div style={{ background: 'var(--bg-secondary)', padding: '16px', borderRadius: '8px', border: '1px solid var(--card-border)' }}>
-              <label className="form-label" style={{ color: 'var(--text-primary)' }}>Type <strong>RESET</strong> to confirm:</label>
-              <input 
-                type="text" 
-                placeholder="RESET" 
-                value={setupKey} 
-                onChange={(e) => setSetupKey(e.target.value)} 
-                className="premium-input"
-                style={{ marginTop: '8px' }}
-              />
+          <div className="premium-card" style={{ border: '1px solid var(--danger)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', color: 'var(--danger)', marginBottom: '12px' }}>
+              <AlertTriangle size={28} />
+              <h2 style={{ fontSize: '18px', fontWeight: '800' }}>System Reset</h2>
             </div>
-
-            <button 
-              onClick={handleResetSystem} 
-              className="premium-button" 
-              style={{ background: 'linear-gradient(135deg, #ef4444 0%, #b91c1c 100%)', boxShadow: '0 4px 14px rgba(239, 68, 68, 0.3)', justifyContent: 'center' }}
-            >
-              <RotateCcw size={18} /> Reset Database & Initialize Teams
+            <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: '1.6', marginBottom: '16px' }}>
+              Clears all players, bids, team rosters, and ads. Re-initializes franchise teams with default 100,000 point purses.
+            </p>
+            <div style={{ background: 'var(--bg-secondary)', padding: '14px', borderRadius: '8px', border: '1px solid var(--card-border)', marginBottom: '16px' }}>
+              <label className="form-label">Type <strong>RESET</strong> to confirm:</label>
+              <input type="text" placeholder="RESET" value={setupKey} onChange={(e) => setSetupKey(e.target.value)} className="premium-input" style={{ marginTop: '8px' }} />
+            </div>
+            <button onClick={handleResetSystem} className="premium-button" style={{ background: 'linear-gradient(135deg, #ef4444 0%, #b91c1c 100%)', justifyContent: 'center', width: '100%' }}>
+              <RotateCcw size={18} /> Reset Database
             </button>
           </div>
         </div>
       )}
+    </div>
+  );
+}
 
+function PaymentCard({ player, onApprove, showActions }) {
+  const statusColor = player.paymentStatus === 'Approved' ? 'var(--success)' : 'var(--accent-gold)';
+  return (
+    <div style={{ border: '1px solid var(--card-border)', borderRadius: '10px', padding: '16px', background: 'rgba(7, 11, 25, 0.4)', display: 'flex', gap: '16px', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div style={{ display: 'flex', gap: '14px', alignItems: 'center', minWidth: '220px' }}>
+        <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'var(--bg-tertiary)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          {player.photoUrl ? <img src={player.photoUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <Users size={20} color="var(--text-secondary)" />}
+        </div>
+        <div>
+          <p style={{ fontWeight: '700', fontSize: '15px' }}>{player.fullName}</p>
+          <p style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{player.mobileNumber} &bull; {player.organization}</p>
+        </div>
+      </div>
+      <div style={{ minWidth: '160px' }}>
+        <p style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>UTR Reference</p>
+        <p style={{ fontFamily: 'monospace', fontWeight: '700', color: 'var(--accent-teal)', fontSize: '14px' }}>{player.transactionId || 'N/A'}</p>
+        {player.paymentScreenshot && (
+          <a href={player.paymentScreenshot} target="_blank" rel="noopener noreferrer" style={{ fontSize: '11px', color: 'var(--accent-gold)', marginTop: '4px', display: 'inline-block' }}>
+            View receipt
+          </a>
+        )}
+      </div>
+      <div style={{ textAlign: 'center', minWidth: '100px' }}>
+        <span className="badge" style={{ fontSize: '10px', background: `${statusColor}22`, color: statusColor }}>{player.paymentStatus}</span>
+        <p style={{ fontSize: '10px', color: 'var(--text-secondary)', marginTop: '4px' }}>{player.status}</p>
+      </div>
+      {showActions && (
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button onClick={() => onApprove(player.id, 'approve')} className="premium-button" style={{ background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', padding: '8px 14px', fontSize: '12px' }}>
+            <Check size={14} /> Approve
+          </button>
+          <button onClick={() => onApprove(player.id, 'reject')} className="premium-button-secondary" style={{ border: '1px solid var(--danger)', color: 'var(--danger)', padding: '8px 14px', fontSize: '12px' }}>
+            <X size={14} /> Reject
+          </button>
+        </div>
+      )}
     </div>
   );
 }

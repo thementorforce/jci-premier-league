@@ -51,3 +51,23 @@ export async function DELETE(request) {
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
+
+export async function PATCH(request) {
+  try {
+    const { id, active } = await request.json();
+
+    if (!id) {
+      return NextResponse.json({ error: 'Ad ID is required' }, { status: 400 });
+    }
+
+    const updated = await prisma.adPlacement.update({
+      where: { id },
+      data: { active: Boolean(active) },
+    });
+
+    return NextResponse.json({ success: true, ad: updated });
+  } catch (error) {
+    console.error('Error updating advertisement:', error);
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+  }
+}

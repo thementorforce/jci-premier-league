@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Camera, CheckCircle2, AlertCircle, CreditCard, ArrowRight, ArrowLeft, Copy, Check } from 'lucide-react';
 
 export default function Register() {
@@ -57,7 +57,7 @@ export default function Register() {
   };
 
   const copyToClipboard = () => {
-    navigator.clipboard.writeText(upiId);
+    navigator.clipboard.writeText(config.upiId);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -107,10 +107,28 @@ export default function Register() {
     }
   };
 
-  const upiId = "evenzo@okaxis";
-  const payeeName = "JCI Premier League";
-  const regFee = "500";
-  const upiUrl = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(payeeName)}&am=${regFee}&cu=INR&tn=FCL%20Registration`;
+  const [config, setConfig] = useState({
+    upiId: "evenzo@okaxis",
+    payeeName: "JCI Premier League",
+    regFee: "500"
+  });
+
+  useEffect(() => {
+    const fetchConfig = async () => {
+      try {
+        const res = await fetch('/api/config');
+        if (res.ok) {
+          const data = await res.json();
+          setConfig(data);
+        }
+      } catch (e) {
+        console.error("Error fetching payment config:", e);
+      }
+    };
+    fetchConfig();
+  }, []);
+
+  const upiUrl = `upi://pay?pa=${config.upiId}&pn=${encodeURIComponent(config.payeeName)}&am=${config.regFee}&cu=INR&tn=FCL%20Registration`;
   const qrCodeApi = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(upiUrl)}`;
 
   const isUtrValid = formData.transactionId.length === 12 && /^\d+$/.test(formData.transactionId);
@@ -340,7 +358,7 @@ export default function Register() {
                 <CreditCard size={20} />
                 <span style={{ fontWeight: '700', fontSize: '14px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>League Registration Fee</span>
               </div>
-              <p style={{ fontSize: '36px', fontWeight: '900', color: 'var(--text-primary)' }}>₹{regFee}</p>
+              <p style={{ fontSize: '36px', fontWeight: '900', color: 'var(--text-primary)' }}>₹{config.regFee}</p>
 
               {/* QR Code */}
               <div style={{ background: 'white', padding: '12px', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '3px solid var(--accent-gold)' }}>
@@ -352,7 +370,7 @@ export default function Register() {
 
                 {/* Copyable UPI Box */}
                 <div style={{ display: 'flex', background: 'rgba(3, 7, 18, 0.6)', border: '1px solid var(--card-border)', borderRadius: '10px', padding: '8px 12px', alignItems: 'center', justifyContent: 'space-between', margin: '4px 0' }}>
-                  <span style={{ fontFamily: 'monospace', fontWeight: '700', fontSize: '14px', color: 'var(--accent-gold)' }}>{upiId}</span>
+                  <span style={{ fontFamily: 'monospace', fontWeight: '700', fontSize: '14px', color: 'var(--accent-gold)' }}>{config.upiId}</span>
                   <button
                     type="button"
                     onClick={copyToClipboard}

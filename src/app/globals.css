@@ -400,12 +400,15 @@ a {
   transition: all 0.3s ease;
   text-transform: uppercase;
   letter-spacing: 0.08em;
+  padding-bottom: 6px;
+  border-bottom: 2px solid transparent;
 }
 
 .nav-link:hover,
 .nav-link.active {
   color: var(--accent-teal);
   text-shadow: var(--glow-teal);
+  border-bottom-color: var(--accent-teal);
 }
 
 /* Beautiful Interactive Payments Card */

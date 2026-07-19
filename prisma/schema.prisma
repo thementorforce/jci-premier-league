@@ -52,6 +52,7 @@ model PlayerProfile {
   transactionId     String?
   paymentScreenshot String?      // base64 screenshot
   createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @default(now()) @updatedAt
 }
 
 model BidHistory {
