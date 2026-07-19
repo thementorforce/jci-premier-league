@@ -48,10 +48,16 @@ export default function AdminConsole({ username = 'admin' }) {
 
   const handleUnauthorized = (res) => {
     if (res.status === 401) {
+      localStorage.removeItem('fcl_admin_token');
       router.push('/admin/login');
       return true;
     }
     return false;
+  };
+
+  const getAuthHeaders = () => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('fcl_admin_token') : null;
+    return token ? { 'Authorization': `Bearer ${token}` } : {};
   };
 
   const handleLogout = async () => {
@@ -74,12 +80,13 @@ export default function AdminConsole({ username = 'admin' }) {
 
   const fetchConsoleData = useCallback(async () => {
     try {
+      const authHeaders = getAuthHeaders();
       const [auctionRes, adsRes, pendingRes, paymentsRes, adminTeamsRes] = await Promise.all([
         fetch('/api/auction/status'),
-        fetch('/api/admin/ads'),
-        fetch('/api/admin/approve-player'),
-        fetch('/api/admin/payments'),
-        fetch('/api/admin/teams'),
+        fetch('/api/admin/ads', { headers: authHeaders }),
+        fetch('/api/admin/approve-player', { headers: authHeaders }),
+        fetch('/api/admin/payments', { headers: authHeaders }),
+        fetch('/api/admin/teams', { headers: authHeaders }),
       ]);
 
       if ([adsRes, pendingRes, paymentsRes, adminTeamsRes].some((res) => handleUnauthorized(res))) return;
@@ -114,7 +121,7 @@ export default function AdminConsole({ username = 'admin' }) {
     try {
       const res = await fetch('/api/admin/teams', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
         body: JSON.stringify(teamForm),
       });
       const data = await res.json();
@@ -135,6 +142,7 @@ export default function AdminConsole({ username = 'admin' }) {
     try {
       const res = await fetch(`/api/admin/teams?id=${id}`, {
         method: 'DELETE',
+        headers: { ...getAuthHeaders() },
       });
       const data = await res.json();
       if (res.ok) {
@@ -176,7 +184,7 @@ export default function AdminConsole({ username = 'admin' }) {
     try {
       const res = await fetch('/api/admin/draft', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
         body: JSON.stringify({ playerId }),
       });
       const data = await res.json();
@@ -197,7 +205,7 @@ export default function AdminConsole({ username = 'admin' }) {
     try {
       const res = await fetch('/api/admin/bid', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
         body: JSON.stringify({
           playerId: activePlayer.id,
           teamId: bidForm.teamId,
@@ -223,7 +231,7 @@ export default function AdminConsole({ username = 'admin' }) {
     try {
       const res = await fetch('/api/admin/complete', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
         body: JSON.stringify({ playerId: activePlayer.id }),
       });
       const data = await res.json();
@@ -243,7 +251,7 @@ export default function AdminConsole({ username = 'admin' }) {
     try {
       const res = await fetch('/api/admin/unsold', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
         body: JSON.stringify({ playerId: activePlayer.id }),
       });
       const data = await res.json();
@@ -262,7 +270,7 @@ export default function AdminConsole({ username = 'admin' }) {
     try {
       const res = await fetch('/api/admin/approve-player', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
         body: JSON.stringify({ playerId, action }),
       });
       const data = await res.json();
@@ -282,7 +290,7 @@ export default function AdminConsole({ username = 'admin' }) {
     try {
       const res = await fetch('/api/admin/ads', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
         body: JSON.stringify(adForm),
       });
       if (res.ok) {
@@ -302,7 +310,7 @@ export default function AdminConsole({ username = 'admin' }) {
     try {
       const res = await fetch('/api/admin/ads', {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
         body: JSON.stringify({ id, active }),
       });
       if (res.ok) {
@@ -317,7 +325,7 @@ export default function AdminConsole({ username = 'admin' }) {
   const handleDeleteAd = async (id) => {
     if (!confirm('Delete this sponsor banner?')) return;
     try {
-      const res = await fetch(`/api/admin/ads?id=${id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/admin/ads?id=${id}`, { method: 'DELETE', headers: { ...getAuthHeaders() } });
       if (res.ok) {
         showStatus('success', 'Banner deleted');
         fetchConsoleData();

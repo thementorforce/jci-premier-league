@@ -25,6 +25,10 @@ export default function AdminLoginPage() {
       const data = await res.json();
 
       if (res.ok) {
+        // Store token in localStorage as fallback for Firebase cookie proxy issues
+        if (data.token) {
+          localStorage.setItem('fcl_admin_token', data.token);
+        }
         router.push('/admin');
         router.refresh();
       } else {

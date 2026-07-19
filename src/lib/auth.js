@@ -1,6 +1,7 @@
 import crypto from 'crypto';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
+import { headers } from 'next/headers';
 
 export const SESSION_COOKIE = 'fcl_session';
 const SESSION_MAX_AGE = 60 * 60 * 24 * 7; // 7 days
@@ -48,8 +49,24 @@ export async function getSession() {
   return verifySessionToken(token);
 }
 
-export async function requireAdmin() {
-  const session = await getSession();
+export async function requireAdmin(request) {
+  // 1. Try cookie-based session
+  let session = await getSession();
+
+  // 2. Fall back to Authorization: Bearer <token> header (for Firebase proxy environments)
+  if (!session) {
+    try {
+      const headerStore = await headers();
+      const authHeader = headerStore.get('authorization') || '';
+      if (authHeader.startsWith('Bearer ')) {
+        const token = authHeader.slice(7);
+        session = verifySessionToken(token);
+      }
+    } catch {
+      // headers() not available in this context
+    }
+  }
+
   if (!session || session.role !== 'ADMIN') {
     return {
       session: null,
