@@ -173,7 +173,23 @@ function SelectField({ label, options, ...props }) {
 
 function ImageField({ label, field, value, onChange, icon, help }) {
   const inputId = `${field}-upload`;
-  return <div><label className="form-label">{label}</label><div style={{ display: 'flex', gap: '16px', alignItems: 'center', marginTop: '4px' }}><div style={{ width: '80px', height: '80px', borderRadius: '8px', background: 'rgba(7, 11, 25, 0.8)', border: value ? '2px solid var(--success)' : '1px dashed var(--danger)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>{value ? <img src={value} alt="Upload preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : icon}</div><div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}><input type="file" accept="image/*" id={inputId} required onChange={(event) => onChange(event, field)} style={{ display: 'none' }} /><label htmlFor={inputId} className="premium-button-secondary" style={{ padding: '8px 16px', fontSize: '14px', cursor: 'pointer' }}>Choose Image</label><span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{help || 'Required · Max file size: 5MB'}</span></div></div></div>;
+  return (
+    <div>
+      <label className="form-label">{label}</label>
+      <div style={{ display: 'flex', gap: '14px', alignItems: 'center', marginTop: '4px', flexWrap: 'wrap' }}>
+        <div style={{ width: '80px', height: '80px', flex: '0 0 80px', borderRadius: '8px', background: 'rgba(7, 11, 25, 0.8)', border: value ? '2px solid var(--success)' : '1px dashed var(--danger)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+          {value ? <img src={value} alt="Upload preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : icon}
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: '1', minWidth: '160px' }}>
+          <input type="file" accept="image/*" id={inputId} required onChange={(event) => onChange(event, field)} style={{ display: 'none' }} />
+          <label htmlFor={inputId} className="premium-button-secondary" style={{ padding: '8px 16px', fontSize: '14px', cursor: 'pointer', textAlign: 'center', justifyContent: 'center' }}>
+            Choose Image
+          </label>
+          <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{help || 'Required · Max file size: 5MB'}</span>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 function Notice({ icon, tone, children }) {
