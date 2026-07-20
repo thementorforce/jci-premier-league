@@ -13,10 +13,12 @@ export async function POST(request) {
   try {
     const body = await request.json();
     const current = await readConfig();
+    const upiId = typeof body.upiId === 'string' ? body.upiId.trim() : current.upiId;
+    const payeeName = typeof body.payeeName === 'string' ? body.payeeName.trim() : current.payeeName;
 
     const config = {
-      upiId: body.upiId ?? current.upiId,
-      payeeName: body.payeeName ?? current.payeeName,
+      upiId,
+      payeeName,
       regFee: body.regFee ?? current.regFee,
       auctionStatus: VALID_AUCTION_STATUSES.includes(body.auctionStatus)
         ? body.auctionStatus

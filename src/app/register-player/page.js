@@ -196,12 +196,11 @@ export default function Register() {
   };
 
   const [config, setConfig] = useState({
-    upiId: "evenzo@okaxis",
-    payeeName: "JCI Premier League",
+    upiId: "",
+    payeeName: "",
     regFee: "500"
   });
   const [ads, setAds] = useState([]);
-  const [isIOS, setIsIOS] = useState(false);
 
   useEffect(() => {
     const fetchConfig = async () => {
@@ -229,37 +228,31 @@ export default function Register() {
     fetchConfig();
     fetchAds();
     
-    // Detect iOS
-    if (typeof window !== 'undefined') {
-      const userAgent = window.navigator.userAgent.toLowerCase();
-      setIsIOS(/iphone|ipad|ipod/.test(userAgent));
-    }
   }, []);
 
   // UPI payment params string (reused in all intent URLs)
   const currentTxId = registeredPlayer?.refId || formData.transactionId || 'FCL Registration';
+  const paymentConfigured = Boolean(config.upiId?.trim());
   const upiParams = `pa=${config.upiId}&pn=${encodeURIComponent(config.payeeName)}&am=${config.regFee}&cu=INR&tn=${encodeURIComponent(currentTxId)}&tr=${encodeURIComponent(currentTxId)}&mc=0000`;
   const upiUrl = `upi://pay?${upiParams}`;
   const qrCodeApi = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(upiUrl)}`;
 
   // Platform detection
-  const [isMobile, setIsMobile] = useState(false);
   const [platform, setPlatform] = useState('unknown'); // 'android' | 'ios' | 'desktop'
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    const timer = window.setTimeout(() => {
       const ua = window.navigator.userAgent.toLowerCase();
-      const mobile = /android|iphone|ipad|ipod|mobile/i.test(ua);
-      setIsMobile(mobile);
       if (/iphone|ipad|ipod/.test(ua)) {
         setPlatform('ios');
-        setIsIOS(true);
       } else if (/android/.test(ua)) {
         setPlatform('android');
       } else {
         setPlatform('desktop');
       }
-    }
+    }, 0);
+
+    return () => window.clearTimeout(timer);
   }, []);
 
   // Android Intent URLs with explicit package names
@@ -268,30 +261,25 @@ export default function Register() {
   const paytmIntent = `intent://pay?${upiParams}#Intent;scheme=upi;package=net.one97.paytm;end`;
   const genericIntent = `intent://pay?${upiParams}#Intent;scheme=upi;end`;
 
-  // iOS URI schemes (these are the actual working schemes)
-  const gpayIos = `tez://upi/pay?${upiParams}`;
+  // iOS must use a link registered by the selected payment app. Do not use
+  // the generic upi:// scheme: iOS may hand it to an unrelated app.
+  const gpayIos = `gpay://upi/pay?${upiParams}`;
   const phonepeIos = `phonepe://pay?${upiParams}`;
   const paytmIos = `paytmmp://pay?${upiParams}`;
+  const bhimIos = `bhim://upi/pay?${upiParams}`;
 
   // Smart UPI launcher — tries to open UPI and provides fallback
-  const handleOpenUPI = (url, fallbackUrl) => {
-    // On iOS, href-based navigation works better
-    if (platform === 'ios') {
-      window.location.href = url;
-      return;
-    }
-    // On Android, use location assignment for intents
+  const handleOpenUPI = (url) => {
     window.location.href = url;
   };
 
   // Generic "open any UPI app" handler
   const handleOpenAnyUPI = () => {
-    if (platform === 'ios') {
-      // iOS: try generic upi:// scheme
-      window.location.href = upiUrl;
-    } else if (platform === 'android') {
+    if (platform === 'android') {
       // Android: use intent without package to show app chooser
       window.location.href = genericIntent;
+    } else if (platform === 'ios') {
+      setStatus({ type: 'error', message: 'Choose one of the payment apps above. iPhone does not provide a UPI app chooser.' });
     } else {
       // Desktop: nothing to open, user should scan QR
       setStatus({ type: 'error', message: 'UPI apps only work on mobile devices. Please scan the QR code below.' });
@@ -360,7 +348,8 @@ export default function Register() {
                 </span>
               </div>
 
-              {/* UPI PAYMENT GATEWAY */}
+              {paymentConfigured ? (
+              /* UPI PAYMENT GATEWAY */
               <div className="checkout-box" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px', width: '100%', padding: '24px 16px', background: 'var(--bg-secondary)', border: '1px solid var(--card-border)', borderRadius: '12px' }}>
                 
                 <p style={{ fontSize: '42px', fontWeight: '900', color: 'var(--accent-gold)', textShadow: '0 0 20px rgba(255, 183, 3, 0.2)', margin: 0 }}>
@@ -418,7 +407,7 @@ export default function Register() {
                     {/* BHIM UPI */}
                     <button
                       type="button"
-                      onClick={() => handleOpenUPI(platform === 'ios' ? upiUrl : `intent://pay?${upiParams}#Intent;scheme=upi;package=in.org.npci.upiapp;end`)}
+                      onClick={() => handleOpenUPI(platform === 'ios' ? bhimIos : `intent://pay?${upiParams}#Intent;scheme=upi;package=in.org.npci.upiapp;end`)}
                       style={{
                         display: 'flex', alignItems: 'center', gap: '10px', padding: '14px 12px', borderRadius: '12px',
                         background: 'linear-gradient(135deg, rgba(255,152,0,0.10), rgba(255,152,0,0.03))',
@@ -430,23 +419,32 @@ export default function Register() {
                     </button>
                   </div>
 
-                  {/* Open Device UPI App Chooser */}
-                  <button
-                    type="button"
-                    onClick={handleOpenAnyUPI}
-                    className="premium-button"
-                    style={{
-                      width: '100%', justifyContent: 'center', padding: '14px', fontSize: '15px', marginTop: '12px',
-                      background: 'linear-gradient(135deg, var(--accent-gold), #b8860b)', color: '#000', fontWeight: '800',
-                      border: 'none', boxShadow: '0 4px 20px rgba(255, 183, 3, 0.25)', borderRadius: '12px'
-                    }}
-                  >
-                    <Smartphone size={18} style={{ marginRight: '8px' }} />
-                    Open Other Payment App
-                  </button>
-                  <p style={{ fontSize: '10px', color: 'var(--text-secondary)', textAlign: 'center', marginTop: '6px' }}>
-                    Opens your device's UPI app chooser — select any installed app
-                  </p>
+                  {platform !== 'ios' && (
+                    <>
+                      {/* Android supports a system UPI app chooser; iOS does not. */}
+                      <button
+                        type="button"
+                        onClick={handleOpenAnyUPI}
+                        className="premium-button"
+                        style={{
+                          width: '100%', justifyContent: 'center', padding: '14px', fontSize: '15px', marginTop: '12px',
+                          background: 'linear-gradient(135deg, var(--accent-gold), #b8860b)', color: '#000', fontWeight: '800',
+                          border: 'none', boxShadow: '0 4px 20px rgba(255, 183, 3, 0.25)', borderRadius: '12px'
+                        }}
+                      >
+                        <Smartphone size={18} style={{ marginRight: '8px' }} />
+                        Open Other Payment App
+                      </button>
+                      <p style={{ fontSize: '10px', color: 'var(--text-secondary)', textAlign: 'center', marginTop: '6px' }}>
+                        Opens your device&apos;s UPI app chooser — select any installed app
+                      </p>
+                    </>
+                  )}
+                  {platform === 'ios' && (
+                    <p style={{ fontSize: '11px', color: 'var(--text-secondary)', textAlign: 'center', marginTop: '10px', lineHeight: '1.5' }}>
+                      Choose your preferred payment app above. On iPhone, each button opens that app directly.
+                    </p>
+                  )}
                 </div>
 
                 {/* QR Code */}
@@ -496,7 +494,7 @@ export default function Register() {
                   <summary style={{ cursor: 'pointer', fontWeight: '700', padding: '8px 0' }}>Having trouble paying? Tap here for help</summary>
                   <div style={{ padding: '10px', background: 'rgba(0,0,0,0.2)', borderRadius: '8px', marginTop: '6px', lineHeight: '1.7' }}>
                     <p style={{ margin: '0 0 6px' }}>• <strong>App not opening?</strong> Make sure the app is installed on your device.</p>
-                    <p style={{ margin: '0 0 6px' }}>• <strong>On iPhone?</strong> Try "Open Other Payment App" — it will show your installed UPI apps.</p>
+                    <p style={{ margin: '0 0 6px' }}>• <strong>On iPhone?</strong> Tap the preferred payment app above, or use the QR code / UPI ID.</p>
                     <p style={{ margin: '0 0 6px' }}>• <strong>On Desktop?</strong> Scan the QR code using any UPI app on your phone.</p>
                     <p style={{ margin: '0 0 6px' }}>• <strong>QR not working?</strong> Copy the UPI ID and paste it manually in your app.</p>
                     <p style={{ margin: 0 }}>• <strong>Still stuck?</strong> Take a screenshot and contact the organizers.</p>
@@ -504,8 +502,16 @@ export default function Register() {
                 </details>
               </div>
 
+              ) : (
+                <div className="checkout-box" style={{ width: '100%', padding: '24px 16px', textAlign: 'center', background: 'var(--bg-secondary)', border: '1px solid var(--card-border)', borderRadius: '12px' }}>
+                  <AlertCircle color="var(--accent-gold)" size={30} style={{ marginBottom: '10px' }} />
+                  <h3 style={{ margin: '0 0 8px', color: 'var(--text-primary)', fontSize: '17px' }}>Payment details are not available yet</h3>
+                  <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '13px', lineHeight: '1.6' }}>The organizer has not configured a UPI ID. Please contact the organizer before completing your registration.</p>
+                </div>
+              )}
+
               {/* 'I Have Paid' Button */}
-              <div style={{ marginTop: '16px' }}>
+              {paymentConfigured && <div style={{ marginTop: '16px' }}>
                 <button
                   type="button"
                   onClick={() => setPaymentStatus('completed')}
@@ -517,7 +523,7 @@ export default function Register() {
                 <p style={{ fontSize: '12px', color: 'var(--text-secondary)', textAlign: 'center', marginTop: '12px', lineHeight: '1.5' }}>
                   Click this button <strong>only after</strong> your payment is successful in your UPI app.
                 </p>
-              </div>
+              </div>}
             </div>
           ) : (
             /* --- FINAL SUCCESS CONFIRMATION SCREEN --- */
@@ -530,7 +536,7 @@ export default function Register() {
               </div>
               
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxWidth: '400px' }}>
-                <h2 style={{ fontSize: '28px', fontWeight: '900', color: 'var(--text-primary)' }}>You're All Set!</h2>
+                <h2 style={{ fontSize: '28px', fontWeight: '900', color: 'var(--text-primary)' }}>You&apos;re All Set!</h2>
                 <p style={{ color: 'var(--success)', fontSize: '16px', fontWeight: '600' }}>
                   Payment logged successfully.
                 </p>

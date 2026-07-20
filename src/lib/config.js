@@ -5,8 +5,9 @@ import prisma from '@/lib/db';
 const configPath = path.join(process.cwd(), 'src/lib/config.json');
 
 export const DEFAULT_CONFIG = {
-  upiId: 'evenzo@okaxis',
-  payeeName: 'JCI Premier League',
+  // Payment details must be configured by an admin before they are shown to players.
+  upiId: '',
+  payeeName: '',
   regFee: '500',
   auctionStatus: 'NOT_STARTED',
 };
