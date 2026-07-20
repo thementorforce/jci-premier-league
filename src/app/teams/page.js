@@ -1,6 +1,7 @@
 import prisma from '@/lib/db';
 import { Shield, Coins, Users, Trophy } from 'lucide-react';
 import Link from 'next/link';
+import SponsorMarquee from '@/components/SponsorMarquee';
 
 export const revalidate = 0;
 
@@ -20,7 +21,7 @@ export default async function TeamsPage() {
       },
     });
     ads = await prisma.adPlacement.findMany({
-      where: { active: true, position: 'SIDEBAR' }
+      where: { active: true }
     });
   } catch (error) {
     console.error("Error loading teams:", error);
@@ -36,6 +37,12 @@ export default async function TeamsPage() {
         <h1 className="gold-gradient-text section-title">🏆 Franchise Squads</h1>
         <p style={{ color: 'var(--text-secondary)' }}>View team budgets, purses, and recruited player lists</p>
       </div>
+
+      {ads.length > 0 && (
+        <div style={{ margin: '30px 0 10px 0' }}>
+          <SponsorMarquee ads={ads} title="Supported By" />
+        </div>
+      )}
 
       {dbError && (
         <div style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid var(--danger)', padding: '16px', borderRadius: '8px', textAlign: 'center', color: 'var(--text-primary)' }}>
@@ -131,8 +138,8 @@ export default async function TeamsPage() {
           <div className="sidebar-sticky">
             <h3 style={{ fontSize: '14px', textTransform: 'uppercase', color: 'var(--text-secondary)', letterSpacing: '0.05em' }}>Sponsors</h3>
             
-            {ads.length > 0 ? (
-              ads.map((ad) => (
+            {ads.filter(a => a.position === 'SIDEBAR').length > 0 ? (
+              ads.filter(a => a.position === 'SIDEBAR').map((ad) => (
                 <a 
                   key={ad.id} 
                   href={ad.targetUrl} 
