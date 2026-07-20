@@ -2,6 +2,17 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
+### Approval confirmation emails
+
+When an admin approves a player, the app sends the player a confirmation email through Resend. Set these private environment variables in your deployment and local `.env` file:
+
+```bash
+RESEND_API_KEY=re_...
+REGISTRATION_EMAIL_FROM="Franchise Cricket League <registrations@your-domain.com>"
+```
+
+The sender address must be a verified Resend domain. If either value is missing, the approval still succeeds but the server logs that the email was not sent.
+
 First, run the development server:
 
 ```bash
@@ -65,4 +76,3 @@ npm run dev
 
 ### 3. Production Deployments (Cloud Run)
 Do not worry about updating the production database structure. When code is pushed to `main`, the container starts on Cloud Run and automatically runs the schema push (`npx prisma db push --accept-data-loss`) and system seeding (`npx prisma db seed`) in the background.
-

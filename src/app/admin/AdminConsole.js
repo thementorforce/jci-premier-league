@@ -320,7 +320,7 @@ export default function AdminConsole({ username = 'admin' }) {
       });
       const data = await res.json();
       if (res.ok) {
-        showStatus('success', action === 'approve' ? 'Payment approved - player added to draft pool' : 'Registration rejected');
+        showStatus('success', action === 'approve' ? (data.emailSent ? 'Payment approved and confirmation email sent' : 'Payment approved - player added to draft pool') : 'Registration rejected');
         fetchConsoleData();
       } else {
         showStatus('error', data.error);
@@ -1142,8 +1142,7 @@ function PaymentCard({ player, onApprove, showActions }) {
         </div>
       </div>
       <div style={{ minWidth: '160px' }}>
-        <p style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>UTR Reference</p>
-        <p style={{ fontFamily: 'monospace', fontWeight: '700', color: 'var(--accent-teal)', fontSize: '14px' }}>{player.transactionId || 'N/A'}</p>
+        <p style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Payment proof</p>
         {player.paymentScreenshot && (
           <a href={player.paymentScreenshot} target="_blank" rel="noopener noreferrer" style={{ fontSize: '11px', color: 'var(--accent-gold)', marginTop: '4px', display: 'inline-block' }}>
             View receipt
@@ -1187,7 +1186,7 @@ function QueuePlayer({ player, onApprove }) {
         {player.photoUrl ? <img src={player.photoUrl} alt="" /> : <UserRound size={19} />}
       </div>
       <div className="admin-queue-name"><b>{player.fullName}</b><span>{player.preferredRole} · {player.organization}</span></div>
-      <div className="admin-queue-reference"><span>UTR reference</span><b>{player.transactionId || 'Not supplied'}</b></div>
+      <div className="admin-queue-reference"><span>Payment proof</span><b>{player.paymentScreenshot ? 'Screenshot uploaded' : 'Not supplied'}</b></div>
       <button onClick={() => onApprove(player.id, 'approve')} className="admin-approve-button"><Check size={15} /> Approve</button>
     </div>
   );
@@ -1250,7 +1249,7 @@ function PlayerRecord({ player, onApprove, onDelete }) {
           <Detail label="Experience" value={player.experience} />
           <Detail label="Jersey size" value={player.jerseySize} />
           <Detail label="Payment state" value={player.paymentStatus} />
-          <Detail label="Transaction / UTR" value={player.transactionId || 'Not supplied'} />
+          <Detail label="Payment proof" value={player.paymentScreenshot ? 'Screenshot uploaded' : 'Not supplied'} />
           <Detail label="Registered on" value={formatDate(player.createdAt)} />
           <Detail label="Player status" value={player.status} />
           <Detail label="Drafted by" value={player.team?.name || 'Not drafted'} />

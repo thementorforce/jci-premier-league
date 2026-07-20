@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/db';
 import { requireAdmin } from '@/lib/auth';
+import { sendRegistrationApprovalEmail } from '@/lib/email';
 
 export async function GET() {
   const auth = await requireAdmin();
@@ -36,7 +37,8 @@ export async function POST(request) {
           paymentStatus: 'Approved'
         }
       });
-      return NextResponse.json({ success: true, player: updatedPlayer });
+      const emailSent = await sendRegistrationApprovalEmail(updatedPlayer);
+      return NextResponse.json({ success: true, player: updatedPlayer, emailSent });
     } else if (action === 'reject') {
       // Rejects payment and deletes registration
       await prisma.playerProfile.delete({ where: { id: playerId } });
