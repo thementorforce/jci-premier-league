@@ -599,12 +599,19 @@ export default function Register() {
                           <span style={{ fontSize: '18px' }}>💰</span> Paytm
                         </a>
                       </div>
+                      
+                      {isIOS && (
+                        <p style={{ fontSize: '10px', color: 'var(--accent-gold)', textAlign: 'center', marginTop: '4px', lineHeight: '1.4' }}>
+                          <i>Note: Safari will say "address is invalid" if you click an app that isn't installed on your iPhone.</i>
+                        </p>
+                      )}
+
                       <a
                         href={genericLink}
                         className="premium-button-secondary"
                         style={{ padding: '8px 16px', fontSize: '13px', marginTop: '4px', alignSelf: 'center', display: 'inline-flex', gap: '6px' }}
                       >
-                        <Smartphone size={14} /> Open any other UPI app
+                        <Smartphone size={14} /> {isIOS ? 'Open Default UPI App (e.g. WhatsApp)' : 'Open any other UPI app'}
                       </a>
                     </div>
                   </div>
