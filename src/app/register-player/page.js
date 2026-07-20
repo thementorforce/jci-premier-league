@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import SponsorMarquee from '@/components/SponsorMarquee';
-import { Camera, CheckCircle2, AlertCircle, CreditCard, ArrowRight, ArrowLeft, Copy, Check, Smartphone } from 'lucide-react';
+import { Camera, CheckCircle2, AlertCircle, CreditCard, ArrowRight, ArrowLeft, Copy, Check, Smartphone, Award, ExternalLink } from 'lucide-react';
 
 export default function Register() {
   const [step, setStep] = useState(1);
@@ -188,14 +188,24 @@ export default function Register() {
   const paytmUrl = `paytmmp://pay?pa=${config.upiId}&pn=${encodeURIComponent(config.payeeName)}&am=${config.regFee}&cu=INR&tn=${encodeURIComponent(formData.transactionId || 'FCL Registration')}`;
 
 
-  return (
-    <div className="page-container-sm">
-      {/* Sponsors at top of registration page */}
-      <div style={{ maxWidth: '600px', margin: '0 auto', padding: '0 16px' }}>
-        <SponsorMarquee ads={ads} title="Powered By" />
-      </div>
+  // Build sponsor list for sidebar/spotlight (merge fetched ads with fallback)
+  const DEFAULT_SPONSORS = [
+    { id: 'default-1', title: 'Decathlon Sports Tumkur', imageUrl: 'https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?auto=format&fit=crop&w=800&q=80', targetUrl: 'https://www.decathlon.in' },
+    { id: 'default-2', title: 'Tumkur Cricket Academy', imageUrl: 'https://images.unsplash.com/photo-1531415074968-036ba1b575da?auto=format&fit=crop&w=800&q=80', targetUrl: '#' },
+    { id: 'default-3', title: 'JCI Tumkur Metro', imageUrl: 'https://images.unsplash.com/photo-1461896836934-ffe607be7e72?auto=format&fit=crop&w=800&q=80', targetUrl: '#' },
+  ];
+  const sponsorList = ads.length > 0 ? ads : DEFAULT_SPONSORS;
 
-      <div className="premium-kk" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+  return (
+    <div className="register-layout">
+      {/* Main form column */}
+      <div className="register-main">
+        {/* Mobile-only sponsor strip */}
+        <div className="register-mobile-sponsors">
+          <SponsorMarquee ads={ads} title="Powered By" />
+        </div>
+
+        <div className="premium-kk" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
 
         <div style={{ textAlign: 'center' }}>
           <h1 className="gold-gradient-text" style={{ fontSize: '28px', fontWeight: '800' }}>🏏 Player Registration</h1>
@@ -231,6 +241,21 @@ export default function Register() {
               <p style={{ color: 'var(--text-secondary)', fontSize: '14px', lineHeight: '1.6' }}>
                 A confirmation has been logged for <span style={{ color: 'var(--accent-teal)' }}>{registeredPlayer?.email}</span>. Our admin team will verify your transaction reference ID and approve your profile shortly.
               </p>
+            </div>
+
+            {/* Sponsor Spotlight on Success */}
+            <div className="sponsor-spotlight">
+              <div className="sponsor-spotlight-label">
+                <Award size={14} /> Your registration was brought to you by
+              </div>
+              <div className="sponsor-spotlight-grid">
+                {sponsorList.slice(0, 4).map((s) => (
+                  <a key={s.id} href={s.targetUrl || '#'} target="_blank" rel="noopener noreferrer" className="sponsor-spotlight-card">
+                    {s.imageUrl && <img src={s.imageUrl} alt={s.title} />}
+                    <span>{s.title}</span>
+                  </a>
+                ))}
+              </div>
             </div>
 
             <div style={{ display: 'flex', gap: '16px', width: '100%', marginTop: '12px' }}>
@@ -603,6 +628,27 @@ export default function Register() {
         )}
 
       </div>
+      </div>
+
+      {/* Desktop sponsor sidebar */}
+      <aside className="register-sponsor-sidebar">
+        <h3><Award size={13} /> Official Sponsors</h3>
+        <div className="sponsor-sidebar-divider" />
+        {sponsorList.map((s) => (
+          <a key={s.id} href={s.targetUrl || '#'} target="_blank" rel="noopener noreferrer" className="sponsor-sidebar-item">
+            {s.imageUrl && <img src={s.imageUrl} alt={s.title} />}
+            <div>
+              <span className="sponsor-name">{s.title}</span>
+              <span className="sponsor-label"><ExternalLink size={9} /> Official Sponsor</span>
+            </div>
+          </a>
+        ))}
+        <div className="sponsor-sidebar-divider" />
+        <p style={{ margin: 0, fontSize: '10px', color: '#708376', textAlign: 'center', lineHeight: '1.5' }}>
+          Interested in sponsoring?<br />
+          <a href="mailto:jcitumkurmetro@gmail.com" style={{ color: 'var(--accent-gold)', textDecoration: 'none', fontWeight: 700 }}>Contact us →</a>
+        </p>
+      </aside>
     </div>
   );
 }
