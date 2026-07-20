@@ -323,85 +323,70 @@ export default function Register() {
                   </button>
                 </div>
 
-                    {/* UPI App Buttons (Conditional based on OS) */}
+                    {/* Individual UPI App Buttons */}
                     <div className="mobile-only" style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px', width: '100%' }}>
+                      <p style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'center' }}>
+                        <Smartphone size={13} style={{ display: 'inline', verticalAlign: '-2px', marginRight: '4px' }} />
+                        Pay with your preferred app
+                      </p>
+                      <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                        <a
+                          href={gpayLink}
+                          className="upi-app-btn"
+                          style={{
+                            display: 'inline-flex', alignItems: 'center', gap: '8px',
+                            padding: '10px 18px', borderRadius: '10px',
+                            background: 'linear-gradient(135deg, rgba(66,133,244,0.15), rgba(66,133,244,0.05))',
+                            border: '1px solid rgba(66,133,244,0.4)',
+                            color: '#fff', fontWeight: '700', fontSize: '13px',
+                            textDecoration: 'none', transition: 'all 0.2s ease', flex: '1', justifyContent: 'center', minWidth: '120px'
+                          }}
+                        >
+                          <span style={{ fontSize: '18px' }}>💳</span> Google Pay
+                        </a>
+                        <a
+                          href={phonepeLink}
+                          className="upi-app-btn"
+                          style={{
+                            display: 'inline-flex', alignItems: 'center', gap: '8px',
+                            padding: '10px 18px', borderRadius: '10px',
+                            background: 'linear-gradient(135deg, rgba(95,37,159,0.15), rgba(95,37,159,0.05))',
+                            border: '1px solid rgba(95,37,159,0.4)',
+                            color: '#fff', fontWeight: '700', fontSize: '13px',
+                            textDecoration: 'none', transition: 'all 0.2s ease', flex: '1', justifyContent: 'center', minWidth: '120px'
+                          }}
+                        >
+                          <span style={{ fontSize: '18px' }}>📱</span> PhonePe
+                        </a>
+                        <a
+                          href={paytmLink}
+                          className="upi-app-btn"
+                          style={{
+                            display: 'inline-flex', alignItems: 'center', gap: '8px',
+                            padding: '10px 18px', borderRadius: '10px',
+                            background: 'linear-gradient(135deg, rgba(0,186,242,0.15), rgba(0,186,242,0.05))',
+                            border: '1px solid rgba(0,186,242,0.4)',
+                            color: '#fff', fontWeight: '700', fontSize: '13px',
+                            textDecoration: 'none', transition: 'all 0.2s ease', flex: '1', justifyContent: 'center', minWidth: '120px'
+                          }}
+                        >
+                          <span style={{ fontSize: '18px' }}>💰</span> Paytm
+                        </a>
+                      </div>
                       
-                      {isIOS ? (
-                        <>
-                          <p style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'center' }}>
-                            <Smartphone size={13} style={{ display: 'inline', verticalAlign: '-2px', marginRight: '4px' }} />
-                            Pay via UPI App
-                          </p>
-                          <a
-                            href={upiUrl}
-                            className="premium-button"
-                            style={{ width: '100%', justifyContent: 'center', background: 'linear-gradient(135deg, var(--accent-gold), #b8860b)', color: '#000', fontSize: '15px' }}
-                          >
-                            Open UPI App (GPay / PhonePe / Paytm)
-                          </a>
-                          <p style={{ fontSize: '10px', color: 'var(--text-secondary)', textAlign: 'center', marginTop: '4px', lineHeight: '1.4' }}>
-                            iOS will automatically open your default installed UPI app.
-                          </p>
-                        </>
-                      ) : (
-                        <>
-                          <p style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'center' }}>
-                            <Smartphone size={13} style={{ display: 'inline', verticalAlign: '-2px', marginRight: '4px' }} />
-                            Pay with your preferred app
-                          </p>
-                          <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', flexWrap: 'wrap' }}>
-                            <a
-                              href={gpayIntent}
-                              className="upi-app-btn"
-                              style={{
-                                display: 'inline-flex', alignItems: 'center', gap: '8px',
-                                padding: '10px 18px', borderRadius: '10px',
-                                background: 'linear-gradient(135deg, rgba(66,133,244,0.15), rgba(66,133,244,0.05))',
-                                border: '1px solid rgba(66,133,244,0.4)',
-                                color: '#fff', fontWeight: '700', fontSize: '13px',
-                                textDecoration: 'none', transition: 'all 0.2s ease', flex: '1', justifyContent: 'center', minWidth: '120px'
-                              }}
-                            >
-                              <span style={{ fontSize: '18px' }}>💳</span> Google Pay
-                            </a>
-                            <a
-                              href={phonepeIntent}
-                              className="upi-app-btn"
-                              style={{
-                                display: 'inline-flex', alignItems: 'center', gap: '8px',
-                                padding: '10px 18px', borderRadius: '10px',
-                                background: 'linear-gradient(135deg, rgba(95,37,159,0.15), rgba(95,37,159,0.05))',
-                                border: '1px solid rgba(95,37,159,0.4)',
-                                color: '#fff', fontWeight: '700', fontSize: '13px',
-                                textDecoration: 'none', transition: 'all 0.2s ease', flex: '1', justifyContent: 'center', minWidth: '120px'
-                              }}
-                            >
-                              <span style={{ fontSize: '18px' }}>📱</span> PhonePe
-                            </a>
-                            <a
-                              href={paytmIntent}
-                              className="upi-app-btn"
-                              style={{
-                                display: 'inline-flex', alignItems: 'center', gap: '8px',
-                                padding: '10px 18px', borderRadius: '10px',
-                                background: 'linear-gradient(135deg, rgba(0,186,242,0.15), rgba(0,186,242,0.05))',
-                                border: '1px solid rgba(0,186,242,0.4)',
-                                color: '#fff', fontWeight: '700', fontSize: '13px',
-                                textDecoration: 'none', transition: 'all 0.2s ease', flex: '1', justifyContent: 'center', minWidth: '120px'
-                              }}
-                            >
-                              <span style={{ fontSize: '18px' }}>💰</span> Paytm
-                            </a>
-                          </div>
-                          <a
-                            href={genericIntent}
-                            className="premium-button-secondary"
-                            style={{ padding: '8px 16px', fontSize: '13px', marginTop: '4px', alignSelf: 'center', display: 'inline-flex', gap: '6px' }}
-                          >
-                            <Smartphone size={14} /> Open any other UPI app
-                          </a>
-                        </>
+                      {isIOS && (
+                        <p style={{ fontSize: '10px', color: 'var(--accent-gold)', textAlign: 'center', marginTop: '4px', lineHeight: '1.4' }}>
+                          <i>Note: Safari will say "address is invalid" if you click an app that isn't installed on your iPhone.</i>
+                        </p>
                       )}
+
+                      <a
+                        href={genericLink}
+                        className="premium-button-secondary"
+                        style={{ padding: '8px 16px', fontSize: '13px', marginTop: '4px', alignSelf: 'center', display: 'inline-flex', gap: '6px' }}
+                      >
+                        <Smartphone size={14} /> {isIOS ? 'Open Default UPI App (e.g. WhatsApp)' : 'Open any other UPI app'}
+                      </a>
                     </div>
               </div>
             </div>
