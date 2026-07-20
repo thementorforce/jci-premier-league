@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Camera, CheckCircle2, AlertCircle, CreditCard, ArrowRight, ArrowLeft, Copy, Check } from 'lucide-react';
+import SponsorMarquee from '@/components/SponsorMarquee';
+import { Camera, CheckCircle2, AlertCircle, CreditCard, ArrowRight, ArrowLeft, Copy, Check, Smartphone } from 'lucide-react';
 
 export default function Register() {
   const [step, setStep] = useState(1);
@@ -149,6 +150,7 @@ export default function Register() {
     payeeName: "JCI Premier League",
     regFee: "500"
   });
+  const [ads, setAds] = useState([]);
 
   useEffect(() => {
     const fetchConfig = async () => {
@@ -162,14 +164,37 @@ export default function Register() {
         console.error("Error fetching payment config:", e);
       }
     };
+    const fetchAds = async () => {
+      try {
+        const res = await fetch('/api/admin/ads');
+        if (res.ok) {
+          const data = await res.json();
+          setAds(data.filter(a => a.active));
+        }
+      } catch (e) {
+        console.error("Error fetching sponsors:", e);
+      }
+    };
     fetchConfig();
+    fetchAds();
   }, []);
 
   const upiUrl = `upi://pay?pa=${config.upiId}&pn=${encodeURIComponent(config.payeeName)}&am=${config.regFee}&cu=INR&tn=${encodeURIComponent(formData.transactionId || 'FCL Registration')}`;
   const qrCodeApi = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(upiUrl)}`;
 
+  // App-specific UPI intent URLs
+  const gpayUrl = `gpay://upi/pay?pa=${config.upiId}&pn=${encodeURIComponent(config.payeeName)}&am=${config.regFee}&cu=INR&tn=${encodeURIComponent(formData.transactionId || 'FCL Registration')}`;
+  const phonepeUrl = `phonepe://pay?pa=${config.upiId}&pn=${encodeURIComponent(config.payeeName)}&am=${config.regFee}&cu=INR&tn=${encodeURIComponent(formData.transactionId || 'FCL Registration')}`;
+  const paytmUrl = `paytmmp://pay?pa=${config.upiId}&pn=${encodeURIComponent(config.payeeName)}&am=${config.regFee}&cu=INR&tn=${encodeURIComponent(formData.transactionId || 'FCL Registration')}`;
+
+
   return (
     <div className="page-container-sm">
+      {/* Sponsors at top of registration page */}
+      <div style={{ maxWidth: '600px', margin: '0 auto', padding: '0 16px' }}>
+        <SponsorMarquee ads={ads} title="Powered By" />
+      </div>
+
       <div className="premium-kk" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
 
         <div style={{ textAlign: 'center' }}>
@@ -478,14 +503,64 @@ export default function Register() {
                       </button>
                     </div>
 
-                    {/* Mobile Pay deep link button */}
-                    <a
-                      href={upiUrl}
-                      className="premium-button-secondary mobile-only"
-                      style={{ padding: '8px 16px', fontSize: '13px', marginTop: '6px', alignSelf: 'center', display: 'inline-flex', gap: '6px' }}
-                    >
-                      📱 Pay via UPI App
-                    </a>
+                    {/* Individual UPI App Buttons */}
+                    <div className="mobile-only" style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px', width: '100%' }}>
+                      <p style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'center' }}>
+                        <Smartphone size={13} style={{ display: 'inline', verticalAlign: '-2px', marginRight: '4px' }} />
+                        Pay with your preferred app
+                      </p>
+                      <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                        <a
+                          href={gpayUrl}
+                          className="upi-app-btn"
+                          style={{
+                            display: 'inline-flex', alignItems: 'center', gap: '8px',
+                            padding: '10px 18px', borderRadius: '10px',
+                            background: 'linear-gradient(135deg, rgba(66,133,244,0.15), rgba(66,133,244,0.05))',
+                            border: '1px solid rgba(66,133,244,0.4)',
+                            color: '#fff', fontWeight: '700', fontSize: '13px',
+                            textDecoration: 'none', transition: 'all 0.2s ease', flex: '1', justifyContent: 'center', minWidth: '120px'
+                          }}
+                        >
+                          <span style={{ fontSize: '18px' }}>💳</span> Google Pay
+                        </a>
+                        <a
+                          href={phonepeUrl}
+                          className="upi-app-btn"
+                          style={{
+                            display: 'inline-flex', alignItems: 'center', gap: '8px',
+                            padding: '10px 18px', borderRadius: '10px',
+                            background: 'linear-gradient(135deg, rgba(95,37,159,0.15), rgba(95,37,159,0.05))',
+                            border: '1px solid rgba(95,37,159,0.4)',
+                            color: '#fff', fontWeight: '700', fontSize: '13px',
+                            textDecoration: 'none', transition: 'all 0.2s ease', flex: '1', justifyContent: 'center', minWidth: '120px'
+                          }}
+                        >
+                          <span style={{ fontSize: '18px' }}>📱</span> PhonePe
+                        </a>
+                        <a
+                          href={paytmUrl}
+                          className="upi-app-btn"
+                          style={{
+                            display: 'inline-flex', alignItems: 'center', gap: '8px',
+                            padding: '10px 18px', borderRadius: '10px',
+                            background: 'linear-gradient(135deg, rgba(0,186,242,0.15), rgba(0,186,242,0.05))',
+                            border: '1px solid rgba(0,186,242,0.4)',
+                            color: '#fff', fontWeight: '700', fontSize: '13px',
+                            textDecoration: 'none', transition: 'all 0.2s ease', flex: '1', justifyContent: 'center', minWidth: '120px'
+                          }}
+                        >
+                          <span style={{ fontSize: '18px' }}>💰</span> Paytm
+                        </a>
+                      </div>
+                      <a
+                        href={upiUrl}
+                        className="premium-button-secondary"
+                        style={{ padding: '8px 16px', fontSize: '13px', marginTop: '4px', alignSelf: 'center', display: 'inline-flex', gap: '6px' }}
+                      >
+                        <Smartphone size={14} /> Open any other UPI app
+                      </a>
+                    </div>
                   </div>
                 </div>
 

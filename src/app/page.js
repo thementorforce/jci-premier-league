@@ -80,6 +80,9 @@ export default async function Home() {
 
   return (
     <div className="league-home">
+      <div className="home-shell" style={{ paddingTop: '16px', paddingBottom: '0' }}>
+        <SponsorMarquee ads={ads} title="Tournament Sponsors & Partners" />
+      </div>
       <section className="league-hero">
         <div className="hero-orb hero-orb-one" />
         <div className="hero-orb hero-orb-two" />
@@ -153,9 +156,6 @@ export default async function Home() {
         <div><BadgeIndianRupee size={20} /><span><b>{formatPoints(stats.totalPurse)}</b> total points</span></div>
       </section>
 
-      <div className="home-shell">
-        <SponsorMarquee ads={ads} title="Tournament Sponsors & Partners" />
-      </div>
 
       <main className="home-shell home-content">
         {dbError && (
