@@ -289,6 +289,10 @@ export default function AdminConsole({ username = 'admin' }) {
 
   const handleAddAd = async (e) => {
     e.preventDefault();
+    if (!adForm.imageUrl) {
+      showStatus('error', 'Please upload an image file or enter an image URL');
+      return;
+    }
     try {
       const res = await fetch('/api/admin/ads', {
         method: 'POST',
@@ -305,6 +309,21 @@ export default function AdminConsole({ username = 'admin' }) {
       }
     } catch {
       showStatus('error', 'Failed to create banner');
+    }
+  };
+
+  const handleAdImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 3 * 1024 * 1024) {
+        showStatus('error', 'Image file size should be less than 3MB');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setAdForm((prev) => ({ ...prev, imageUrl: reader.result }));
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -881,8 +900,49 @@ export default function AdminConsole({ username = 'admin' }) {
                 <input type="text" required placeholder="e.g. Decathlon Tumkur" value={adForm.title} onChange={(e) => setAdForm({ ...adForm, title: e.target.value })} className="premium-input" />
               </div>
               <div>
-                <label className="form-label">Banner Image URL</label>
-                <input type="url" required placeholder="https://example.com/banner.jpg" value={adForm.imageUrl} onChange={(e) => setAdForm({ ...adForm, imageUrl: e.target.value })} className="premium-input" />
+                <label className="form-label">Sponsor Image *</label>
+                <div style={{ display: 'flex', gap: '14px', alignItems: 'center', margin: '6px 0 10px' }}>
+                  <div
+                    style={{
+                      width: '90px',
+                      height: '60px',
+                      borderRadius: '8px',
+                      background: 'rgba(7, 11, 25, 0.8)',
+                      border: adForm.imageUrl ? '2px solid var(--accent-teal)' : '1px dashed var(--card-border)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      overflow: 'hidden',
+                      flexShrink: 0
+                    }}
+                  >
+                    {adForm.imageUrl ? (
+                      <img src={adForm.imageUrl} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : (
+                      <Image size={24} color="var(--text-secondary)" />
+                    )}
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      id="sponsor-image-upload"
+                      onChange={handleAdImageUpload}
+                      style={{ display: 'none' }}
+                    />
+                    <label
+                      htmlFor="sponsor-image-upload"
+                      className="premium-button-secondary"
+                      style={{ padding: '6px 14px', fontSize: '13px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                    >
+                      <Image size={14} /> Upload Image File
+                    </label>
+                    <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Max file size: 3MB</span>
+                  </div>
+                </div>
+
+                <label className="form-label" style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '6px' }}>OR Image Web URL</label>
+                <input type="text" placeholder="https://example.com/banner.jpg" value={adForm.imageUrl} onChange={(e) => setAdForm({ ...adForm, imageUrl: e.target.value })} className="premium-input" />
               </div>
               <div>
                 <label className="form-label">Click-through URL</label>
@@ -908,7 +968,12 @@ export default function AdminConsole({ username = 'admin' }) {
               ) : (
                 ads.map((ad) => (
                   <div key={ad.id} style={{ display: 'flex', gap: '14px', background: 'rgba(7, 11, 25, 0.4)', border: `1px solid ${ad.active ? 'var(--card-border)' : 'rgba(239,68,68,0.3)'}`, padding: '12px', borderRadius: '10px', alignItems: 'center', opacity: ad.active ? 1 : 0.6 }}>
-                    <img src={ad.imageUrl} alt={ad.title} style={{ width: '90px', height: '60px', objectFit: 'cover', borderRadius: '6px' }} />
+                    <img
+                      src={ad.imageUrl}
+                      alt={ad.title}
+                      onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?auto=format&fit=crop&w=800&q=80'; }}
+                      style={{ width: '90px', height: '60px', objectFit: 'cover', borderRadius: '6px', background: 'var(--bg-secondary)' }}
+                    />
                     <div style={{ flex: 1 }}>
                       <p style={{ fontWeight: '700', fontSize: '14px' }}>{ad.title}</p>
                       <div style={{ display: 'flex', gap: '6px', marginTop: '4px' }}>
