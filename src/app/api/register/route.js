@@ -25,31 +25,62 @@ export async function POST(request) {
       return NextResponse.json({ error: 'All mandatory fields and UPI transaction ID must be filled' }, { status: 400 });
     }
 
-    if (!EMAIL_REGEX.test(email.trim())) {
+    const trimmedEmail = email.trim();
+    const trimmedMobile = mobileNumber.trim();
+    const trimmedTxId = transactionId.trim();
+
+    if (!EMAIL_REGEX.test(trimmedEmail)) {
       return NextResponse.json({ error: 'Please enter a valid email address' }, { status: 400 });
+    }
+
+    if (!/^\d{10}$/.test(trimmedMobile)) {
+      return NextResponse.json({ error: 'Please enter a valid 10-digit mobile number' }, { status: 400 });
+    }
+
+    if (trimmedTxId.length < 6) {
+      return NextResponse.json({ error: 'Please enter a valid UPI transaction reference ID' }, { status: 400 });
     }
 
     if (!photoBase64) {
       return NextResponse.json({ error: 'Player photo is required' }, { status: 400 });
     }
 
+    // Check for existing player with same mobile number or transaction ID
+    const existingPlayer = await prisma.playerProfile.findFirst({
+      where: {
+        OR: [
+          { mobileNumber: trimmedMobile },
+          { transactionId: trimmedTxId },
+        ],
+      },
+    });
+
+    if (existingPlayer) {
+      if (existingPlayer.mobileNumber === trimmedMobile) {
+        return NextResponse.json({ error: 'A player with this mobile number is already registered.' }, { status: 400 });
+      }
+      if (existingPlayer.transactionId === trimmedTxId) {
+        return NextResponse.json({ error: 'This UPI Transaction / UTR ID has already been submitted.' }, { status: 400 });
+      }
+    }
+
     const player = await prisma.playerProfile.create({
       data: {
-        fullName,
-        email: email.trim(),
-        mobileNumber,
-        organization,
+        fullName: fullName.trim(),
+        email: trimmedEmail,
+        mobileNumber: trimmedMobile,
+        organization: organization.trim(),
         gender,
         ageGroup,
         jerseySize,
         preferredRole,
         experience,
         photoUrl: photoBase64,
-        transactionId,
+        transactionId: trimmedTxId,
         paymentScreenshot: paymentScreenshot || null,
         paymentStatus: 'Pending',
-        status: 'Registered'
-      }
+        status: 'Registered',
+      },
     });
 
     return NextResponse.json({ success: true, player }, { status: 201 });
