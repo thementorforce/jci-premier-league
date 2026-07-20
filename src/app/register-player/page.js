@@ -217,7 +217,7 @@ export default function Register() {
     };
     const fetchAds = async () => {
       try {
-        const res = await fetch('/api/admin/ads');
+        const res = await fetch('/api/ads');
         if (res.ok) {
           const data = await res.json();
           setAds(data.filter(a => a.active));

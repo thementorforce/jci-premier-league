@@ -15,7 +15,12 @@ export default function Navbar() {
   }, [pathname]);
 
   useEffect(() => {
-    fetch('/api/auth/session')
+    const token = typeof window !== 'undefined' ? localStorage.getItem('fcl_admin_token') : null;
+    if (!token) {
+      setIsAdmin(false);
+      return;
+    }
+    fetch('/api/auth/session', { headers: { 'Authorization': `Bearer ${token}` } })
       .then((res) => res.ok ? res.json() : null)
       .then((data) => setIsAdmin(data?.authenticated && data?.user?.role === 'ADMIN'))
       .catch(() => setIsAdmin(false));
