@@ -3,7 +3,7 @@ import { Shield, Coins, Users, Trophy } from 'lucide-react';
 import Link from 'next/link';
 import SponsorMarquee from '@/components/SponsorMarquee';
 
-export const revalidate = 0;
+export const revalidate = 30;
 
 export default async function TeamsPage() {
   let teams = [];

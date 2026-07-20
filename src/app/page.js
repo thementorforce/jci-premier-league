@@ -12,7 +12,7 @@ import {
   Users,
 } from 'lucide-react';
 
-export const revalidate = 0;
+export const revalidate = 15;
 
 const STATUS_COPY = {
   NOT_STARTED: 'Auction room opens soon',
