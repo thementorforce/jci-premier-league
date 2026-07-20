@@ -242,22 +242,61 @@ export default function Register() {
   const upiUrl = `upi://pay?${upiParams}`;
   const qrCodeApi = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(upiUrl)}`;
 
-  // Android Intent URLs with explicit package names — bypasses WhatsApp interception
+  // Platform detection
+  const [isMobile, setIsMobile] = useState(false);
+  const [platform, setPlatform] = useState('unknown'); // 'android' | 'ios' | 'desktop'
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const ua = window.navigator.userAgent.toLowerCase();
+      const mobile = /android|iphone|ipad|ipod|mobile/i.test(ua);
+      setIsMobile(mobile);
+      if (/iphone|ipad|ipod/.test(ua)) {
+        setPlatform('ios');
+        setIsIOS(true);
+      } else if (/android/.test(ua)) {
+        setPlatform('android');
+      } else {
+        setPlatform('desktop');
+      }
+    }
+  }, []);
+
+  // Android Intent URLs with explicit package names
   const gpayIntent = `intent://pay?${upiParams}#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end`;
   const phonepeIntent = `intent://pay?${upiParams}#Intent;scheme=upi;package=com.phonepe.app;end`;
   const paytmIntent = `intent://pay?${upiParams}#Intent;scheme=upi;package=net.one97.paytm;end`;
   const genericIntent = `intent://pay?${upiParams}#Intent;scheme=upi;end`;
 
-  // iOS standard URI schemes
-  const gpayIos = `gpay://upi/pay?${upiParams}`;
+  // iOS URI schemes (these are the actual working schemes)
+  const gpayIos = `tez://upi/pay?${upiParams}`;
   const phonepeIos = `phonepe://pay?${upiParams}`;
   const paytmIos = `paytmmp://pay?${upiParams}`;
 
-  // Select the correct link based on OS
-  const gpayLink = isIOS ? gpayIos : gpayIntent;
-  const phonepeLink = isIOS ? phonepeIos : phonepeIntent;
-  const paytmLink = isIOS ? paytmIos : paytmIntent;
-  const genericLink = isIOS ? upiUrl : genericIntent;
+  // Smart UPI launcher — tries to open UPI and provides fallback
+  const handleOpenUPI = (url, fallbackUrl) => {
+    // On iOS, href-based navigation works better
+    if (platform === 'ios') {
+      window.location.href = url;
+      return;
+    }
+    // On Android, use location assignment for intents
+    window.location.href = url;
+  };
+
+  // Generic "open any UPI app" handler
+  const handleOpenAnyUPI = () => {
+    if (platform === 'ios') {
+      // iOS: try generic upi:// scheme
+      window.location.href = upiUrl;
+    } else if (platform === 'android') {
+      // Android: use intent without package to show app chooser
+      window.location.href = genericIntent;
+    } else {
+      // Desktop: nothing to open, user should scan QR
+      setStatus({ type: 'error', message: 'UPI apps only work on mobile devices. Please scan the QR code below.' });
+    }
+  };
 
 
   // Build sponsor list for sidebar/spotlight (merge fetched ads with fallback)
@@ -322,71 +361,117 @@ export default function Register() {
               </div>
 
               {/* UPI PAYMENT GATEWAY */}
-              <div className="checkout-box" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', width: '100%', padding: '24px 16px', background: 'var(--bg-secondary)', border: '1px solid var(--card-border)', borderRadius: '12px' }}>
+              <div className="checkout-box" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px', width: '100%', padding: '24px 16px', background: 'var(--bg-secondary)', border: '1px solid var(--card-border)', borderRadius: '12px' }}>
                 
-                <p style={{ fontSize: '42px', fontWeight: '900', color: 'var(--accent-gold)', textShadow: '0 0 20px rgba(255, 183, 3, 0.2)' }}>
+                <p style={{ fontSize: '42px', fontWeight: '900', color: 'var(--accent-gold)', textShadow: '0 0 20px rgba(255, 183, 3, 0.2)', margin: 0 }}>
                   ₹{config.regFee}
                 </p>
 
-                {/* Option 1: Mobile Deep Links */}
-                <div className="mobile-only" style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '20px', marginBottom: '4px' }}>
-                  <p style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'center', marginBottom: '8px' }}>
-                    Option 1: Pay Directly via App
+                {/* PAY WITH UPI APPS */}
+                <div style={{ width: '100%' }}>
+                  <p style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.08em', textAlign: 'center', marginBottom: '12px' }}>
+                    Pay using UPI App
                   </p>
-                  
-                  {isIOS ? (
-                    <>
-                      <a
-                        href={upiUrl}
-                        className="premium-button"
-                        style={{ width: '100%', justifyContent: 'center', background: 'linear-gradient(135deg, var(--accent-gold), #b8860b)', color: '#000', fontSize: '15px' }}
-                      >
-                        Open UPI App (GPay / PhonePe)
-                      </a>
-                      <p style={{ fontSize: '10px', color: 'var(--text-secondary)', textAlign: 'center', marginTop: '4px', lineHeight: '1.4' }}>
-                        iOS will automatically open your default installed UPI app.
-                      </p>
-                    </>
-                  ) : (
-                    <>
-                      <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', flexWrap: 'wrap' }}>
-                        <a href={gpayIntent} className="upi-app-btn" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '12px', borderRadius: '10px', background: 'linear-gradient(135deg, rgba(66,133,244,0.15), rgba(66,133,244,0.05))', border: '1px solid rgba(66,133,244,0.4)', color: '#fff', fontWeight: '700', fontSize: '13px', textDecoration: 'none', flex: '1', justifyContent: 'center', minWidth: '120px' }}>
-                          <span style={{ fontSize: '20px' }}>💳</span> GPay
-                        </a>
-                        <a href={phonepeIntent} className="upi-app-btn" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '12px', borderRadius: '10px', background: 'linear-gradient(135deg, rgba(95,37,159,0.15), rgba(95,37,159,0.05))', border: '1px solid rgba(95,37,159,0.4)', color: '#fff', fontWeight: '700', fontSize: '13px', textDecoration: 'none', flex: '1', justifyContent: 'center', minWidth: '120px' }}>
-                          <span style={{ fontSize: '20px' }}>📱</span> PhonePe
-                        </a>
-                      </div>
-                      <a href={genericIntent} className="premium-button-secondary" style={{ padding: '10px', fontSize: '13px', marginTop: '4px', alignSelf: 'center', display: 'inline-flex', gap: '6px', width: '100%', justifyContent: 'center' }}>
-                        <Smartphone size={16} /> Open Other UPI App
-                      </a>
-                    </>
-                  )}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                    {/* Google Pay */}
+                    <button
+                      type="button"
+                      onClick={() => handleOpenUPI(platform === 'ios' ? gpayIos : gpayIntent)}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: '10px', padding: '14px 12px', borderRadius: '12px',
+                        background: 'linear-gradient(135deg, rgba(66,133,244,0.10), rgba(66,133,244,0.03))',
+                        border: '1px solid rgba(66,133,244,0.25)', color: '#fff', fontWeight: '700', fontSize: '13px',
+                        cursor: 'pointer', transition: 'all 0.2s ease', justifyContent: 'center'
+                      }}
+                    >
+                      <span style={{ fontSize: '22px' }}>💳</span> Google Pay
+                    </button>
+
+                    {/* PhonePe */}
+                    <button
+                      type="button"
+                      onClick={() => handleOpenUPI(platform === 'ios' ? phonepeIos : phonepeIntent)}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: '10px', padding: '14px 12px', borderRadius: '12px',
+                        background: 'linear-gradient(135deg, rgba(95,37,159,0.10), rgba(95,37,159,0.03))',
+                        border: '1px solid rgba(95,37,159,0.25)', color: '#fff', fontWeight: '700', fontSize: '13px',
+                        cursor: 'pointer', transition: 'all 0.2s ease', justifyContent: 'center'
+                      }}
+                    >
+                      <span style={{ fontSize: '22px' }}>📱</span> PhonePe
+                    </button>
+
+                    {/* Paytm */}
+                    <button
+                      type="button"
+                      onClick={() => handleOpenUPI(platform === 'ios' ? paytmIos : paytmIntent)}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: '10px', padding: '14px 12px', borderRadius: '12px',
+                        background: 'linear-gradient(135deg, rgba(0,186,242,0.10), rgba(0,186,242,0.03))',
+                        border: '1px solid rgba(0,186,242,0.25)', color: '#fff', fontWeight: '700', fontSize: '13px',
+                        cursor: 'pointer', transition: 'all 0.2s ease', justifyContent: 'center'
+                      }}
+                    >
+                      <span style={{ fontSize: '22px' }}>💰</span> Paytm
+                    </button>
+
+                    {/* BHIM UPI */}
+                    <button
+                      type="button"
+                      onClick={() => handleOpenUPI(platform === 'ios' ? upiUrl : `intent://pay?${upiParams}#Intent;scheme=upi;package=in.org.npci.upiapp;end`)}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: '10px', padding: '14px 12px', borderRadius: '12px',
+                        background: 'linear-gradient(135deg, rgba(255,152,0,0.10), rgba(255,152,0,0.03))',
+                        border: '1px solid rgba(255,152,0,0.25)', color: '#fff', fontWeight: '700', fontSize: '13px',
+                        cursor: 'pointer', transition: 'all 0.2s ease', justifyContent: 'center'
+                      }}
+                    >
+                      <span style={{ fontSize: '22px' }}>🏦</span> BHIM UPI
+                    </button>
+                  </div>
+
+                  {/* Open Device UPI App Chooser */}
+                  <button
+                    type="button"
+                    onClick={handleOpenAnyUPI}
+                    className="premium-button"
+                    style={{
+                      width: '100%', justifyContent: 'center', padding: '14px', fontSize: '15px', marginTop: '12px',
+                      background: 'linear-gradient(135deg, var(--accent-gold), #b8860b)', color: '#000', fontWeight: '800',
+                      border: 'none', boxShadow: '0 4px 20px rgba(255, 183, 3, 0.25)', borderRadius: '12px'
+                    }}
+                  >
+                    <Smartphone size={18} style={{ marginRight: '8px' }} />
+                    Open Other Payment App
+                  </button>
+                  <p style={{ fontSize: '10px', color: 'var(--text-secondary)', textAlign: 'center', marginTop: '6px' }}>
+                    Opens your device's UPI app chooser — select any installed app
+                  </p>
                 </div>
 
-                {/* Option 2: QR Code */}
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', width: '100%' }}>
-                  <p style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'center' }}>
-                    Option 2: Scan QR Code
+                {/* QR Code */}
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', width: '100%', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '18px' }}>
+                  <p style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.08em', textAlign: 'center' }}>
+                    Or Scan QR Code
                   </p>
-                  <div className="upi-qr-frame" style={{ position: 'relative', padding: '16px', background: '#fff', borderRadius: '16px', boxShadow: '0 0 30px rgba(255, 183, 3, 0.15)' }}>
+                  <div className="upi-qr-frame" style={{ position: 'relative', padding: '14px', background: '#fff', borderRadius: '14px', boxShadow: '0 0 30px rgba(255, 183, 3, 0.12)' }}>
                     <img
                       src={qrCodeApi}
-                      alt={`UPI QR`}
-                      width={200}
-                      height={200}
-                      style={{ width: '200px', height: '200px', display: 'block' }}
+                      alt="UPI QR"
+                      width={180}
+                      height={180}
+                      style={{ width: '180px', height: '180px', display: 'block' }}
                     />
                   </div>
-                  <a href={qrCodeApi} download="FCL_Payment_QR.png" target="_blank" rel="noopener noreferrer" style={{ fontSize: '12px', color: 'var(--accent-teal)', textDecoration: 'underline', marginTop: '4px' }}>
-                    View & Download QR Code
+                  <a href={qrCodeApi} download="FCL_Payment_QR.png" target="_blank" rel="noopener noreferrer" style={{ fontSize: '11px', color: 'var(--accent-teal)', textDecoration: 'underline' }}>
+                    Download QR Image
                   </a>
                 </div>
 
-                {/* Option 3: Manual UPI ID */}
-                <div style={{ width: '100%', marginTop: '8px', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '20px' }}>
-                  <p style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'center', marginBottom: '8px' }}>
-                    Option 3: Pay via UPI ID
+                {/* Manual UPI ID */}
+                <div style={{ width: '100%', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '16px' }}>
+                  <p style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.08em', textAlign: 'center', marginBottom: '8px' }}>
+                    Or Pay Using UPI ID
                   </p>
                   <div style={{ display: 'flex', background: 'rgba(0, 0, 0, 0.4)', border: '1px solid var(--card-border)', borderRadius: '8px', padding: '12px 16px', alignItems: 'center', justifyContent: 'space-between' }}>
                     <span style={{ fontFamily: 'monospace', fontWeight: '700', fontSize: '15px', color: 'var(--accent-gold)' }}>{config.upiId}</span>
@@ -396,13 +481,30 @@ export default function Register() {
                       style={{ background: 'rgba(255,255,255,0.1)', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', color: copied ? 'var(--success)' : 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: '600', transition: 'all 0.2s ease' }}
                     >
                       {copied ? <Check size={14} /> : <Copy size={14} />}
-                      {copied ? 'Copied' : 'Copy'}
+                      {copied ? 'Copied!' : 'Copy'}
                     </button>
                   </div>
+                  <div style={{ marginTop: '10px', padding: '12px', background: 'rgba(6,182,212,0.04)', border: '1px solid rgba(6,182,212,0.15)', borderRadius: '8px' }}>
+                    <p style={{ fontSize: '11px', color: 'var(--text-secondary)', lineHeight: '1.6', margin: 0 }}>
+                      <strong style={{ color: 'var(--accent-teal)' }}>Steps:</strong> Open any UPI app → Send Money → Paste UPI ID → Enter ₹{config.regFee} → In remarks, add: <strong style={{ color: 'var(--accent-gold)' }}>{registeredPlayer?.refId}</strong> → Pay
+                    </p>
+                  </div>
                 </div>
+
+                {/* Troubleshooting */}
+                <details style={{ width: '100%', fontSize: '12px', color: 'var(--text-secondary)' }}>
+                  <summary style={{ cursor: 'pointer', fontWeight: '700', padding: '8px 0' }}>Having trouble paying? Tap here for help</summary>
+                  <div style={{ padding: '10px', background: 'rgba(0,0,0,0.2)', borderRadius: '8px', marginTop: '6px', lineHeight: '1.7' }}>
+                    <p style={{ margin: '0 0 6px' }}>• <strong>App not opening?</strong> Make sure the app is installed on your device.</p>
+                    <p style={{ margin: '0 0 6px' }}>• <strong>On iPhone?</strong> Try "Open Other Payment App" — it will show your installed UPI apps.</p>
+                    <p style={{ margin: '0 0 6px' }}>• <strong>On Desktop?</strong> Scan the QR code using any UPI app on your phone.</p>
+                    <p style={{ margin: '0 0 6px' }}>• <strong>QR not working?</strong> Copy the UPI ID and paste it manually in your app.</p>
+                    <p style={{ margin: 0 }}>• <strong>Still stuck?</strong> Take a screenshot and contact the organizers.</p>
+                  </div>
+                </details>
               </div>
 
-              {/* Crucial UX element: The 'I Have Paid' Button */}
+              {/* 'I Have Paid' Button */}
               <div style={{ marginTop: '16px' }}>
                 <button
                   type="button"
