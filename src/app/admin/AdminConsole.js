@@ -1143,10 +1143,13 @@ function PaymentCard({ player, onApprove, showActions }) {
       </div>
       <div style={{ minWidth: '160px' }}>
         <p style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Payment proof</p>
-        {player.paymentScreenshot && (
-          <a href={player.paymentScreenshot} target="_blank" rel="noopener noreferrer" style={{ fontSize: '11px', color: 'var(--accent-gold)', marginTop: '4px', display: 'inline-block' }}>
-            View receipt
+        {player.paymentScreenshot ? (
+          <a href={player.paymentScreenshot} target="_blank" rel="noopener noreferrer" style={{ fontSize: '11px', color: 'var(--accent-gold)', marginTop: '4px', display: 'inline-flex', alignItems: 'center', gap: '6px', textDecoration: 'none' }}>
+            <img src={player.paymentScreenshot} alt="Receipt" style={{ width: '28px', height: '28px', borderRadius: '4px', objectFit: 'cover', border: '1px solid var(--accent-gold)' }} />
+            View receipt ↗
           </a>
+        ) : (
+          <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Not uploaded</span>
         )}
       </div>
       <div style={{ textAlign: 'center', minWidth: '100px' }}>
