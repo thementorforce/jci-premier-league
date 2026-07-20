@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Play, Check, X, Plus, Trash2, RotateCcw, AlertTriangle,
@@ -61,9 +61,16 @@ export default function AdminConsole({ username = 'admin' }) {
     return token ? { 'Authorization': `Bearer ${token}` } : {};
   };
 
+  const abortRef = useRef(null);
+  const isFetchingRef = useRef(false);
+
   const handleLogout = async () => {
-    await fetch('/api/auth/logout', { method: 'POST' });
+    // Immediately abort any in-flight requests so logout isn't blocked
+    if (abortRef.current) abortRef.current.abort();
     localStorage.removeItem('fcl_admin_token');
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } catch { /* ignore */ }
     router.push('/admin/login');
     router.refresh();
   };
@@ -81,14 +88,26 @@ export default function AdminConsole({ username = 'admin' }) {
   }, []);
 
   const fetchConsoleData = useCallback(async () => {
+    // Skip if a previous fetch is still running
+    if (isFetchingRef.current) return;
+    isFetchingRef.current = true;
+
+    // Cancel any previous in-flight requests
+    if (abortRef.current) abortRef.current.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+    const signal = controller.signal;
+
     try {
       const authHeaders = getAuthHeaders();
+      const opts = (extra = {}) => ({ ...extra, headers: { ...authHeaders, ...(extra.headers || {}) }, signal });
+
       const [auctionRes, adsRes, pendingRes, paymentsRes, adminTeamsRes] = await Promise.all([
-        fetch('/api/auction/status'),
-        fetch('/api/admin/ads', { headers: authHeaders }),
-        fetch('/api/admin/approve-player', { headers: authHeaders }),
-        fetch('/api/admin/payments', { headers: authHeaders }),
-        fetch('/api/admin/teams', { headers: authHeaders }),
+        fetch('/api/auction/status', { signal }),
+        fetch('/api/admin/ads', opts()),
+        fetch('/api/admin/approve-player', opts()),
+        fetch('/api/admin/payments', opts()),
+        fetch('/api/admin/teams', opts()),
       ]);
 
       if ([adsRes, pendingRes, paymentsRes, adminTeamsRes].some((res) => handleUnauthorized(res))) return;
@@ -114,7 +133,9 @@ export default function AdminConsole({ username = 'admin' }) {
         setAdminTeams(await adminTeamsRes.json());
       }
     } catch (e) {
-      console.error(e);
+      if (e.name !== 'AbortError') console.error(e);
+    } finally {
+      isFetchingRef.current = false;
     }
   }, [router]);
 
@@ -161,8 +182,11 @@ export default function AdminConsole({ username = 'admin' }) {
   useEffect(() => {
     fetchConfig();
     fetchConsoleData();
-    const interval = setInterval(fetchConsoleData, 3000);
-    return () => clearInterval(interval);
+    const interval = setInterval(fetchConsoleData, 8000);
+    return () => {
+      clearInterval(interval);
+      if (abortRef.current) abortRef.current.abort();
+    };
   }, [fetchConfig, fetchConsoleData]);
 
   const handleSetAuctionStatus = async (status) => {
