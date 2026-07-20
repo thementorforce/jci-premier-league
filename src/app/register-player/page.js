@@ -189,7 +189,7 @@ export default function Register() {
 
   // UPI payment params string (reused in all intent URLs)
   const currentTxId = registeredPlayer?.refId || formData.transactionId || 'FCL Registration';
-  const upiParams = `pa=${config.upiId}&pn=${encodeURIComponent(config.payeeName)}&am=${config.regFee}&cu=INR&tn=${encodeURIComponent(currentTxId)}&tr=${encodeURIComponent(currentTxId)}`;
+  const upiParams = `pa=${config.upiId}&pn=${encodeURIComponent(config.payeeName)}&am=${config.regFee}&cu=INR&tn=${encodeURIComponent(currentTxId)}&tr=${encodeURIComponent(currentTxId)}&mc=0000`;
   const upiUrl = `upi://pay?${upiParams}`;
   const qrCodeApi = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(upiUrl)}`;
 
