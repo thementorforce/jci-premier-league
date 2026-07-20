@@ -179,13 +179,17 @@ export default function Register() {
     fetchAds();
   }, []);
 
-  const upiUrl = `upi://pay?pa=${config.upiId}&pn=${encodeURIComponent(config.payeeName)}&am=${config.regFee}&cu=INR&tn=${encodeURIComponent(formData.transactionId || 'FCL Registration')}`;
+  // UPI payment params string (reused in all intent URLs)
+  const upiParams = `pa=${config.upiId}&pn=${encodeURIComponent(config.payeeName)}&am=${config.regFee}&cu=INR&tn=${encodeURIComponent(formData.transactionId || 'FCL Registration')}`;
+  const upiUrl = `upi://pay?${upiParams}`;
   const qrCodeApi = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(upiUrl)}`;
 
-  // App-specific UPI intent URLs
-  const gpayUrl = `gpay://upi/pay?pa=${config.upiId}&pn=${encodeURIComponent(config.payeeName)}&am=${config.regFee}&cu=INR&tn=${encodeURIComponent(formData.transactionId || 'FCL Registration')}`;
-  const phonepeUrl = `phonepe://pay?pa=${config.upiId}&pn=${encodeURIComponent(config.payeeName)}&am=${config.regFee}&cu=INR&tn=${encodeURIComponent(formData.transactionId || 'FCL Registration')}`;
-  const paytmUrl = `paytmmp://pay?pa=${config.upiId}&pn=${encodeURIComponent(config.payeeName)}&am=${config.regFee}&cu=INR&tn=${encodeURIComponent(formData.transactionId || 'FCL Registration')}`;
+  // Android Intent URLs with explicit package names — bypasses WhatsApp interception
+  const gpayIntent = `intent://pay?${upiParams}#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end`;
+  const phonepeIntent = `intent://pay?${upiParams}#Intent;scheme=upi;package=com.phonepe.app;end`;
+  const paytmIntent = `intent://pay?${upiParams}#Intent;scheme=upi;package=net.one97.paytm;end`;
+  // Generic intent without package → shows Android app chooser
+  const genericIntent = `intent://pay?${upiParams}#Intent;scheme=upi;end`;
 
 
   // Build sponsor list for sidebar/spotlight (merge fetched ads with fallback)
@@ -536,7 +540,7 @@ export default function Register() {
                       </p>
                       <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', flexWrap: 'wrap' }}>
                         <a
-                          href={gpayUrl}
+                          href={gpayIntent}
                           className="upi-app-btn"
                           style={{
                             display: 'inline-flex', alignItems: 'center', gap: '8px',
@@ -550,7 +554,7 @@ export default function Register() {
                           <span style={{ fontSize: '18px' }}>💳</span> Google Pay
                         </a>
                         <a
-                          href={phonepeUrl}
+                          href={phonepeIntent}
                           className="upi-app-btn"
                           style={{
                             display: 'inline-flex', alignItems: 'center', gap: '8px',
@@ -564,7 +568,7 @@ export default function Register() {
                           <span style={{ fontSize: '18px' }}>📱</span> PhonePe
                         </a>
                         <a
-                          href={paytmUrl}
+                          href={paytmIntent}
                           className="upi-app-btn"
                           style={{
                             display: 'inline-flex', alignItems: 'center', gap: '8px',
@@ -579,7 +583,7 @@ export default function Register() {
                         </a>
                       </div>
                       <a
-                        href={upiUrl}
+                        href={genericIntent}
                         className="premium-button-secondary"
                         style={{ padding: '8px 16px', fontSize: '13px', marginTop: '4px', alignSelf: 'center', display: 'inline-flex', gap: '6px' }}
                       >
