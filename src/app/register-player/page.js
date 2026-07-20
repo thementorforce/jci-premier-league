@@ -76,8 +76,9 @@ export default function Register() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.transactionId || formData.transactionId.length !== 12) {
-      setStatus({ type: 'error', message: 'UPI UTR / Transaction Reference ID must be exactly 12 numeric digits.' });
+    const cleanTxId = (formData.transactionId || '').trim();
+    if (!cleanTxId || cleanTxId.length < 6) {
+      setStatus({ type: 'error', message: 'Please enter a valid UPI UTR / Transaction Reference ID.' });
       return;
     }
 

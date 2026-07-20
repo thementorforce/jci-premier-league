@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Award, Users, Search, RefreshCw, Volume2, Clock, Radio, Coffee, Pause, Flag } from 'lucide-react';
 import Link from 'next/link';
+import SponsorMarquee from '@/components/SponsorMarquee';
 
 const STATUS_CONFIG = {
   NOT_STARTED: { label: 'Not Started', icon: Clock,  color: '#94a3b8', bg: 'rgba(148,163,184,0.1)', description: 'The auction has not started yet. Stay tuned!' },
@@ -19,6 +20,7 @@ export default function LiveAuction() {
     unsoldPlayers: [],
     draftPool: [],
     teams: [],
+    ads: [],
     auctionStatus: 'NOT_STARTED'
   });
   const [loading, setLoading] = useState(true);
@@ -137,6 +139,7 @@ export default function LiveAuction() {
         );
       })()}
 
+      <SponsorMarquee ads={data.ads || []} title="Official Tournament Sponsors" />
 
       <div className="grid-auction-main">
         

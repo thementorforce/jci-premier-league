@@ -18,7 +18,7 @@ export async function GET() {
       },
     });
 
-    const [soldPlayers, unsoldPlayers, draftPool, teams, soldCount, unsoldCount, registeredCount] =
+    const [soldPlayers, unsoldPlayers, draftPool, teams, soldCount, unsoldCount, registeredCount, ads] =
       await Promise.all([
         prisma.playerProfile.findMany({
           where: { status: 'Sold' },
@@ -31,19 +31,21 @@ export async function GET() {
           orderBy: { fullName: 'asc' },
         }),
         prisma.playerProfile.findMany({
-          where: { status: 'Registered' },
+          where: { status: 'Registered', paymentStatus: 'Approved' },
           orderBy: { fullName: 'asc' },
         }),
         prisma.team.findMany({ orderBy: { name: 'asc' } }),
         prisma.playerProfile.count({ where: { status: 'Sold' } }),
         prisma.playerProfile.count({ where: { status: 'Unsold' } }),
-        prisma.playerProfile.count({ where: { status: 'Registered' } }),
+        prisma.playerProfile.count({ where: { status: 'Registered', paymentStatus: 'Approved' } }),
+        prisma.adPlacement.findMany({ where: { active: true } }),
       ]);
 
     const highestBid = activePlayer?.bids[0];
 
     return NextResponse.json({
       auctionStatus: config.auctionStatus,
+      ads,
       activePlayer: activePlayer
         ? {
             id: activePlayer.id,

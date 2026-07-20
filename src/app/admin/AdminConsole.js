@@ -396,7 +396,7 @@ export default function AdminConsole({ username = 'admin' }) {
   const tabs = [
     { id: 'overview', label: 'Dashboard', icon: Users },
     { id: 'auction', label: 'Auction Control', icon: Trophy },
-    { id: 'payments', label: `Players & Payments (${pendingPlayers.length} pending)`, icon: CreditCard },
+    { id: 'payments', label: `Registered Players (${pendingPlayers.length} pending)`, icon: Users },
     { id: 'teams', label: 'Franchise Teams', icon: Shield },
     { id: 'sponsors', label: 'Sponsor Banners', icon: Image },
     { id: 'settings', label: 'UPI & Settings', icon: IndianRupee },
@@ -1081,7 +1081,7 @@ function EmptyState({ title, text }) {
 }
 
 function PlayerRecord({ player, onApprove }) {
-  const canReview = player.paymentStatus === 'Pending' && player.status === 'Pending';
+  const canReview = player.paymentStatus === 'Pending';
   return (
     <article className="admin-player-record">
       <div className="admin-record-primary">

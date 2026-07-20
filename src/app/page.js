@@ -1,5 +1,6 @@
 import prisma from '@/lib/db';
 import Link from 'next/link';
+import SponsorMarquee from '@/components/SponsorMarquee';
 import {
   ArrowRight,
   BadgeIndianRupee,
@@ -32,9 +33,10 @@ export default async function Home() {
   let teams = [];
   let latestSale = null;
   let activePlayer = null;
+  let ads = [];
 
   try {
-    const [playerCount, teamRows, soldCount, latestSold, biddingPlayer] = await Promise.all([
+    const [playerCount, teamRows, soldCount, latestSold, biddingPlayer, adRows] = await Promise.all([
       prisma.playerProfile.count(),
       prisma.team.findMany({ include: { players: true }, orderBy: { pointsSpent: 'desc' } }),
       prisma.playerProfile.count({ where: { status: 'Sold' } }),
@@ -47,6 +49,7 @@ export default async function Home() {
         where: { status: 'Bidding' },
         include: { bids: { orderBy: { amount: 'desc' }, take: 1, include: { team: true } } },
       }),
+      prisma.adPlacement.findMany({ where: { active: true } }),
     ]);
 
     teams = teamRows;
@@ -58,6 +61,7 @@ export default async function Home() {
     };
     latestSale = latestSold;
     activePlayer = biddingPlayer;
+    ads = adRows;
   } catch (error) {
     console.error('Database issue on landing page:', error);
     dbError = true;
@@ -148,6 +152,10 @@ export default async function Home() {
         <div><Trophy size={20} /><span><b>{stats.soldCount}</b> signings completed</span></div>
         <div><BadgeIndianRupee size={20} /><span><b>{formatPoints(stats.totalPurse)}</b> total points</span></div>
       </section>
+
+      <div className="home-shell">
+        <SponsorMarquee ads={ads} title="Tournament Sponsors & Partners" />
+      </div>
 
       <main className="home-shell home-content">
         {dbError && (
