@@ -46,6 +46,15 @@ export default function Register() {
     }
   };
 
+  const generateRefCode = () => {
+    const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    let code = 'FCL-';
+    for (let i = 0; i < 6; i++) {
+      code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return code;
+  };
+
   const nextStep = () => {
     if (!formData.fullName || !formData.mobileNumber || !formData.email) {
       setStatus({ type: 'error', message: 'Please enter your Full Name, Email, and Mobile Number.' });
@@ -59,6 +68,12 @@ export default function Register() {
       setStatus({ type: 'error', message: 'Please upload your photo before continuing to payment.' });
       return;
     }
+    
+    // Auto-generate reference code if not set
+    if (!formData.transactionId) {
+      setFormData((prev) => ({ ...prev, transactionId: generateRefCode() }));
+    }
+    
     setStatus({ type: null, message: '' });
     setStep(2);
   };
@@ -76,20 +91,17 @@ export default function Register() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const cleanTxId = (formData.transactionId || '').trim();
-    if (!cleanTxId || cleanTxId.length < 6) {
-      setStatus({ type: 'error', message: 'Please enter a valid UPI UTR / Transaction Reference ID.' });
-      return;
-    }
-
     setLoading(true);
     setStatus({ type: null, message: '' });
+
+    const finalTxId = formData.transactionId || generateRefCode();
+    const payload = { ...formData, transactionId: finalTxId };
 
     try {
       const response = await fetch('/api/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload),
       });
 
       const data = await response.json();
@@ -97,7 +109,8 @@ export default function Register() {
       if (response.ok) {
         setRegisteredPlayer({
           fullName: formData.fullName,
-          email: formData.email
+          email: formData.email,
+          refId: finalTxId
         });
         setIsSubmitted(true);
         setFormData({
@@ -152,10 +165,8 @@ export default function Register() {
     fetchConfig();
   }, []);
 
-  const upiUrl = `upi://pay?pa=${config.upiId}&pn=${encodeURIComponent(config.payeeName)}&am=${config.regFee}&cu=INR&tn=FCL%20Registration`;
+  const upiUrl = `upi://pay?pa=${config.upiId}&pn=${encodeURIComponent(config.payeeName)}&am=${config.regFee}&cu=INR&tn=${encodeURIComponent(formData.transactionId || 'FCL Registration')}`;
   const qrCodeApi = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(upiUrl)}`;
-
-  const isUtrValid = formData.transactionId.length === 12 && /^\d+$/.test(formData.transactionId);
 
   return (
     <div className="page-container-sm">
@@ -478,24 +489,17 @@ export default function Register() {
                   </div>
                 </div>
 
-                {/* UPI Reference ID */}
-                <div>
-                  <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span>UPI Transaction Reference ID (UTR) *</span>
-                    {isUtrValid && <span style={{ color: 'var(--success)', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '4px' }}><CheckCircle2 size={12} /> Valid Format</span>}
-                  </label>
-                  <input
-                    type="text"
-                    name="transactionId"
-                    required
-                    maxLength="12"
-                    placeholder="Enter 12-digit transaction number"
-                    value={formData.transactionId}
-                    onChange={handleChange}
-                    className="premium-input"
-                    style={{ border: isUtrValid ? '1.5px solid var(--success)' : '1px solid rgba(0, 245, 212, 0.15)' }}
-                  />
-                  <span style={{ fontSize: '10px', color: 'var(--text-secondary)', display: 'block', marginTop: '4px' }}>Please double-check and input the exact 12-digit UTR/Ref number from your payment receipt.</span>
+                {/* System Generated Payment Reference ID */}
+                <div style={{ background: 'rgba(16, 185, 129, 0.1)', border: '1px solid var(--accent-teal)', borderRadius: '10px', padding: '14px', textAlign: 'center' }}>
+                  <span style={{ fontSize: '11px', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    Your Payment Reference ID
+                  </span>
+                  <p style={{ fontFamily: 'monospace', fontSize: '22px', fontWeight: '800', color: 'var(--accent-teal)', margin: '4px 0 2px' }}>
+                    {formData.transactionId}
+                  </p>
+                  <span style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block' }}>
+                    This reference ID is automatically saved with your registration profile for payment verification.
+                  </span>
                 </div>
 
                 {/* Form buttons */}
@@ -510,11 +514,11 @@ export default function Register() {
                   </button>
                   <button
                     type="submit"
-                    disabled={loading || !isUtrValid}
+                    disabled={loading}
                     className="premium-button"
-                    style={{ flex: '2', justifyContent: 'center', opacity: (!isUtrValid || loading) ? 0.7 : 1 }}
+                    style={{ flex: '2', justifyContent: 'center' }}
                   >
-                    {loading ? 'Submitting...' : 'Complete Registration'}
+                    {loading ? 'Submitting...' : 'I Have Completed Payment'}
                   </button>
                 </div>
 
