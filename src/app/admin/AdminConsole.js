@@ -268,6 +268,25 @@ export default function AdminConsole({ username = 'admin' }) {
     }
   };
 
+  const handleDeletePlayer = async (playerId, playerName) => {
+    if (!confirm(`Permanently delete player "${playerName}"? This cannot be undone. If the player was sold, points will be refunded to the team.`)) return;
+    try {
+      const res = await fetch(`/api/admin/delete-player?id=${playerId}`, {
+        method: 'DELETE',
+        headers: { ...getAuthHeaders() },
+      });
+      const data = await res.json();
+      if (res.ok) {
+        showStatus('success', data.message || 'Player deleted successfully');
+        fetchConsoleData();
+      } else {
+        showStatus('error', data.error || 'Failed to delete player');
+      }
+    } catch {
+      showStatus('error', 'Server error while deleting player');
+    }
+  };
+
   const handleApprovePlayer = async (playerId, action) => {
     try {
       const res = await fetch('/api/admin/approve-player', {
@@ -660,9 +679,19 @@ export default function AdminConsole({ username = 'admin' }) {
                 <h2 style={{ fontSize: '16px', fontWeight: '800', marginBottom: '12px', color: 'var(--success)' }}>Recently Sold</h2>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   {soldPlayers.slice(0, 5).map((p) => (
-                    <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 12px', background: 'rgba(7, 11, 25, 0.4)', borderRadius: '6px', fontSize: '13px' }}>
+                    <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 12px', background: 'rgba(7, 11, 25, 0.4)', borderRadius: '6px', fontSize: '13px' }}>
                       <span style={{ fontWeight: '600' }}>{p.fullName}</span>
-                      <span>{p.team?.name} &mdash; <strong style={{ color: 'var(--accent-gold)' }}>{p.soldPrice?.toLocaleString()} pts</strong></span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <span>{p.team?.name} &mdash; <strong style={{ color: 'var(--accent-gold)' }}>{p.soldPrice?.toLocaleString()} pts</strong></span>
+                        <button
+                          onClick={() => handleDeletePlayer(p.id, p.fullName)}
+                          className="premium-button-secondary"
+                          style={{ padding: '5px', borderRadius: '50%', border: '1px solid var(--danger)', color: 'var(--danger)', flexShrink: 0 }}
+                          title="Delete sold player (refunds points to team)"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -688,9 +717,19 @@ export default function AdminConsole({ username = 'admin' }) {
                       <p style={{ fontWeight: '700', fontSize: '14px' }}>{p.fullName}</p>
                       <p style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{p.preferredRole} &bull; {p.organization}</p>
                     </div>
-                    <button onClick={() => handleStartBidding(p.id)} className="premium-button" style={{ padding: '6px 12px', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      <Play size={12} /> Go Live
-                    </button>
+                    <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                      <button onClick={() => handleStartBidding(p.id)} className="premium-button" style={{ padding: '6px 12px', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <Play size={12} /> Go Live
+                      </button>
+                      <button
+                        onClick={() => handleDeletePlayer(p.id, p.fullName)}
+                        className="premium-button-secondary"
+                        style={{ padding: '6px', borderRadius: '50%', border: '1px solid var(--danger)', color: 'var(--danger)' }}
+                        title="Delete player"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
                   </div>
                 ))
               )}
@@ -752,7 +791,7 @@ export default function AdminConsole({ username = 'admin' }) {
                 <p style={{ textAlign: 'center', padding: '30px', color: 'var(--text-secondary)' }}>No payment records found.</p>
               ) : (
                 filteredPayments.map((p) => (
-                  <PlayerRecord key={p.id} player={p} onApprove={handleApprovePlayer} />
+                  <PlayerRecord key={p.id} player={p} onApprove={handleApprovePlayer} onDelete={handleDeletePlayer} />
                 ))
               )}
             </div>
@@ -1145,7 +1184,7 @@ function EmptyState({ title, text }) {
   return <div className="admin-empty-state"><Users size={25} /><b>{title}</b><span>{text}</span></div>;
 }
 
-function PlayerRecord({ player, onApprove }) {
+function PlayerRecord({ player, onApprove, onDelete }) {
   const canReview = player.paymentStatus === 'Pending';
   return (
     <article className="admin-player-record">
@@ -1163,6 +1202,16 @@ function PlayerRecord({ player, onApprove }) {
       <div className="admin-record-actions">
         {canReview && <><button onClick={() => onApprove(player.id, 'approve')} className="admin-approve-button"><Check size={15} /> Approve</button><button onClick={() => onApprove(player.id, 'reject')} className="admin-reject-button"><X size={15} /> Reject</button></>}
         {player.paymentScreenshot && <a href={player.paymentScreenshot} target="_blank" rel="noopener noreferrer" className="admin-receipt-link"><Eye size={15} /> Receipt</a>}
+        {onDelete && (
+          <button
+            onClick={() => onDelete(player.id, player.fullName)}
+            className="premium-button-secondary"
+            style={{ padding: '6px 12px', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '5px', border: '1px solid var(--danger)', color: 'var(--danger)' }}
+            title="Delete player permanently"
+          >
+            <Trash2 size={13} /> Delete
+          </button>
+        )}
       </div>
       <details className="admin-record-details">
         <summary>View full registration details <ArrowRight size={15} /></summary>

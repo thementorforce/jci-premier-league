@@ -68,11 +68,11 @@ function getSlideStyle(offset) {
   if (abs > 2) return { display: 'none' };
 
   const configs = {
-    0: { scale: 1,    rotateY: 0,   translateX:   0,  translateZ:   0, opacity: 1,    brightness: 1,    zIndex: 10 },
-    1: { scale: 0.80, rotateY: -42, translateX:  64,  translateZ: -70, opacity: 0.80, brightness: 0.70, zIndex:  5 },
-   '-1': { scale: 0.80, rotateY:  42, translateX: -64,  translateZ: -70, opacity: 0.80, brightness: 0.70, zIndex:  5 },
-    2: { scale: 0.60, rotateY: -55, translateX: 108,  translateZ:-140, opacity: 0.45, brightness: 0.40, zIndex:  1 },
-   '-2': { scale: 0.60, rotateY:  55, translateX:-108, translateZ:-140, opacity: 0.45, brightness: 0.40, zIndex:  1 },
+    0:    { scale: 1,    rotateY: 0,   translateX:   0,  translateZ:   0, opacity: 1,    brightness: 1,    zIndex: 10 },
+    1:    { scale: 0.82, rotateY: -32, translateX:  52,  translateZ: -60, opacity: 0.85, brightness: 0.72, zIndex:  5 },
+   '-1':  { scale: 0.82, rotateY:  32, translateX: -52,  translateZ: -60, opacity: 0.85, brightness: 0.72, zIndex:  5 },
+    2:    { scale: 0.64, rotateY: -48, translateX:  92,  translateZ:-120, opacity: 0.50, brightness: 0.42, zIndex:  1 },
+   '-2':  { scale: 0.64, rotateY:  48, translateX: -92,  translateZ:-120, opacity: 0.50, brightness: 0.42, zIndex:  1 },
   };
 
   const key = offset === 0 ? 0 : offset > 0 ? Math.min(offset, 2) : Math.max(offset, -2);
@@ -369,12 +369,12 @@ export default function SponsorMarquee({ ads = [], title = 'Official Sponsors & 
         {/* 3D perspective stage */}
         <div
           style={{
-            width: 'calc(100% - 48px)',
+            width: 'calc(100% - 80px)',
             margin: '0 auto',
-            height: '160px',
-            perspective: '800px',
+            height: '220px',
+            perspective: '900px',
             perspectiveOrigin: '50% 50%',
-            overflow: 'hidden',
+            overflow: 'visible',
           }}
         >
           {/* preserve-3d container */}
