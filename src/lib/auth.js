@@ -3,7 +3,7 @@ import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { headers } from 'next/headers';
 
-export const SESSION_COOKIE = 'fcl_session';
+export const SESSION_COOKIE = '__session';
 const SESSION_MAX_AGE = 60 * 60 * 24 * 7; // 7 days
 
 function getSecret() {
