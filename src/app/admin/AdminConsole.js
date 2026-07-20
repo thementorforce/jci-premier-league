@@ -169,7 +169,7 @@ export default function AdminConsole({ username = 'admin' }) {
     try {
       const res = await fetch('/api/config', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
         body: JSON.stringify({ ...configForm, auctionStatus: status }),
       });
       if (res.ok) {
@@ -342,7 +342,7 @@ export default function AdminConsole({ username = 'admin' }) {
     try {
       const res = await fetch('/api/config', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
         body: JSON.stringify(configForm),
       });
       if (res.ok) {

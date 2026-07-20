@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Lock, LogIn, AlertCircle } from 'lucide-react';
@@ -10,6 +10,10 @@ export default function AdminLoginPage() {
   const [form, setForm] = useState({ username: '', password: '' });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    localStorage.removeItem('fcl_admin_token');
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
