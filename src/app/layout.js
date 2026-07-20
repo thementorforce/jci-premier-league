@@ -25,9 +25,9 @@ export default function RootLayout({ children }) {
 
         <footer style={{ background: 'var(--bg-secondary)', borderTop: '1px solid var(--card-border)', padding: '24px', textAlign: 'center', fontSize: '14px', color: 'var(--text-secondary)' }}>
           <p>© {new Date().getFullYear()} Franchise Cricket League (FCL). All Rights Reserved.</p>
-          <p style={{ marginTop: '8px', fontSize: '12px' }}>Created for JCI Tumkur Metro, JCOM, JAC, and Rotary Tumkur Prerana.</p>
+          <p style={{ marginTop: '8px', fontSize: '12px' }}>This website is powered by the <strong style={{ fontSize: '14px' }}>Metro force and Evenzo</strong>.</p>
         </footer>
-        
+
         <AuctionToast />
       </body>
     </html>
