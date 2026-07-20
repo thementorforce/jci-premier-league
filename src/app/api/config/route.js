@@ -3,7 +3,7 @@ import { readConfig, writeConfig, VALID_AUCTION_STATUSES } from '@/lib/config';
 import { requireAdmin } from '@/lib/auth';
 
 export async function GET() {
-  return NextResponse.json(readConfig());
+  return NextResponse.json(await readConfig());
 }
 
 export async function POST(request) {
@@ -12,7 +12,7 @@ export async function POST(request) {
 
   try {
     const body = await request.json();
-    const current = readConfig();
+    const current = await readConfig();
 
     const config = {
       upiId: body.upiId ?? current.upiId,
@@ -23,10 +23,10 @@ export async function POST(request) {
         : current.auctionStatus,
     };
 
-    writeConfig(config);
+    await writeConfig(config);
     return NextResponse.json({ success: true, config });
   } catch (error) {
-    console.error('Error writing config file:', error);
+    console.error('Error writing config:', error);
     return NextResponse.json({ error: 'Failed to save configuration' }, { status: 500 });
   }
 }

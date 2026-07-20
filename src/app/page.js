@@ -69,7 +69,8 @@ export default async function Home() {
 
   try {
     const { readConfig } = await import('@/lib/config');
-    auctionStatus = readConfig().auctionStatus || 'NOT_STARTED';
+    const configData = await readConfig();
+    auctionStatus = configData.auctionStatus || 'NOT_STARTED';
   } catch (error) {
     console.error('Unable to read auction configuration:', error);
   }

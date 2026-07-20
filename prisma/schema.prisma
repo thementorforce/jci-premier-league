@@ -75,3 +75,9 @@ model AdPlacement {
   active    Boolean  @default(true)
   createdAt DateTime @default(now())
 }
+
+model SystemConfig {
+  key       String   @id
+  value     String
+  updatedAt DateTime @default(now()) @updatedAt
+}

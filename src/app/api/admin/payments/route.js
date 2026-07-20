@@ -8,7 +8,7 @@ export async function GET() {
   if (auth.response) return auth.response;
 
   try {
-    const config = readConfig();
+    const config = await readConfig();
     const regFee = parseInt(config.regFee, 10) || 0;
 
     const [allPlayers, pendingCount, approvedCount] = await Promise.all([

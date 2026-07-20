@@ -31,8 +31,8 @@ export async function POST(request) {
 
     await prisma.bidHistory.deleteMany({ where: { playerId } });
 
-    const config = readConfig();
-    writeConfig({ ...config, auctionStatus: 'LIVE' });
+    const config = await readConfig();
+    await writeConfig({ ...config, auctionStatus: 'LIVE' });
 
     return NextResponse.json({ success: true, player: updatedPlayer });
   } catch (error) {

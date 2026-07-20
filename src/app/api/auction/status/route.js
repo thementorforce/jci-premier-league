@@ -6,7 +6,7 @@ export const revalidate = 0;
 
 export async function GET() {
   try {
-    const config = readConfig();
+    const config = await readConfig();
 
     const activePlayer = await prisma.playerProfile.findFirst({
       where: { status: 'Bidding' },
