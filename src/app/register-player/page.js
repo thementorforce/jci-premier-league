@@ -151,6 +151,7 @@ export default function Register() {
     regFee: "500"
   });
   const [ads, setAds] = useState([]);
+  const [isIOS, setIsIOS] = useState(false);
 
   useEffect(() => {
     const fetchConfig = async () => {
@@ -177,6 +178,12 @@ export default function Register() {
     };
     fetchConfig();
     fetchAds();
+    
+    // Detect iOS
+    if (typeof window !== 'undefined') {
+      const userAgent = window.navigator.userAgent.toLowerCase();
+      setIsIOS(/iphone|ipad|ipod/.test(userAgent));
+    }
   }, []);
 
   // UPI payment params string (reused in all intent URLs)
@@ -188,8 +195,18 @@ export default function Register() {
   const gpayIntent = `intent://pay?${upiParams}#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end`;
   const phonepeIntent = `intent://pay?${upiParams}#Intent;scheme=upi;package=com.phonepe.app;end`;
   const paytmIntent = `intent://pay?${upiParams}#Intent;scheme=upi;package=net.one97.paytm;end`;
-  // Generic intent without package → shows Android app chooser
   const genericIntent = `intent://pay?${upiParams}#Intent;scheme=upi;end`;
+
+  // iOS standard URI schemes
+  const gpayIos = `gpay://upi/pay?${upiParams}`;
+  const phonepeIos = `phonepe://pay?${upiParams}`;
+  const paytmIos = `paytmmp://pay?${upiParams}`;
+
+  // Select the correct link based on OS
+  const gpayLink = isIOS ? gpayIos : gpayIntent;
+  const phonepeLink = isIOS ? phonepeIos : phonepeIntent;
+  const paytmLink = isIOS ? paytmIos : paytmIntent;
+  const genericLink = isIOS ? upiUrl : genericIntent;
 
 
   // Build sponsor list for sidebar/spotlight (merge fetched ads with fallback)
@@ -540,7 +557,7 @@ export default function Register() {
                       </p>
                       <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', flexWrap: 'wrap' }}>
                         <a
-                          href={gpayIntent}
+                          href={gpayLink}
                           className="upi-app-btn"
                           style={{
                             display: 'inline-flex', alignItems: 'center', gap: '8px',
@@ -554,7 +571,7 @@ export default function Register() {
                           <span style={{ fontSize: '18px' }}>💳</span> Google Pay
                         </a>
                         <a
-                          href={phonepeIntent}
+                          href={phonepeLink}
                           className="upi-app-btn"
                           style={{
                             display: 'inline-flex', alignItems: 'center', gap: '8px',
@@ -568,7 +585,7 @@ export default function Register() {
                           <span style={{ fontSize: '18px' }}>📱</span> PhonePe
                         </a>
                         <a
-                          href={paytmIntent}
+                          href={paytmLink}
                           className="upi-app-btn"
                           style={{
                             display: 'inline-flex', alignItems: 'center', gap: '8px',
@@ -583,7 +600,7 @@ export default function Register() {
                         </a>
                       </div>
                       <a
-                        href={genericIntent}
+                        href={genericLink}
                         className="premium-button-secondary"
                         style={{ padding: '8px 16px', fontSize: '13px', marginTop: '4px', alignSelf: 'center', display: 'inline-flex', gap: '6px' }}
                       >
