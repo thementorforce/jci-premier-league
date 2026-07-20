@@ -9,6 +9,7 @@ export default function Register() {
   const [step, setStep] = useState(1);
   const [copied, setCopied] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [paymentStatus, setPaymentStatus] = useState('pending'); // 'pending' | 'completed'
   const [registeredPlayer, setRegisteredPlayer] = useState(null);
   const [formData, setFormData] = useState({
     fullName: '',
@@ -142,6 +143,21 @@ export default function Register() {
 
   const handleReset = () => {
     setIsSubmitted(false);
+    setPaymentStatus('pending');
+    setFormData({
+      fullName: '',
+      email: '',
+      mobileNumber: '',
+      organization: 'JCI Tumkur Metro',
+      gender: 'Male',
+      ageGroup: '25–40 Years',
+      jerseySize: 'L',
+      preferredRole: 'All-Rounder',
+      experience: 'Intermediate',
+      photoBase64: '',
+      transactionId: '',
+      paymentScreenshot: ''
+    });
     setRegisteredPlayer(null);
     setStatus({ type: null, message: '' });
   };
@@ -250,174 +266,179 @@ export default function Register() {
         )}
 
         {isSubmitted ? (
-          /* SUCCESS SCREEN */
-          <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '24px', padding: '10px 0' }}>
-            <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: 'rgba(16, 185, 129, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid var(--success)', boxShadow: 'var(--glow-success)' }}>
-              <CheckCircle2 size={48} color="var(--success)" />
-            </div>
-            
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <h2 className="gold-gradient-text" style={{ fontSize: '24px', fontWeight: '800' }}>Registration Successful!</h2>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '15px', lineHeight: '1.6' }}>
-                Thank you <strong style={{ color: 'var(--text-primary)' }}>{registeredPlayer?.fullName}</strong>, your player profile and payment details have been submitted successfully.
-              </p>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '14px', lineHeight: '1.6' }}>
-                A confirmation has been logged for <span style={{ color: 'var(--accent-teal)' }}>{registeredPlayer?.email}</span>. Our admin team will verify your transaction reference ID and approve your profile shortly.
-              </p>
-            </div>
-
-            {/* Sponsor Spotlight on Success */}
-            <div className="sponsor-spotlight">
-              <div className="sponsor-spotlight-label">
-                <Award size={14} /> Your registration was brought to you by
+          paymentStatus === 'pending' ? (
+            /* --- PREMIUM PAYMENT CHECKOUT SCREEN --- */
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', padding: '10px 0', animation: 'fadeIn 0.5s ease' }}>
+              <div style={{ textAlign: 'center' }}>
+                <h2 className="gold-gradient-text" style={{ fontSize: '24px', fontWeight: '800' }}>Checkout</h2>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginTop: '6px' }}>Complete your registration fee to secure your spot</p>
               </div>
-              <div className="sponsor-spotlight-grid">
-                {sponsorList.slice(0, 4).map((s) => (
-                  <a key={s.id} href={s.targetUrl || '#'} target="_blank" rel="noopener noreferrer" className="sponsor-spotlight-card">
-                    {s.imageUrl && <img src={s.imageUrl} alt={s.title} />}
-                    <span>{s.title}</span>
-                  </a>
-                ))}
-              </div>
-            </div>
 
-            {/* UPI PAYMENT GATEWAY (Now shown AFTER successful submission) */}
-            <div className="checkout-box" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', width: '100%', marginTop: '16px', padding: '24px 16px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--accent-teal)' }}>
-                <CreditCard size={20} />
-                <span style={{ fontWeight: '700', fontSize: '14px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Complete Your Payment</span>
-              </div>
-              <p style={{ fontSize: '36px', fontWeight: '900', color: 'var(--text-primary)' }}>₹{config.regFee}</p>
-
-              {/* UPI QR Code */}
-              <div className="upi-qr-block">
-                <p style={{ fontSize: '12px', fontWeight: '700', color: 'var(--accent-teal)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                  Scan UPI QR Code
+              {/* System Generated Payment Reference ID */}
+              <div style={{ background: 'rgba(6, 182, 212, 0.05)', border: '1px solid var(--accent-teal)', borderRadius: '10px', padding: '16px', textAlign: 'center', width: '100%', position: 'relative', overflow: 'hidden' }}>
+                <div style={{ position: 'absolute', top: 0, left: 0, width: '4px', height: '100%', background: 'var(--accent-teal)' }}></div>
+                <span style={{ fontSize: '11px', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Your Payment Reference ID
+                </span>
+                <p style={{ fontFamily: 'monospace', fontSize: '24px', fontWeight: '900', color: 'var(--text-primary)', margin: '4px 0 2px', letterSpacing: '1px' }}>
+                  {registeredPlayer?.refId}
                 </p>
-                <div className="upi-qr-frame">
-                  <img
-                    src={qrCodeApi}
-                    alt={`UPI QR for ${config.upiId}`}
-                    width={200}
-                    height={200}
-                    style={{ width: '200px', height: '200px', display: 'block' }}
-                  />
-                </div>
-                <p style={{ fontFamily: 'monospace', fontWeight: '800', fontSize: '16px', color: 'var(--accent-gold)' }}>
-                  {config.upiId}
-                </p>
+                <span style={{ fontSize: '12px', color: 'var(--accent-teal)', display: 'block', marginTop: '4px' }}>
+                  <strong>Important:</strong> This ID is linked to your profile.
+                </span>
               </div>
 
-              <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '6px', width: '100%' }}>
-                <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Scan QR Code with GPay, PhonePe, or Paytm</span>
+              {/* UPI PAYMENT GATEWAY */}
+              <div className="checkout-box" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', width: '100%', padding: '24px 16px', background: 'var(--bg-secondary)', border: '1px solid var(--card-border)', borderRadius: '12px' }}>
+                
+                <p style={{ fontSize: '42px', fontWeight: '900', color: 'var(--accent-gold)', textShadow: '0 0 20px rgba(255, 183, 3, 0.2)' }}>
+                  ₹{config.regFee}
+                </p>
 
-                {/* Copyable UPI Box */}
-                <div style={{ display: 'flex', background: 'rgba(3, 7, 18, 0.6)', border: '1px solid var(--card-border)', borderRadius: '10px', padding: '8px 12px', alignItems: 'center', justifyContent: 'space-between', margin: '4px 0' }}>
-                  <span style={{ fontFamily: 'monospace', fontWeight: '700', fontSize: '14px', color: 'var(--accent-gold)' }}>{config.upiId}</span>
-                  <button
-                    type="button"
-                    onClick={copyToClipboard}
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: copied ? 'var(--success)' : 'var(--text-secondary)' }}
-                  >
-                    {copied ? <Check size={16} /> : <Copy size={16} />}
-                  </button>
-                </div>
-
-                    {/* Individual UPI App Buttons */}
-                    <div className="mobile-only" style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px', width: '100%' }}>
-                      <p style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'center' }}>
-                        <Smartphone size={13} style={{ display: 'inline', verticalAlign: '-2px', marginRight: '4px' }} />
-                        Pay with your preferred app
+                {/* Option 1: Mobile Deep Links */}
+                <div className="mobile-only" style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '20px', marginBottom: '4px' }}>
+                  <p style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'center', marginBottom: '8px' }}>
+                    Option 1: Pay Directly via App
+                  </p>
+                  
+                  {isIOS ? (
+                    <>
+                      <a
+                        href={upiUrl}
+                        className="premium-button"
+                        style={{ width: '100%', justifyContent: 'center', background: 'linear-gradient(135deg, var(--accent-gold), #b8860b)', color: '#000', fontSize: '15px' }}
+                      >
+                        Open UPI App (GPay / PhonePe)
+                      </a>
+                      <p style={{ fontSize: '10px', color: 'var(--text-secondary)', textAlign: 'center', marginTop: '4px', lineHeight: '1.4' }}>
+                        iOS will automatically open your default installed UPI app.
                       </p>
+                    </>
+                  ) : (
+                    <>
                       <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', flexWrap: 'wrap' }}>
-                        <a
-                          href={gpayLink}
-                          className="upi-app-btn"
-                          style={{
-                            display: 'inline-flex', alignItems: 'center', gap: '8px',
-                            padding: '10px 18px', borderRadius: '10px',
-                            background: 'linear-gradient(135deg, rgba(66,133,244,0.15), rgba(66,133,244,0.05))',
-                            border: '1px solid rgba(66,133,244,0.4)',
-                            color: '#fff', fontWeight: '700', fontSize: '13px',
-                            textDecoration: 'none', transition: 'all 0.2s ease', flex: '1', justifyContent: 'center', minWidth: '120px'
-                          }}
-                        >
-                          <span style={{ fontSize: '18px' }}>💳</span> Google Pay
+                        <a href={gpayIntent} className="upi-app-btn" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '12px', borderRadius: '10px', background: 'linear-gradient(135deg, rgba(66,133,244,0.15), rgba(66,133,244,0.05))', border: '1px solid rgba(66,133,244,0.4)', color: '#fff', fontWeight: '700', fontSize: '13px', textDecoration: 'none', flex: '1', justifyContent: 'center', minWidth: '120px' }}>
+                          <span style={{ fontSize: '20px' }}>💳</span> GPay
                         </a>
-                        <a
-                          href={phonepeLink}
-                          className="upi-app-btn"
-                          style={{
-                            display: 'inline-flex', alignItems: 'center', gap: '8px',
-                            padding: '10px 18px', borderRadius: '10px',
-                            background: 'linear-gradient(135deg, rgba(95,37,159,0.15), rgba(95,37,159,0.05))',
-                            border: '1px solid rgba(95,37,159,0.4)',
-                            color: '#fff', fontWeight: '700', fontSize: '13px',
-                            textDecoration: 'none', transition: 'all 0.2s ease', flex: '1', justifyContent: 'center', minWidth: '120px'
-                          }}
-                        >
-                          <span style={{ fontSize: '18px' }}>📱</span> PhonePe
-                        </a>
-                        <a
-                          href={paytmLink}
-                          className="upi-app-btn"
-                          style={{
-                            display: 'inline-flex', alignItems: 'center', gap: '8px',
-                            padding: '10px 18px', borderRadius: '10px',
-                            background: 'linear-gradient(135deg, rgba(0,186,242,0.15), rgba(0,186,242,0.05))',
-                            border: '1px solid rgba(0,186,242,0.4)',
-                            color: '#fff', fontWeight: '700', fontSize: '13px',
-                            textDecoration: 'none', transition: 'all 0.2s ease', flex: '1', justifyContent: 'center', minWidth: '120px'
-                          }}
-                        >
-                          <span style={{ fontSize: '18px' }}>💰</span> Paytm
+                        <a href={phonepeIntent} className="upi-app-btn" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '12px', borderRadius: '10px', background: 'linear-gradient(135deg, rgba(95,37,159,0.15), rgba(95,37,159,0.05))', border: '1px solid rgba(95,37,159,0.4)', color: '#fff', fontWeight: '700', fontSize: '13px', textDecoration: 'none', flex: '1', justifyContent: 'center', minWidth: '120px' }}>
+                          <span style={{ fontSize: '20px' }}>📱</span> PhonePe
                         </a>
                       </div>
-                      
-                      {isIOS && (
-                        <p style={{ fontSize: '10px', color: 'var(--accent-gold)', textAlign: 'center', marginTop: '4px', lineHeight: '1.4' }}>
-                          <i>Note: Safari will say "address is invalid" if you click an app that isn't installed on your iPhone.</i>
-                        </p>
-                      )}
-
-                      <a
-                        href={genericLink}
-                        className="premium-button-secondary"
-                        style={{ padding: '8px 16px', fontSize: '13px', marginTop: '4px', alignSelf: 'center', display: 'inline-flex', gap: '6px' }}
-                      >
-                        <Smartphone size={14} /> {isIOS ? 'Open Default UPI App (e.g. WhatsApp)' : 'Open any other UPI app'}
+                      <a href={genericIntent} className="premium-button-secondary" style={{ padding: '10px', fontSize: '13px', marginTop: '4px', alignSelf: 'center', display: 'inline-flex', gap: '6px', width: '100%', justifyContent: 'center' }}>
+                        <Smartphone size={16} /> Open Other UPI App
                       </a>
-                    </div>
+                    </>
+                  )}
+                </div>
+
+                {/* Option 2: QR Code */}
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', width: '100%' }}>
+                  <p style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'center' }}>
+                    Option 2: Scan QR Code
+                  </p>
+                  <div className="upi-qr-frame" style={{ position: 'relative', padding: '16px', background: '#fff', borderRadius: '16px', boxShadow: '0 0 30px rgba(255, 183, 3, 0.15)' }}>
+                    <img
+                      src={qrCodeApi}
+                      alt={`UPI QR`}
+                      width={200}
+                      height={200}
+                      style={{ width: '200px', height: '200px', display: 'block' }}
+                    />
+                  </div>
+                  <a href={qrCodeApi} download="FCL_Payment_QR.png" target="_blank" rel="noopener noreferrer" style={{ fontSize: '12px', color: 'var(--accent-teal)', textDecoration: 'underline', marginTop: '4px' }}>
+                    View & Download QR Code
+                  </a>
+                </div>
+
+                {/* Option 3: Manual UPI ID */}
+                <div style={{ width: '100%', marginTop: '8px', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '20px' }}>
+                  <p style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'center', marginBottom: '8px' }}>
+                    Option 3: Pay via UPI ID
+                  </p>
+                  <div style={{ display: 'flex', background: 'rgba(0, 0, 0, 0.4)', border: '1px solid var(--card-border)', borderRadius: '8px', padding: '12px 16px', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span style={{ fontFamily: 'monospace', fontWeight: '700', fontSize: '15px', color: 'var(--accent-gold)' }}>{config.upiId}</span>
+                    <button
+                      type="button"
+                      onClick={copyToClipboard}
+                      style={{ background: 'rgba(255,255,255,0.1)', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', color: copied ? 'var(--success)' : 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: '600', transition: 'all 0.2s ease' }}
+                    >
+                      {copied ? <Check size={14} /> : <Copy size={14} />}
+                      {copied ? 'Copied' : 'Copy'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Crucial UX element: The 'I Have Paid' Button */}
+              <div style={{ marginTop: '16px' }}>
+                <button
+                  type="button"
+                  onClick={() => setPaymentStatus('completed')}
+                  className="premium-button"
+                  style={{ width: '100%', justifyContent: 'center', padding: '16px', fontSize: '16px', background: 'linear-gradient(135deg, var(--success), #059669)', border: '1px solid #10b981', boxShadow: '0 4px 15px rgba(16, 185, 129, 0.3)' }}
+                >
+                  I have completed the payment <CheckCircle2 size={20} style={{ marginLeft: '8px' }} />
+                </button>
+                <p style={{ fontSize: '12px', color: 'var(--text-secondary)', textAlign: 'center', marginTop: '12px', lineHeight: '1.5' }}>
+                  Click this button <strong>only after</strong> your payment is successful in your UPI app.
+                </p>
               </div>
             </div>
+          ) : (
+            /* --- FINAL SUCCESS CONFIRMATION SCREEN --- */
+            <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '24px', padding: '30px 10px', animation: 'fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1)' }}>
+              
+              <div style={{ position: 'relative' }}>
+                <div style={{ width: '100px', height: '100px', borderRadius: '50%', background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(16, 185, 129, 0.05))', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid var(--success)', boxShadow: '0 0 40px rgba(16, 185, 129, 0.3)' }}>
+                  <CheckCircle2 size={56} color="var(--success)" />
+                </div>
+              </div>
+              
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxWidth: '400px' }}>
+                <h2 style={{ fontSize: '28px', fontWeight: '900', color: 'var(--text-primary)' }}>You're All Set!</h2>
+                <p style={{ color: 'var(--success)', fontSize: '16px', fontWeight: '600' }}>
+                  Payment logged successfully.
+                </p>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '15px', lineHeight: '1.6' }}>
+                  Thank you, <strong style={{ color: 'var(--text-primary)' }}>{registeredPlayer?.fullName}</strong>. Your player profile and transaction ID (<span style={{ color: 'var(--accent-teal)' }}>{registeredPlayer?.refId}</span>) have been securely saved.
+                </p>
+                <div style={{ background: 'rgba(255,255,255,0.03)', padding: '16px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)', marginTop: '8px' }}>
+                  <p style={{ color: 'var(--text-secondary)', fontSize: '13px', lineHeight: '1.6' }}>
+                    Our admin team will verify your payment against this ID shortly. You will receive an official confirmation at <strong>{registeredPlayer?.email}</strong> once approved.
+                  </p>
+                </div>
+              </div>
 
-            {/* System Generated Payment Reference ID */}
-            <div style={{ background: 'rgba(16, 185, 129, 0.1)', border: '1px solid var(--accent-teal)', borderRadius: '10px', padding: '14px', textAlign: 'center', width: '100%' }}>
-              <span style={{ fontSize: '11px', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                Your Payment Reference ID
-              </span>
-              <p style={{ fontFamily: 'monospace', fontSize: '22px', fontWeight: '800', color: 'var(--accent-teal)', margin: '4px 0 2px' }}>
-                {registeredPlayer?.refId}
-              </p>
-              <span style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block' }}>
-                This reference ID is automatically saved with your registration profile for payment verification.
-              </span>
-            </div>
+              {/* Sponsor Spotlight on Success */}
+              <div className="sponsor-spotlight" style={{ width: '100%', marginTop: '16px' }}>
+                <div className="sponsor-spotlight-label">
+                  <Award size={14} /> Brought to you by
+                </div>
+                <div className="sponsor-spotlight-grid">
+                  {sponsorList.slice(0, 4).map((s) => (
+                    <a key={s.id} href={s.targetUrl || '#'} target="_blank" rel="noopener noreferrer" className="sponsor-spotlight-card">
+                      {s.imageUrl && <img src={s.imageUrl} alt={s.title} />}
+                      <span>{s.title}</span>
+                    </a>
+                  ))}
+                </div>
+              </div>
 
-            <div style={{ display: 'flex', gap: '16px', width: '100%', marginTop: '12px' }}>
-              <Link href="/" className="premium-button-secondary" style={{ flex: 1, justifyContent: 'center', textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
-                Go to Home
-              </Link>
-              <button
-                type="button"
-                onClick={handleReset}
-                className="premium-button"
-                style={{ flex: 1, justifyContent: 'center' }}
-              >
-                Register Another
-              </button>
+              <div style={{ display: 'flex', gap: '16px', width: '100%', marginTop: '12px' }}>
+                <Link href="/" className="premium-button-secondary" style={{ flex: 1, justifyContent: 'center', textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
+                  Back to Home
+                </Link>
+                <button
+                  type="button"
+                  onClick={handleReset}
+                  className="premium-button"
+                  style={{ flex: 1, justifyContent: 'center' }}
+                >
+                  Register Another
+                </button>
+              </div>
             </div>
-          </div>
+          )
         ) : (
           /* FORM FLOW */
           <form onSubmit={handleSubmit}>
