@@ -8,7 +8,11 @@ export async function GET() {
       where: { active: true },
       orderBy: { createdAt: 'desc' },
     });
-    return NextResponse.json(ads);
+    return NextResponse.json(ads, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=120, stale-while-revalidate=600',
+      },
+    });
   } catch (error) {
     console.error('Error fetching public ads:', error);
     return NextResponse.json([], { status: 200 });

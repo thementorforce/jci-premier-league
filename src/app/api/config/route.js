@@ -3,7 +3,12 @@ import { readConfig, writeConfig, VALID_AUCTION_STATUSES } from '@/lib/config';
 import { requireAdmin } from '@/lib/auth';
 
 export async function GET() {
-  return NextResponse.json(await readConfig());
+  const config = await readConfig();
+  return NextResponse.json(config, {
+    headers: {
+      'Cache-Control': 'public, s-maxage=15, stale-while-revalidate=60',
+    },
+  });
 }
 
 export async function POST(request) {
