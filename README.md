@@ -13,6 +13,23 @@ REGISTRATION_EMAIL_FROM="Franchise Cricket League <registrations@your-domain.com
 
 The sender address must be a verified Resend domain. If either value is missing, the approval still succeeds but the server logs that the email was not sent.
 
+### External PostgreSQL database
+
+The production container builds its Prisma connection from these environment variables:
+
+```bash
+DB_HOST=postgres.example.com
+DB_NAME=franchise_cricket_league
+DB_USER=fcl_user
+DB_PASSWORD=your-secret-password
+# Optional (defaults to 5432)
+DB_PORT=5432
+# Optional, for PostgreSQL servers that require TLS
+DB_SSL=true
+```
+
+Add `DB_HOST`, `DB_NAME`, `DB_USER`, and `DB_PASSWORD` as GitHub Actions secrets. The deployment workflow passes them to Cloud Run; it no longer attaches a Cloud SQL instance. `DATABASE_URL` remains supported for local or legacy deployments.
+
 First, run the development server:
 
 ```bash
