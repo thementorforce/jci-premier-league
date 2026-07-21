@@ -93,7 +93,9 @@ export default async function Home() {
               <span className="live-dot" />
               <span>{STATUS_COPY[auctionStatus] || STATUS_COPY.NOT_STARTED}</span>
             </div>
-            <p className="eyebrow"><Sparkles size={15} /> JCI Tumkur Metro presents</p>
+            <p className="eyebrow" style={{ fontSize: '14px', fontWeight: 800, letterSpacing: '0.18em' }}>
+              <Sparkles size={16} /> Diamond opticals presents
+            </p>
             <h1>Where local cricket<br /><em>plays like a league.</em></h1>
             <p className="hero-description">
               The official home of the Franchise Cricket League — follow the auction, discover every squad, and be part of Tumkur&apos;s next cricket story.
