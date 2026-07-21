@@ -1,35 +1,38 @@
 const { spawn } = require('node:child_process');
 
 function databaseUrlFromEnvironment(env) {
-  // Keep DATABASE_URL as an escape hatch for local development and existing
-  // deployments. External PostgreSQL deployments should provide all four DB_*
-  // values instead.
-  if (!env.DB_HOST) return env.DATABASE_URL;
+  let url = env.DATABASE_URL;
 
-  const required = ['DB_HOST', 'DB_NAME', 'DB_USER', 'DB_PASSWORD'];
-  const missing = required.filter((name) => !env[name]);
-  if (missing.length) {
-    throw new Error(`Missing required database environment variable(s): ${missing.join(', ')}`);
+  // If DB_HOST is explicitly provided, construct URL from DB_* vars
+  if (env.DB_HOST && env.DB_HOST.trim() !== '') {
+    const required = ['DB_HOST', 'DB_NAME', 'DB_USER', 'DB_PASSWORD'];
+    const missing = required.filter((name) => !env[name] || env[name].trim() === '');
+    if (!missing.length) {
+      const dbUrl = new URL('postgresql://localhost');
+      dbUrl.hostname = env.DB_HOST;
+      dbUrl.port = env.DB_PORT || '5432';
+      dbUrl.username = env.DB_USER;
+      dbUrl.password = env.DB_PASSWORD;
+      dbUrl.pathname = `/${env.DB_NAME}`;
+
+      if (env.DB_SSL === 'true') dbUrl.searchParams.set('sslmode', 'require');
+      url = dbUrl.toString();
+    }
   }
 
-  const url = new URL('postgresql://localhost');
-  url.hostname = env.DB_HOST;
-  url.port = env.DB_PORT || '5432';
-  url.username = env.DB_USER;
-  url.password = env.DB_PASSWORD;
-  url.pathname = `/${env.DB_NAME}`;
+  // Sanitize empty host (@/) for Cloud SQL socket URLs
+  if (url && url.includes('@/')) {
+    url = url.replace('@/', '@localhost/');
+  }
 
-  // Set DB_SSL=true when the external PostgreSQL server requires TLS.
-  if (env.DB_SSL === 'true') url.searchParams.set('sslmode', 'require');
-  return url.toString();
+  return url;
 }
 
 const databaseUrl = databaseUrlFromEnvironment(process.env);
-if (!databaseUrl) {
-  throw new Error('Set DB_HOST, DB_NAME, DB_USER, and DB_PASSWORD, or DATABASE_URL.');
+const environment = { ...process.env };
+if (databaseUrl) {
+  environment.DATABASE_URL = databaseUrl;
 }
-
-const environment = { ...process.env, DATABASE_URL: databaseUrl };
 
 function run(command, args) {
   return new Promise((resolve, reject) => {
@@ -42,6 +45,10 @@ function run(command, args) {
 }
 
 async function initializeDatabase() {
+  if (!databaseUrl) {
+    console.warn('DATABASE_URL is not configured. Skipping database initialization.');
+    return;
+  }
   for (let attempt = 1; attempt <= 5; attempt += 1) {
     try {
       console.log(`Database init attempt ${attempt}...`);
@@ -56,8 +63,8 @@ async function initializeDatabase() {
   }
 }
 
-// Preserve the existing behaviour: serve requests while schema sync retries in
-// the background, which lets Cloud Run complete its health check promptly.
-initializeDatabase();
+// Serve requests while schema sync retries in the background, allowing Cloud Run to pass port health checks
+initializeDatabase().catch((err) => console.error('Database initialization background error:', err));
 const server = spawn(process.execPath, ['server.js'], { env: environment, stdio: 'inherit' });
 server.once('exit', (code) => process.exit(code ?? 0));
+
