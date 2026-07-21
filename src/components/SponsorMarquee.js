@@ -16,19 +16,8 @@ function getFormattedUrl(targetUrl) {
 const DEFAULT_SPONSORS = [
   {
     id: 'ds-1',
-    title: 'Decathlon Sports',
-    tagline: 'Official Equipment Partner',
-    category: 'Equipment',
-    gradient: 'linear-gradient(135deg, #0b1d3a 0%, #0d4f9e 60%, #062a6b 100%)',
-    accentColor: '#5ba3f5',
-    shape: 'M0,0 L200,0 L160,100 L0,100 Z',
-    emoji: '⚡',
-    targetUrl: '#',
-  },
-  {
-    id: 'ds-2',
     title: 'Diamond Opticals',
-    tagline: 'Title Sponsor · Clear Vision for Champions',
+    tagline: 'Title Sponsor',
     category: 'Title Sponsor',
     gradient: 'linear-gradient(135deg, #1a0030 0%, #4b0082 55%, #2d0060 100%)',
     accentColor: '#b47fff',
@@ -37,49 +26,55 @@ const DEFAULT_SPONSORS = [
     targetUrl: '#',
   },
   {
+    id: 'ds-2',
+    title: 'Franchise Owners',
+    tagline: 'Team Owners & Managers',
+    category: 'Franchise Owners',
+    gradient: 'linear-gradient(135deg, #0b1d3a 0%, #0d4f9e 60%, #062a6b 100%)',
+    accentColor: '#5ba3f5',
+    shape: 'M0,0 L200,0 L160,100 L0,100 Z',
+    emoji: '🤝',
+    targetUrl: '#',
+  },
+  {
     id: 'ds-3',
-    title: 'Tumkur Cricket Academy',
-    tagline: 'Training Partner · Nurturing Future Champions',
-    category: 'Training Partner',
-    gradient: 'linear-gradient(135deg, #001a12 0%, #004d2e 55%, #00341f 100%)',
-    accentColor: '#3ecf8e',
-    shape: 'M0,0 L200,0 L200,80 L0,100 Z',
-    emoji: '🏏',
+    title: 'Trophy Sponsor',
+    tagline: 'Awarding Excellence',
+    category: 'Trophy Sponsor',
+    gradient: 'linear-gradient(135deg, #1f0800 0%, #8b2000 55%, #5c1500 100%)',
+    accentColor: '#ff7940',
+    shape: 'M0,20 L200,0 L200,100 L0,100 Z',
+    emoji: '🏆',
     targetUrl: '#',
   },
   {
     id: 'ds-4',
-    title: 'Rotary Tumkur Prerana',
-    tagline: 'Community Partner · Service Above Self',
-    category: 'Community Partner',
-    gradient: 'linear-gradient(135deg, #1f0800 0%, #8b2000 55%, #5c1500 100%)',
-    accentColor: '#ff7940',
-    shape: 'M0,20 L200,0 L200,100 L0,100 Z',
-    emoji: '🌟',
-    targetUrl: '#',
-  },
-  {
-    id: 'ds-5',
-    title: 'Karnataka Sports Trust',
-    tagline: 'Government Partner · Promoting Grassroots Sport',
-    category: 'Govt. Partner',
-    gradient: 'linear-gradient(135deg, #001530 0%, #003d7a 55%, #00234a 100%)',
-    accentColor: '#f5c518',
-    shape: 'M0,0 L180,0 L200,100 L0,100 Z',
-    emoji: '🏟️',
+    title: 'Food Sponsor',
+    tagline: 'Fueling the Champions',
+    category: 'Food Sponsor',
+    gradient: 'linear-gradient(135deg, #001a12 0%, #004d2e 55%, #00341f 100%)',
+    accentColor: '#3ecf8e',
+    shape: 'M0,0 L200,0 L200,80 L0,100 Z',
+    emoji: '🍽️',
     targetUrl: '#',
   },
 ];
 
 /* ─── 3D transform calculator ─────────────────────────────────────────── */
-function getSlideStyle(offset) {
+function getSlideStyle(offset, isMobile) {
   const abs = Math.abs(offset);
   if (abs > 2) return { display: 'none' };
+  
+  // Hide outer cards on mobile to prevent squishing and overflow
+  if (isMobile && abs > 1) return { display: 'none', opacity: 0 };
+
+  const m = isMobile ? 0.45 : 1; // Reduce translate and rotate spread on mobile
+  const scaleM = isMobile ? 0.95 : 1; // Slight scale adjust on mobile side cards
 
   const configs = {
     0:    { scale: 1,    rotateY: 0,   translateX:   0,  translateZ:   0, opacity: 1,    brightness: 1,    zIndex: 10 },
-    1:    { scale: 0.82, rotateY: -32, translateX:  52,  translateZ: -60, opacity: 0.85, brightness: 0.72, zIndex:  5 },
-   '-1':  { scale: 0.82, rotateY:  32, translateX: -52,  translateZ: -60, opacity: 0.85, brightness: 0.72, zIndex:  5 },
+    1:    { scale: 0.82 * scaleM, rotateY: -32 * m, translateX:  52 * m,  translateZ: -60, opacity: 0.85, brightness: 0.72, zIndex:  5 },
+   '-1':  { scale: 0.82 * scaleM, rotateY:  32 * m, translateX: -52 * m,  translateZ: -60, opacity: 0.85, brightness: 0.72, zIndex:  5 },
     2:    { scale: 0.64, rotateY: -48, translateX:  92,  translateZ:-120, opacity: 0.50, brightness: 0.42, zIndex:  1 },
    '-2':  { scale: 0.64, rotateY:  48, translateX: -92,  translateZ:-120, opacity: 0.50, brightness: 0.42, zIndex:  1 },
   };
@@ -255,7 +250,7 @@ function GradientCard({ sponsor, isCenter }) {
                 letterSpacing: '0.08em',
               }}
             >
-              Visit Partner <ExternalLink size={9} />
+              Official Partner
             </div>
           )
         )}
@@ -320,7 +315,7 @@ function ImageCard({ ad, isCenter }) {
             </a>
           ) : (
             <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '10px', color: 'var(--accent-teal, #4ecca3)', marginTop: '3px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-              Official Sponsor <ExternalLink size={9} />
+              Official Sponsor
             </span>
           )
         )}
@@ -335,6 +330,15 @@ export default function SponsorMarquee({ ads = [], title = 'Official Sponsors & 
   const [current, setCurrent] = useState(0);
   const intervalRef = useRef(null);
   const total = activeAds.length;
+
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const media = window.matchMedia('(max-width: 768px)');
+    setIsMobile(media.matches);
+    const listener = (e) => setIsMobile(e.matches);
+    media.addEventListener('change', listener);
+    return () => media.removeEventListener('change', listener);
+  }, []);
 
   const goTo = useCallback((idx) => setCurrent(((idx % total) + total) % total), [total]);
   const next  = useCallback(() => goTo(current + 1), [current, goTo]);
@@ -430,9 +434,10 @@ export default function SponsorMarquee({ ads = [], title = 'Official Sponsors & 
         {/* 3D perspective stage */}
         <div
           style={{
-            width: 'calc(100% - 80px)',
+            width: isMobile ? 'calc(100% - 20px)' : 'calc(100% - 80px)',
+            maxWidth: '640px',
             margin: '0 auto',
-            height: '220px',
+            height: isMobile ? '160px' : '220px',
             perspective: '900px',
             perspectiveOrigin: '50% 50%',
             overflow: 'visible',
@@ -450,7 +455,7 @@ export default function SponsorMarquee({ ads = [], title = 'Official Sponsors & 
             {activeAds.map((ad, idx) => {
               const raw    = ((idx - current + total) % total + total) % total;
               const norm   = raw > Math.floor(total / 2) ? raw - total : raw;
-              const slideStyle = getSlideStyle(norm);
+              const slideStyle = getSlideStyle(norm, isMobile);
               const isCenter   = norm === 0;
               const formattedUrl = getFormattedUrl(ad.targetUrl);
 

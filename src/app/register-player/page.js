@@ -157,7 +157,26 @@ export default function Register() {
       </div>
       <aside className="register-sponsor-sidebar">
         <h3><Award size={13} /> Official Sponsors</h3><div className="sponsor-sidebar-divider" />
-        {sponsorList.map((sponsor) => <a key={sponsor.id} href={sponsor.targetUrl || '#'} target="_blank" rel="noopener noreferrer" className="sponsor-sidebar-item">{sponsor.imageUrl && <img src={sponsor.imageUrl} alt={sponsor.title} />}<div><span className="sponsor-name">{sponsor.title}</span><span className="sponsor-label"><ExternalLink size={9} /> Official Sponsor</span></div></a>)}
+        {sponsorList.map((sponsor) => {
+          const isClickable = sponsor.targetUrl && sponsor.targetUrl !== '#';
+          return isClickable ? (
+            <a key={sponsor.id} href={sponsor.targetUrl} target="_blank" rel="noopener noreferrer" className="sponsor-sidebar-item">
+              {sponsor.imageUrl && <img src={sponsor.imageUrl} alt={sponsor.title} />}
+              <div>
+                <span className="sponsor-name">{sponsor.title}</span>
+                <span className="sponsor-label"><ExternalLink size={9} /> Official Sponsor</span>
+              </div>
+            </a>
+          ) : (
+            <div key={sponsor.id} className="sponsor-sidebar-item" style={{ cursor: 'default' }}>
+              {sponsor.imageUrl && <img src={sponsor.imageUrl} alt={sponsor.title} />}
+              <div>
+                <span className="sponsor-name">{sponsor.title}</span>
+                <span className="sponsor-label">Official Sponsor</span>
+              </div>
+            </div>
+          );
+        })}
       </aside>
     </div>
   );

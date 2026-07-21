@@ -93,11 +93,32 @@ export default async function Home() {
               <span className="live-dot" />
               <span>{STATUS_COPY[auctionStatus] || STATUS_COPY.NOT_STARTED}</span>
             </div>
-            <p className="eyebrow" style={{ fontSize: '20px', fontWeight: 900, letterSpacing: '0.05em', color: "rgba(191, 228, 60, 1)", fontFamily: 'arial' }}>
-              <Sparkles size={18} /> Diamond opticals presents
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '12px', padding: '12px 24px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '100px', marginBottom: '32px', boxShadow: '0 8px 32px rgba(0,0,0,0.2)' }}>
+              <Sparkles size={22} color="var(--accent-gold)" />
+              <p style={{ fontSize: 'clamp(16px, 3vw, 20px)', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.2em', color: '#fff', margin: 0 }}>
+                Diamond Opticals Presents
+              </p>
+            </div>
+            
+            <div style={{ marginBottom: '36px' }}>
+              <h1 className="gold-gradient-text" style={{ fontSize: 'clamp(6rem, 16vw, 12rem)', letterSpacing: '-0.06em', lineHeight: 0.85, textShadow: 'var(--glow-gold)', marginBottom: '8px' }}>JPL</h1>
+              <p style={{ fontSize: 'clamp(24px, 5.5vw, 48px)', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--accent-gold)', textShadow: '0 0 20px rgba(216, 240, 107, 0.4)', margin: 0 }}>
+                JCI Premier League
+              </p>
+            </div>
+            
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginBottom: '36px' }}>
+              <span style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: '800', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', padding: '8px 16px', borderRadius: '24px', color: '#cbd5e1' }}>JCI Tumkur Metro</span>
+              <span style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: '800', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', padding: '8px 16px', borderRadius: '24px', color: '#cbd5e1' }}>JCOM L Tumkur 1.0</span>
+              <span style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: '800', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', padding: '8px 16px', borderRadius: '24px', color: '#cbd5e1' }}>JAC Tumkur</span>
+              <span style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: '800', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', padding: '8px 16px', borderRadius: '24px', color: '#cbd5e1' }}>Rotary Tumkur Prerana</span>
+            </div>
+
+            <p style={{ fontSize: 'clamp(20px, 4vw, 24px)', color: 'rgba(255,255,255,0.95)', marginBottom: '32px', fontWeight: '600', lineHeight: '1.4' }}>
+              Get ready to bid, strategize, and build your dream team.
             </p>
-            <h1>Where local cricket<br /><em>plays like a league.</em></h1>
-            <p className="hero-description">
+            <h2 style={{ fontSize: 'clamp(28px, 5vw, 42px)', lineHeight: '1.15', fontWeight: '800', letterSpacing: '-0.02em' }}>Where local cricket<br /><em style={{ color: 'var(--accent-teal)', fontStyle: 'normal' }}>plays like a league.</em></h2>
+            <p className="hero-description" style={{ marginTop: '20px', opacity: 0.8 }}>
               The official home of the Franchise Cricket League — follow the auction, discover every squad, and be part of Tumkur&apos;s next cricket story.
             </p>
             <div className="hero-actions">

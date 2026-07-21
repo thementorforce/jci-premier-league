@@ -47,9 +47,7 @@ export default async function TeamsPage() {
         <p style={{ color: 'var(--text-secondary)' }}>View team budgets, purses, and recruited player lists</p>
       </div>
 
-      <div style={{ margin: '30px 0 10px 0' }}>
-        <SponsorMarquee ads={sponsorList} title="Supported By" />
-      </div>
+
 
       {dbError && (
         <div style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid var(--danger)', padding: '16px', borderRadius: '8px', textAlign: 'center', color: 'var(--text-primary)' }}>
