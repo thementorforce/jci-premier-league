@@ -3,6 +3,15 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Award, ChevronLeft, ChevronRight, ExternalLink } from 'lucide-react';
 
+/* ─── Helper to format target URLs ───────────────────────────────────── */
+function getFormattedUrl(targetUrl) {
+  if (!targetUrl || targetUrl === '#') return null;
+  const trimmed = String(targetUrl).trim();
+  if (!trimmed || trimmed === '#') return null;
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  return `https://${trimmed}`;
+}
+
 /* ─── Dummy banners (replace with DB data) ───────────────────────────── */
 const DEFAULT_SPONSORS = [
   {
@@ -18,13 +27,13 @@ const DEFAULT_SPONSORS = [
   },
   {
     id: 'ds-2',
-    title: 'JCI Tumkur Metro',
-    tagline: 'Title Sponsor · Building Better Communities',
+    title: 'Diamond Opticals',
+    tagline: 'Title Sponsor · Clear Vision for Champions',
     category: 'Title Sponsor',
     gradient: 'linear-gradient(135deg, #1a0030 0%, #4b0082 55%, #2d0060 100%)',
     accentColor: '#b47fff',
     shape: 'M40,0 L200,0 L200,100 L0,100 Z',
-    emoji: '🏆',
+    emoji: '💎',
     targetUrl: '#',
   },
   {
@@ -93,6 +102,8 @@ function getSlideStyle(offset) {
 
 /* ─── A single gradient card (used when no imageUrl) ─────────────────── */
 function GradientCard({ sponsor, isCenter }) {
+  const formattedUrl = getFormattedUrl(sponsor.targetUrl);
+
   return (
     <div
       style={{
@@ -208,21 +219,45 @@ function GradientCard({ sponsor, isCenter }) {
         </p>
 
         {isCenter && (
-          <div
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '5px',
-              marginTop: '10px',
-              fontSize: '10px',
-              fontWeight: '700',
-              color: sponsor.accentColor,
-              textTransform: 'uppercase',
-              letterSpacing: '0.08em',
-            }}
-          >
-            Visit Partner <ExternalLink size={9} />
-          </div>
+          formattedUrl ? (
+            <a
+              href={formattedUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '5px',
+                marginTop: '10px',
+                fontSize: '10px',
+                fontWeight: '700',
+                color: sponsor.accentColor,
+                textTransform: 'uppercase',
+                letterSpacing: '0.08em',
+                textDecoration: 'none',
+                cursor: 'pointer',
+              }}
+            >
+              Visit Partner <ExternalLink size={10} />
+            </a>
+          ) : (
+            <div
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '5px',
+                marginTop: '10px',
+                fontSize: '10px',
+                fontWeight: '700',
+                color: sponsor.accentColor,
+                textTransform: 'uppercase',
+                letterSpacing: '0.08em',
+              }}
+            >
+              Visit Partner <ExternalLink size={9} />
+            </div>
+          )
         )}
       </div>
 
@@ -244,6 +279,8 @@ function GradientCard({ sponsor, isCenter }) {
 
 /* ─── Image card (when DB provides imageUrl) ──────────────────────────── */
 function ImageCard({ ad, isCenter }) {
+  const formattedUrl = getFormattedUrl(ad.targetUrl);
+
   return (
     <div style={{ width: '100%', height: '100%', borderRadius: '14px', overflow: 'hidden', position: 'relative' }}>
       <img src={ad.imageUrl} alt={ad.title} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
@@ -259,9 +296,33 @@ function ImageCard({ ad, isCenter }) {
           {ad.title}
         </span>
         {isCenter && (
-          <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '10px', color: 'var(--accent-teal, #4ecca3)', marginTop: '3px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-            Official Sponsor <ExternalLink size={9} />
-          </span>
+          formattedUrl ? (
+            <a
+              href={formattedUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+                fontSize: '10px',
+                color: 'var(--accent-teal, #4ecca3)',
+                marginTop: '5px',
+                fontWeight: '700',
+                textTransform: 'uppercase',
+                letterSpacing: '0.08em',
+                textDecoration: 'none',
+                cursor: 'pointer',
+              }}
+            >
+              Official Sponsor <ExternalLink size={10} />
+            </a>
+          ) : (
+            <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '10px', color: 'var(--accent-teal, #4ecca3)', marginTop: '3px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+              Official Sponsor <ExternalLink size={9} />
+            </span>
+          )
         )}
       </div>
     </div>
@@ -391,9 +452,16 @@ export default function SponsorMarquee({ ads = [], title = 'Official Sponsors & 
               const norm   = raw > Math.floor(total / 2) ? raw - total : raw;
               const slideStyle = getSlideStyle(norm);
               const isCenter   = norm === 0;
+              const formattedUrl = getFormattedUrl(ad.targetUrl);
 
-              // Determine the specific offset key for border/shadow
-              const isAdjacent = Math.abs(norm) === 1;
+              const handleCardClick = () => {
+                if (!isCenter) {
+                  goTo(idx);
+                  resetTimer();
+                } else if (formattedUrl) {
+                  window.open(formattedUrl, '_blank', 'noopener,noreferrer');
+                }
+              };
 
               return (
                 <div
@@ -408,8 +476,9 @@ export default function SponsorMarquee({ ads = [], title = 'Official Sponsors & 
                       ? '1.5px solid rgba(245,197,24,0.45)'
                       : '1px solid rgba(255,255,255,0.06)',
                     overflow: 'hidden',
+                    cursor: !isCenter ? 'pointer' : (formattedUrl ? 'pointer' : 'default'),
                   }}
-                  onClick={!isCenter ? () => { goTo(idx); resetTimer(); } : undefined}
+                  onClick={handleCardClick}
                 >
                   {ad.imageUrl ? (
                     <ImageCard ad={ad} isCenter={isCenter} />
@@ -422,6 +491,7 @@ export default function SponsorMarquee({ ads = [], title = 'Official Sponsors & 
           </div>
         </div>
       </div>
+
 
       {/* ── Dots ── */}
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '6px', marginTop: '14px' }}>
