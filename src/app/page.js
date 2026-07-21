@@ -93,8 +93,8 @@ export default async function Home() {
               <span className="live-dot" />
               <span>{STATUS_COPY[auctionStatus] || STATUS_COPY.NOT_STARTED}</span>
             </div>
-            <p className="eyebrow" style={{ fontSize: '14px', fontWeight: 800, letterSpacing: '0.18em' }}>
-              <Sparkles size={16} /> Diamond opticals presents
+            <p className="eyebrow" style={{ fontSize: '20px', fontWeight: 900, letterSpacing: '0.05em', color: "rgba(191, 228, 60, 1)", fontFamily: 'arial' }}>
+              <Sparkles size={18} /> Diamond opticals presents
             </p>
             <h1>Where local cricket<br /><em>plays like a league.</em></h1>
             <p className="hero-description">
