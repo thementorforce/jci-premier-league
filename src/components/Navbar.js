@@ -56,7 +56,7 @@ export default function Navbar() {
     <header className="navbar">
       <div className="navbar-inner">
         <Link href="/" className="nav-logo" style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '800', fontSize: '20px' }}>
-          <span style={{ color: 'var(--accent-gold)' }}>FCL</span>
+          <span style={{ color: 'var(--accent-gold)' }}>JPL</span>
           <span style={{ fontSize: '12px', background: 'var(--accent-teal)', color: '#070b19', padding: '2px 6px', borderRadius: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Tumkur</span>
         </Link>
 

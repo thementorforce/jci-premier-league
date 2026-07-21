@@ -40,7 +40,7 @@ export default function Register() {
         if (response.ok) {
           setAds((await response.json()).filter((ad) => ad.active));
         }
-      } catch {}
+      } catch { }
     };
     fetchAds();
   }, []);
