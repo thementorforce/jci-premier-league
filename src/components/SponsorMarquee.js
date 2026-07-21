@@ -277,13 +277,14 @@ function ImageCard({ ad, isCenter }) {
   const formattedUrl = getFormattedUrl(ad.targetUrl);
 
   return (
-    <div style={{ width: '100%', height: '100%', borderRadius: '14px', overflow: 'hidden', position: 'relative' }}>
-      <img src={ad.imageUrl} alt={ad.title} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+    <div style={{ width: '100%', height: '100%', borderRadius: '14px', overflow: 'hidden', position: 'relative', background: '#07120e' }}>
+      <img src={ad.imageUrl} alt={ad.title} style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block', padding: '10px' }} />
       <div
         style={{
           position: 'absolute',
           inset: 0,
-          background: 'linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.18) 55%, transparent 100%)',
+          background: 'linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.3) 50%, transparent 100%)',
+          pointerEvents: 'none'
         }}
       />
       <div style={{ position: 'absolute', bottom: '16px', left: '18px', right: '18px' }}>

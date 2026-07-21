@@ -20,9 +20,10 @@ const EMPTY_FORM = {
 };
 
 const DEFAULT_SPONSORS = [
-  { id: 'default-1', title: 'Decathlon Sports Tumkur', imageUrl: 'https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?auto=format&fit=crop&w=800&q=80', targetUrl: 'https://www.decathlon.in' },
-  { id: 'default-2', title: 'Tumkur Cricket Academy', imageUrl: 'https://images.unsplash.com/photo-1531415074968-036ba1b575da?auto=format&fit=crop&w=800&q=80', targetUrl: '#' },
-  { id: 'default-3', title: 'JCI Tumkur Metro', imageUrl: 'https://images.unsplash.com/photo-1461896836934-ffe607be7e72?auto=format&fit=crop&w=800&q=80', targetUrl: '#' },
+  { id: 'ds-1', title: 'Diamond Opticals', label: 'Title Sponsor', targetUrl: '#', gradient: 'linear-gradient(135deg, #1a0030 0%, #4b0082 55%, #2d0060 100%)', emoji: '💎' },
+  { id: 'ds-2', title: 'Franchise Owners', label: 'Team Owners', targetUrl: '#', gradient: 'linear-gradient(135deg, #0b1d3a 0%, #0d4f9e 60%, #062a6b 100%)', emoji: '🤝' },
+  { id: 'ds-3', title: 'Trophy Sponsor', label: 'Awarding Excellence', targetUrl: '#', gradient: 'linear-gradient(135deg, #1f0800 0%, #8b2000 55%, #5c1500 100%)', emoji: '🏆' },
+  { id: 'ds-4', title: 'Food Sponsor', label: 'Fueling Champions', targetUrl: '#', gradient: 'linear-gradient(135deg, #001a12 0%, #004d2e 55%, #00341f 100%)', emoji: '🍽️' },
 ];
 
 export default function Register() {
@@ -108,6 +109,33 @@ export default function Register() {
 
   return (
     <div className="register-layout">
+      {/* JPL Season Banner - Full Width Top */}
+      <div style={{ gridColumn: '1 / -1', marginBottom: '8px' }}>
+        <div style={{ padding: '36px 20px', textAlign: 'center', background: 'linear-gradient(135deg, #0a2113 0%, #030a05 100%)', border: '1px solid rgba(216, 240, 107, 0.2)', borderRadius: '20px', boxShadow: '0 16px 40px rgba(0,0,0,0.4)', position: 'relative', overflow: 'hidden' }}>
+          {/* Decorative Background Glow */}
+          <div style={{ position: 'absolute', top: '0', left: '50%', transform: 'translateX(-50%)', width: '300px', height: '150px', background: 'var(--accent-gold)', filter: 'blur(100px)', opacity: 0.15, pointerEvents: 'none' }} />
+          
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '28px', marginTop: '8px' }}>
+            <span style={{ fontSize: 'clamp(60px, 12vw, 90px)', fontWeight: '900', background: 'linear-gradient(to bottom, #ffffff 0%, #94a3b8 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', filter: 'drop-shadow(0 12px 24px rgba(0,0,0,0.6))', lineHeight: 0.9, letterSpacing: '-0.02em' }}>
+              JPL
+            </span>
+            <span className="gold-gradient-text" style={{ fontSize: 'clamp(20px, 4vw, 32px)', fontWeight: '900', letterSpacing: '0.2em', textTransform: 'uppercase', textShadow: '0 0 20px rgba(216, 240, 107, 0.4)', marginTop: '8px' }}>
+              Season 1 <span style={{ display: 'inline-block', margin: '0 8px', color: '#fff', WebkitTextFillColor: '#fff', opacity: 0.5 }}>|</span> 2026
+            </span>
+          </div>
+          
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
+            <span style={{ fontSize: '11px', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.25em', fontWeight: '800' }}>Co-hosted By</span>
+            <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: '800', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', padding: '8px 16px', borderRadius: '24px', color: '#e2e8f0', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>JCI Tumkur Metro</span>
+              <span style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: '800', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', padding: '8px 16px', borderRadius: '24px', color: '#e2e8f0', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>JCOM L Tumkur 1.0</span>
+              <span style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: '800', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', padding: '8px 16px', borderRadius: '24px', color: '#e2e8f0', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>JAC Tumkur</span>
+              <span style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: '800', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', padding: '8px 16px', borderRadius: '24px', color: '#e2e8f0', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>Rotary Tumkur Prerana</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div className="register-main">
         <div className="register-mobile-sponsors"><SponsorMarquee ads={ads} title="Powered By" /></div>
         <div className="premium-kk" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -157,27 +185,70 @@ export default function Register() {
       </div>
       <aside className="register-sponsor-sidebar">
         <h3><Award size={13} /> Official Sponsors</h3><div className="sponsor-sidebar-divider" />
-        {sponsorList.map((sponsor) => {
-          const isClickable = sponsor.targetUrl && sponsor.targetUrl !== '#';
-          return isClickable ? (
-            <a key={sponsor.id} href={sponsor.targetUrl} target="_blank" rel="noopener noreferrer" className="sponsor-sidebar-item">
-              {sponsor.imageUrl && <img src={sponsor.imageUrl} alt={sponsor.title} />}
-              <div>
-                <span className="sponsor-name">{sponsor.title}</span>
-                <span className="sponsor-label"><ExternalLink size={9} /> Official Sponsor</span>
-              </div>
-            </a>
-          ) : (
-            <div key={sponsor.id} className="sponsor-sidebar-item" style={{ cursor: 'default' }}>
-              {sponsor.imageUrl && <img src={sponsor.imageUrl} alt={sponsor.title} />}
-              <div>
-                <span className="sponsor-name">{sponsor.title}</span>
-                <span className="sponsor-label">Official Sponsor</span>
-              </div>
-            </div>
-          );
-        })}
+        <SidebarCarousel sponsors={sponsorList} />
       </aside>
+    </div>
+  );
+}
+
+function SidebarCarousel({ sponsors }) {
+  const [current, setCurrent] = useState(0);
+
+  useEffect(() => {
+    if (!sponsors || sponsors.length === 0) return;
+    const timer = setInterval(() => {
+      setCurrent((c) => (c + 1) % sponsors.length);
+    }, 4000);
+    return () => clearInterval(timer);
+  }, [sponsors]);
+
+  if (!sponsors || sponsors.length === 0) return null;
+  const sponsor = sponsors[current];
+  const isClickable = sponsor.targetUrl && sponsor.targetUrl !== '#';
+  const Wrapper = isClickable ? 'a' : 'div';
+  const props = isClickable ? { href: sponsor.targetUrl, target: '_blank', rel: 'noopener noreferrer' } : { style: { cursor: 'default' } };
+
+  return (
+    <div style={{ position: 'relative', width: '100%', height: '180px', overflow: 'hidden', borderRadius: '12px' }}>
+      {sponsors.map((s, idx) => (
+        <div
+          key={s.id}
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            opacity: current === idx ? 1 : 0,
+            transition: 'opacity 0.8s ease-in-out',
+            pointerEvents: current === idx ? 'auto' : 'none',
+          }}
+        >
+          <Wrapper className="sponsor-sidebar-item" {...(current === idx ? props : {})} style={{ width: '100%', height: '100%', padding: '16px', flexDirection: 'column', justifyContent: 'center', textAlign: 'center', border: '1px solid rgba(255,255,255,0.08)', background: s.gradient || 'var(--bg-secondary)', textDecoration: 'none', cursor: isClickable ? 'pointer' : 'default' }}>
+            {s.imageUrl ? (
+              <img src={s.imageUrl} alt={s.title} style={{ width: '80px', height: '80px', objectFit: 'contain', marginBottom: '12px' }} />
+            ) : (
+              <div style={{ width: '70px', height: '70px', borderRadius: '12px', background: 'rgba(0,0,0,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '32px', marginBottom: '12px', border: '1px solid rgba(255,255,255,0.1)' }}>
+                {s.emoji || '🏏'}
+              </div>
+            )}
+            <div>
+              <span className="sponsor-name" style={{ fontSize: '16px', fontWeight: '800', color: '#fff', marginBottom: '6px', display: 'block' }}>{s.title}</span>
+              <span className="sponsor-label" style={{ fontSize: '11px', color: 'var(--accent-teal)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+                {isClickable && <ExternalLink size={11} />}
+                {s.label || 'Official Sponsor'}
+              </span>
+            </div>
+          </Wrapper>
+        </div>
+      ))}
+      
+      {/* Carousel Dots */}
+      <div style={{ position: 'absolute', bottom: '12px', left: 0, right: 0, display: 'flex', justifyContent: 'center', gap: '6px' }}>
+        {sponsors.map((_, idx) => (
+          <div key={idx} style={{ width: current === idx ? '16px' : '6px', height: '6px', borderRadius: '3px', background: current === idx ? 'var(--accent-gold)' : 'rgba(255,255,255,0.3)', transition: 'all 0.3s ease' }} />
+        ))}
+      </div>
     </div>
   );
 }
