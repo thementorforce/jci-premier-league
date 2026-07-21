@@ -28,7 +28,7 @@ DB_PORT=5432
 DB_SSL=true
 ```
 
-Add `DB_HOST`, `DB_NAME`, `DB_USER`, and `DB_PASSWORD` as GitHub Actions secrets. The deployment workflow passes them to Cloud Run; it no longer attaches a Cloud SQL instance. `DATABASE_URL` remains supported for local or legacy deployments.
+Add `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, and `DB_PASSWORD` as GitHub Actions secrets. The deployment workflow passes them to Cloud Run; it no longer attaches a Cloud SQL instance. `DATABASE_URL` remains supported for local or legacy deployments.
 
 First, run the development server:
 
