@@ -279,6 +279,30 @@ function ImageCard({ ad, isCenter }) {
   return (
     <div style={{ width: '100%', height: '100%', borderRadius: '14px', overflow: 'hidden', position: 'relative', background: '#07120e' }}>
       <img src={ad.imageUrl} alt={ad.title} style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block', padding: '10px' }} />
+      
+      {/* Sponsor Type overlay ribbon at top */}
+      {ad.sponsorType && ad.sponsorType !== 'General' && (
+        <div
+          style={{
+            position: 'absolute',
+            top: '12px',
+            left: '0',
+            background: 'linear-gradient(135deg, rgba(245,197,24,0.95), rgba(218,165,32,0.9))',
+            color: '#000',
+            fontSize: '10px',
+            fontWeight: '900',
+            textTransform: 'uppercase',
+            letterSpacing: '0.1em',
+            padding: '5px 14px 5px 10px',
+            borderRadius: '0 6px 6px 0',
+            boxShadow: '0 2px 12px rgba(245,197,24,0.4), 0 1px 3px rgba(0,0,0,0.3)',
+            zIndex: 5,
+          }}
+        >
+          ★ {ad.sponsorType}
+        </div>
+      )}
+
       <div
         style={{
           position: 'absolute',
@@ -288,25 +312,6 @@ function ImageCard({ ad, isCenter }) {
         }}
       />
       <div style={{ position: 'absolute', bottom: '16px', left: '18px', right: '18px' }}>
-        {ad.sponsorType && ad.sponsorType !== 'General' && (
-          <span
-            style={{
-              display: 'inline-block',
-              fontSize: '8px',
-              fontWeight: '800',
-              textTransform: 'uppercase',
-              letterSpacing: '0.08em',
-              color: 'var(--accent-gold, #f5c518)',
-              background: 'rgba(245,197,24,0.15)',
-              border: '1px solid rgba(245,197,24,0.3)',
-              borderRadius: '4px',
-              padding: '2px 6px',
-              marginBottom: '6px',
-            }}
-          >
-            {ad.sponsorType}
-          </span>
-        )}
         <span style={{ display: 'block', fontSize: '16px', fontWeight: '800', color: '#fff', textShadow: '0 1px 8px rgba(0,0,0,0.9)' }}>
           {ad.title}
         </span>

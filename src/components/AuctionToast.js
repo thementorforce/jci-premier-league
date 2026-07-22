@@ -15,7 +15,7 @@ export default function AuctionToast() {
   useEffect(() => {
     const fetchStatus = async () => {
       try {
-        const res = await fetch('/api/auction/status');
+        const res = await fetch('/api/auction/status-lite');
         if (res.ok) {
           const json = await res.json();
           setStatus(json.auctionStatus || 'NOT_STARTED');
@@ -26,7 +26,7 @@ export default function AuctionToast() {
     };
 
     fetchStatus();
-    const interval = setInterval(fetchStatus, 3000);
+    const interval = setInterval(fetchStatus, 8000);
     return () => clearInterval(interval);
   }, []);
 

@@ -36,7 +36,8 @@ export default async function Home() {
   let ads = [];
 
   try {
-    const [playerCount, teamRows, soldCount, latestSold, biddingPlayer, adRows] = await Promise.all([
+    const { readConfig } = await import('@/lib/config');
+    const [playerCount, teamRows, soldCount, latestSold, biddingPlayer, adRows, configData] = await Promise.all([
       prisma.playerProfile.count(),
       prisma.team.findMany({ include: { players: true }, orderBy: { pointsSpent: 'desc' } }),
       prisma.playerProfile.count({ where: { status: 'Sold' } }),
@@ -50,6 +51,7 @@ export default async function Home() {
         include: { bids: { orderBy: { amount: 'desc' }, take: 1, include: { team: true } } },
       }),
       prisma.adPlacement.findMany({ where: { active: true } }),
+      readConfig(),
     ]);
 
     teams = teamRows;
@@ -68,17 +70,10 @@ export default async function Home() {
       }
       return ad.position === 'TOP_BANNER';
     });
+    auctionStatus = configData.auctionStatus || 'NOT_STARTED';
   } catch (error) {
     console.error('Database issue on landing page:', error);
     dbError = true;
-  }
-
-  try {
-    const { readConfig } = await import('@/lib/config');
-    const configData = await readConfig();
-    auctionStatus = configData.auctionStatus || 'NOT_STARTED';
-  } catch (error) {
-    console.error('Unable to read auction configuration:', error);
   }
 
   const totalProcessed = stats.soldCount + (activePlayer ? 1 : 0);

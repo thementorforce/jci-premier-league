@@ -5,11 +5,12 @@ const nextConfig = {
   async headers() {
     return [
       {
-        source: '/:path*',
+        // Only disable caching for API routes that need fresh data
+        source: '/api/:path*',
         headers: [
           {
             key: 'Cache-Control',
-            value: 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+            value: 'no-store, no-cache, must-revalidate, max-age=0',
           },
         ],
       },

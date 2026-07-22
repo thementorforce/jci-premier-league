@@ -184,17 +184,28 @@ export default function TeamsListClient({ initialTeams = [], sponsorList = [], d
                 className="premium-card" 
                 style={{ display: 'block', padding: '0', overflow: 'hidden', position: 'relative', marginBottom: '16px' }}
               >
-                <img src={ad.imageUrl} alt={ad.title} style={{ width: '100%', height: '200px', objectFit: 'cover' }} />
-                <div style={{ padding: '12px', background: 'var(--bg-secondary)' }}>
-                  {ad.sponsorType && ad.sponsorType !== 'General' ? (
-                    <span style={{ fontSize: '9px', fontWeight: '800', textTransform: 'uppercase', background: 'rgba(245, 197, 24, 0.15)', color: 'var(--accent-gold)', padding: '2px 8px', borderRadius: '4px', display: 'inline-block', marginBottom: '8px', border: '1px solid rgba(245, 197, 24, 0.3)', letterSpacing: '0.05em' }}>
-                      {ad.sponsorType}
-                    </span>
-                  ) : (
-                    <span style={{ fontSize: '9px', fontWeight: '800', textTransform: 'uppercase', background: 'rgba(78, 204, 163, 0.15)', color: 'var(--accent-teal)', padding: '2px 8px', borderRadius: '4px', display: 'inline-block', marginBottom: '8px', border: '1px solid rgba(78, 204, 163, 0.3)', letterSpacing: '0.05em' }}>
-                      Sponsor
-                    </span>
+                <div style={{ position: 'relative' }}>
+                  <img src={ad.imageUrl} alt={ad.title} style={{ width: '100%', height: '200px', objectFit: 'cover' }} />
+                  {ad.sponsorType && ad.sponsorType !== 'General' && (
+                    <div style={{
+                      position: 'absolute',
+                      top: '10px',
+                      left: '0',
+                      background: 'linear-gradient(135deg, rgba(245,197,24,0.95), rgba(218,165,32,0.9))',
+                      color: '#000',
+                      fontSize: '9px',
+                      fontWeight: '900',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.1em',
+                      padding: '4px 12px 4px 8px',
+                      borderRadius: '0 5px 5px 0',
+                      boxShadow: '0 2px 10px rgba(245,197,24,0.4)',
+                    }}>
+                      ★ {ad.sponsorType}
+                    </div>
                   )}
+                </div>
+                <div style={{ padding: '12px', background: 'var(--bg-secondary)' }}>
                   <p style={{ fontSize: '14px', fontWeight: '700' }}>{ad.title}</p>
                   {ad.contact && (
                     <p style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '4px' }}>

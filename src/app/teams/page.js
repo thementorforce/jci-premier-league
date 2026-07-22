@@ -10,17 +10,19 @@ export default async function TeamsPage() {
   let errorMessage = '';
 
   try {
-    teams = await prisma.team.findMany({
-      include: {
-        players: true,
-      },
-      orderBy: {
-        name: 'asc',
-      },
-    });
-    ads = await prisma.adPlacement.findMany({
-      where: { active: true }
-    });
+    [teams, ads] = await Promise.all([
+      prisma.team.findMany({
+        include: {
+          players: true,
+        },
+        orderBy: {
+          name: 'asc',
+        },
+      }),
+      prisma.adPlacement.findMany({
+        where: { active: true }
+      }),
+    ]);
   } catch (error) {
     console.error("Error loading teams:", error);
     dbError = true;

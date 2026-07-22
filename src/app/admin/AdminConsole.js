@@ -67,6 +67,7 @@ export default function AdminConsole({ username = 'admin' }) {
 
   const abortRef = useRef(null);
   const isFetchingRef = useRef(false);
+  const lastDataRef = useRef('');
 
   const handleLogout = async () => {
     // Immediately abort any in-flight requests so logout isn't blocked
@@ -113,6 +114,10 @@ export default function AdminConsole({ username = 'admin' }) {
 
       if (res.ok) {
         const data = await res.json();
+        // Skip re-renders if data hasn't changed
+        const dataStr = JSON.stringify(data);
+        if (dataStr === lastDataRef.current) return;
+        lastDataRef.current = dataStr;
         setActivePlayer(data.activePlayer);
         setDraftPool(data.draftPool);
         setUnsoldPlayers(data.unsoldPlayers || []);
@@ -176,7 +181,7 @@ export default function AdminConsole({ username = 'admin' }) {
   useEffect(() => {
     fetchConfig();
     fetchConsoleData();
-    const interval = setInterval(fetchConsoleData, 3000);
+    const interval = setInterval(fetchConsoleData, 5000);
     return () => {
       clearInterval(interval);
       if (abortRef.current) abortRef.current.abort();

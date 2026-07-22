@@ -28,6 +28,7 @@ export default function LiveAuction() {
   const [recentlySoldPlayer, setRecentlySoldPlayer] = useState(null);
   
   const lastBidRef = useRef(0);
+  const lastDataRef = useRef('');
 
   const playChime = () => {
     if (typeof window !== 'undefined') {
@@ -81,6 +82,13 @@ export default function LiveAuction() {
       if (res.ok) {
         const json = await res.json();
         
+        const jsonStr = JSON.stringify(json);
+        if (jsonStr === lastDataRef.current) {
+          setLoading(false);
+          return;
+        }
+        lastDataRef.current = jsonStr;
+
         // Audio bid notification trigger
         if (json.activePlayer) {
           if (json.activePlayer.currentBid > lastBidRef.current) {
@@ -122,7 +130,7 @@ export default function LiveAuction() {
 
   useEffect(() => {
     fetchStatus();
-    const interval = setInterval(fetchStatus, 3000); // Poll database every 3s
+    const interval = setInterval(fetchStatus, 5000); // Poll database every 5s
     return () => clearInterval(interval);
   }, []);
 

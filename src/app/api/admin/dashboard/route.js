@@ -36,22 +36,67 @@ export async function GET() {
       prisma.playerProfile.findMany({
         where: { status: 'Sold' },
         orderBy: { updatedAt: 'desc' },
-        include: { team: true },
+        select: {
+          id: true,
+          fullName: true,
+          preferredRole: true,
+          organization: true,
+          soldPrice: true,
+          updatedAt: true,
+          status: true,
+          email: true,
+          mobileNumber: true,
+          team: {
+            select: { id: true, name: true }
+          }
+        },
       }),
       // Unsold players
       prisma.playerProfile.findMany({
         where: { status: 'Unsold' },
         orderBy: { fullName: 'asc' },
+        select: {
+          id: true,
+          fullName: true,
+          preferredRole: true,
+          organization: true,
+          status: true,
+        },
       }),
       // Draft pool
       prisma.playerProfile.findMany({
         where: { status: 'Registered', paymentStatus: 'Approved' },
         orderBy: { fullName: 'asc' },
+        select: {
+          id: true,
+          fullName: true,
+          preferredRole: true,
+          organization: true,
+          experience: true,
+          jerseySize: true,
+          photoUrl: true,
+          status: true,
+          gender: true,
+          ageGroup: true,
+        },
       }),
       // Teams
       prisma.team.findMany({
         orderBy: { name: 'asc' },
-        include: { players: true }
+        include: {
+          players: {
+            select: {
+              id: true,
+              fullName: true,
+              preferredRole: true,
+              organization: true,
+              soldPrice: true,
+              status: true,
+              gender: true,
+              photoUrl: true,
+            }
+          }
+        }
       }),
       // Stats counts
       prisma.playerProfile.count({ where: { status: 'Sold' } }),
@@ -63,10 +108,38 @@ export async function GET() {
       prisma.playerProfile.findMany({
         where: { paymentStatus: 'Pending' },
         orderBy: { createdAt: 'desc' },
+        select: {
+          id: true,
+          fullName: true,
+          email: true,
+          mobileNumber: true,
+          organization: true,
+          preferredRole: true,
+          paymentStatus: true,
+          transactionId: true,
+          paymentScreenshot: true,
+          photoUrl: true,
+          createdAt: true,
+          status: true,
+          gender: true,
+          ageGroup: true,
+          jerseySize: true,
+          experience: true,
+        },
       }),
       // All payments
       prisma.playerProfile.findMany({
         orderBy: { createdAt: 'desc' },
+        select: {
+          id: true,
+          fullName: true,
+          email: true,
+          mobileNumber: true,
+          paymentStatus: true,
+          transactionId: true,
+          createdAt: true,
+          status: true,
+        },
       }),
     ]);
 
