@@ -104,7 +104,7 @@ export default async function Home() {
             <div style={{ marginBottom: '36px' }}>
               <h1 className="gold-gradient-text" style={{ fontSize: 'clamp(6rem, 16vw, 12rem)', letterSpacing: '-0.06em', lineHeight: 0.85, textShadow: 'var(--glow-gold)', marginBottom: '8px' }}>JPL</h1>
               <p style={{ fontSize: 'clamp(24px, 5.5vw, 48px)', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--accent-gold)', textShadow: '0 0 20px rgba(216, 240, 107, 0.4)', margin: 0 }}>
-                Premier League - 2026
+                Season 1 - 2026
               </p>
             </div>
             <div className="eyebrow" style={{ fontSize: "22px" }}>Jointly Hosted by</div>
