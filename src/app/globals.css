@@ -2683,3 +2683,39 @@ a {
   transform: rotateY(180deg);
   height: 100%;
 }
+
+/* Modern Ticker Ticker CSS */
+.modern-ticker-container {
+  overflow: hidden;
+  width: 100%;
+  padding: 14px 0;
+  background: transparent;
+  user-select: none;
+  display: flex;
+}
+.modern-ticker-wrap {
+  display: flex;
+  white-space: nowrap;
+  animation: modern-ticker 25s linear infinite;
+}
+.modern-ticker-content {
+  display: flex;
+  align-items: center;
+  font-weight: 900;
+  font-size: 15px;
+  background: linear-gradient(95deg, var(--accent-teal) 0%, var(--accent-gold) 50%, var(--accent-teal) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  padding-right: 4rem;
+}
+@keyframes modern-ticker {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
