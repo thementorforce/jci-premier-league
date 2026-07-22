@@ -2708,8 +2708,8 @@ a {
 .modern-ticker-content {
   display: flex;
   align-items: center;
-  gap: 6rem;
-  padding-right: 6rem;
+  gap: 5rem;
+  padding-right: 5rem;
 }
 .ticker-text-gradient {
   background: linear-gradient(90deg, #5ce1e6 0%, #ffffff 50%, #ffde59 100%);
@@ -2717,14 +2717,14 @@ a {
   -webkit-text-fill-color: transparent;
   background-clip: text;
   font-weight: 900;
-  font-size: 22px;
+  font-size: 18px;
   text-transform: uppercase;
   letter-spacing: 0.15em;
 }
 .ticker-org-item {
   display: flex;
   align-items: center;
-  gap: 15px;
+  gap: 12px;
 }
 @keyframes modern-ticker {
   0% {
