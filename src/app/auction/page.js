@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Award, Users, Search, RefreshCw, Volume2, Clock, Radio, Coffee, Pause, Flag } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Award, Users, Search, RefreshCw, Clock, Radio, Coffee, Pause, Flag } from 'lucide-react';
 import Link from 'next/link';
 import SponsorMarquee from '@/components/SponsorMarquee';
 
@@ -25,8 +25,55 @@ export default function LiveAuction() {
   });
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  const [soundEnabled, setSoundEnabled] = useState(false);
-  const [lastBidAmount, setLastBidAmount] = useState(0);
+  const [recentlySoldPlayer, setRecentlySoldPlayer] = useState(null);
+  
+  const lastBidRef = useRef(0);
+
+  const playChime = () => {
+    if (typeof window !== 'undefined') {
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      if (AudioContext) {
+        try {
+          const ctx = new AudioContext();
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(587.33, ctx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.12);
+          gain.gain.setValueAtTime(0.08, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.22);
+          osc.start(ctx.currentTime);
+          osc.stop(ctx.currentTime + 0.25);
+        } catch {}
+      }
+    }
+  };
+
+  const playSuccessChime = () => {
+    if (typeof window !== 'undefined') {
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      if (AudioContext) {
+        try {
+          const ctx = new AudioContext();
+          const notes = [523.25, 659.25, 783.99, 1046.50];
+          notes.forEach((freq, i) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.type = 'triangle';
+            osc.frequency.value = freq;
+            gain.gain.setValueAtTime(0.06, ctx.currentTime + i * 0.08);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.08 + 0.3);
+            osc.start(ctx.currentTime + i * 0.08);
+            osc.stop(ctx.currentTime + i * 0.08 + 0.35);
+          });
+        } catch {}
+      }
+    }
+  };
 
   const fetchStatus = async () => {
     try {
@@ -34,22 +81,37 @@ export default function LiveAuction() {
       if (res.ok) {
         const json = await res.json();
         
-        // Play simple audio alert if a new bid is placed
-        if (json.activePlayer && json.activePlayer.currentBid > lastBidAmount) {
-          if (soundEnabled && typeof window !== 'undefined') {
-            const synth = window.speechSynthesis;
-            if (synth) {
-              const utterance = new SpeechSynthesisUtterance(`${json.activePlayer.highestBidder} bid ${json.activePlayer.currentBid}`);
-              utterance.rate = 1.1;
-              synth.speak(utterance);
-            }
+        // Audio bid notification trigger
+        if (json.activePlayer) {
+          if (json.activePlayer.currentBid > lastBidRef.current) {
+            playChime();
+            lastBidRef.current = json.activePlayer.currentBid;
           }
-          setLastBidAmount(json.activePlayer.currentBid);
-        } else if (!json.activePlayer) {
-          setLastBidAmount(0);
+        } else {
+          lastBidRef.current = 0;
         }
 
-        setData(json);
+        setData(prev => {
+          if (prev.activePlayer && !json.activePlayer) {
+            const soldVersion = json.soldPlayers.find(p => p.id === prev.activePlayer.id);
+            if (soldVersion) {
+              playSuccessChime();
+              setRecentlySoldPlayer({
+                ...prev.activePlayer,
+                soldPrice: soldVersion.soldPrice,
+                team: soldVersion.team
+              });
+              setTimeout(() => {
+                setRecentlySoldPlayer(null);
+              }, 12000); // Flipped display duration
+            }
+          }
+          // If a new player becomes active, clear any flipped card immediately
+          if (json.activePlayer) {
+            setRecentlySoldPlayer(null);
+          }
+          return json;
+        });
       }
     } catch (e) {
       console.error(e);
@@ -62,7 +124,7 @@ export default function LiveAuction() {
     fetchStatus();
     const interval = setInterval(fetchStatus, 3000); // Poll database every 3s
     return () => clearInterval(interval);
-  }, [soundEnabled, lastBidAmount]);
+  }, []);
 
   const filteredDraft = data.draftPool.filter(p => 
     p.fullName.toLowerCase().includes(search.toLowerCase()) || 
@@ -91,15 +153,7 @@ export default function LiveAuction() {
           <p style={{ color: 'var(--text-secondary)' }}>Real-time updates directly from the bidding console</p>
         </div>
 
-        {/* Audio helper toggle */}
-        <button 
-          onClick={() => setSoundEnabled(!soundEnabled)} 
-          className="premium-button-secondary" 
-          style={{ padding: '8px 16px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
-        >
-          <Volume2 size={16} />
-          {soundEnabled ? 'Speech Engine: ON' : 'Speech Engine: OFF'}
-        </button>
+
       </div>
 
       {/* ── Auction Status Banner ── */}
@@ -139,7 +193,13 @@ export default function LiveAuction() {
         );
       })()}
 
-      <SponsorMarquee ads={data.ads || []} title="Official Tournament Sponsors" />
+      <SponsorMarquee ads={(data.ads || []).filter(ad => {
+        if (!ad.position) return false;
+        if (ad.position.includes('/')) {
+          return ad.position.split(',').map(p => p.trim()).includes('/auction');
+        }
+        return ad.position === 'TOP_BANNER';
+      })} title="Official Tournament Sponsors" />
 
       <div className="grid-auction-main">
         
@@ -147,55 +207,152 @@ export default function LiveAuction() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
           
           {/* Active Player Cards */}
-          {activePlayer ? (
-            <div className="premium-card" style={{ border: '2px solid var(--accent-gold)', boxShadow: 'var(--glow-gold)', position: 'relative', overflow: 'hidden' }}>
-              <div style={{ position: 'absolute', top: '0', right: '0', background: 'var(--accent-gold)', color: '#070b19', padding: '4px 16px', fontWeight: '800', borderBottomLeftRadius: '12px', fontSize: '12px', letterSpacing: '0.05em', textTransform: 'uppercase' }} className="badge-bidding">
-                Active Bidding
-              </div>
+          {(activePlayer || recentlySoldPlayer) ? (
+            <div className={`flip-card ${recentlySoldPlayer ? 'is-flipped' : ''}`}>
+              <div className="flip-card-inner">
+                {/* Front Side: Bidding details */}
+                <div className="flip-card-front">
+                  {(() => {
+                    const displayPlayer = activePlayer || recentlySoldPlayer;
+                    if (!displayPlayer) return null;
+                    return (
+                      <div className="premium-card" style={{ border: '2px solid var(--accent-gold)', boxShadow: 'var(--glow-gold)', position: 'relative', overflow: 'hidden' }}>
+                        <div style={{ position: 'absolute', top: '0', right: '0', background: 'var(--accent-gold)', color: '#070b19', padding: '4px 16px', fontWeight: '800', borderBottomLeftRadius: '12px', fontSize: '12px', letterSpacing: '0.05em', textTransform: 'uppercase' }} className="badge-bidding">
+                          {recentlySoldPlayer ? 'Sold!' : 'Active Bidding'}
+                        </div>
 
-              <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap', marginTop: '12px' }}>
-                {/* Photo */}
-                <div style={{ width: '150px', height: '180px', borderRadius: '12px', background: 'var(--bg-tertiary)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--card-border)' }}>
-                  {activePlayer.photoUrl ? (
-                    <img src={activePlayer.photoUrl} alt={activePlayer.fullName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  ) : (
-                    <div style={{ fontSize: '48px' }}>👤</div>
-                  )}
+                        <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap', marginTop: '12px' }}>
+                          {/* Photo */}
+                          <div style={{ width: '150px', height: '180px', borderRadius: '12px', background: 'var(--bg-tertiary)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--card-border)' }}>
+                            {displayPlayer.photoUrl ? (
+                              <img src={displayPlayer.photoUrl} alt={displayPlayer.fullName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            ) : (
+                              <div style={{ fontSize: '48px' }}>👤</div>
+                            )}
+                          </div>
+
+                          {/* Details */}
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: '1', minWidth: '220px' }}>
+                            <span className="badge badge-registered" style={{ alignSelf: 'flex-start' }}>{displayPlayer.preferredRole}</span>
+                            <h2 style={{ fontSize: '28px', fontWeight: '800', marginTop: '4px' }}>{displayPlayer.fullName}</h2>
+                            
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginTop: '8px' }}>
+                              <div>
+                                <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Organization</span>
+                                <p style={{ fontWeight: '600' }}>{displayPlayer.organization}</p>
+                              </div>
+                              <div>
+                                <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Jersey Size</span>
+                                <p style={{ fontWeight: '600' }}>{displayPlayer.jerseySize}</p>
+                              </div>
+                              <div>
+                                <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Experience</span>
+                                <p style={{ fontWeight: '600' }}>{displayPlayer.experience}</p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Bidding Telemetry Block */}
+                        <div style={{ marginTop: '24px', background: 'var(--bg-secondary)', border: '1px solid var(--card-border)', borderRadius: '12px', padding: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+                          <div>
+                            <span style={{ fontSize: '12px', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Highest Bidding Team</span>
+                            <p className="teal-gradient-text" style={{ fontSize: '24px', fontWeight: '800' }}>{displayPlayer.highestBidder}</p>
+                          </div>
+                          <div style={{ textAlign: 'right' }}>
+                            <span style={{ fontSize: '12px', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Current Bid Amount</span>
+                            <p className="gold-gradient-text" style={{ fontSize: '32px', fontWeight: '800' }}>
+                              {displayPlayer.currentBid > 0 ? `${displayPlayer.currentBid.toLocaleString()} pts` : 'Starting...'}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Live Bidding Activity Feed */}
+                        {displayPlayer.bidHistory && displayPlayer.bidHistory.length > 0 && (
+                          <div style={{ marginTop: '20px', borderTop: '1px solid var(--card-border)', paddingTop: '16px' }}>
+                            <span style={{ fontSize: '11px', color: 'var(--text-secondary)', textTransform: 'uppercase', display: 'block', marginBottom: '8px', letterSpacing: '0.05em' }}>
+                              ⚡ Bidding Activity Log
+                            </span>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '120px', overflowY: 'auto' }}>
+                              {displayPlayer.bidHistory.slice(0, 3).map((bid, i) => (
+                                <div key={bid.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px', background: i === 0 ? 'rgba(6, 182, 212, 0.1)' : 'rgba(255,255,255,0.02)', padding: '6px 12px', borderRadius: '6px', border: i === 0 ? '1px solid var(--accent-teal)' : '1px solid transparent' }}>
+                                  <span style={{ color: i === 0 ? '#fff' : 'var(--text-secondary)' }}>
+                                    {i === 0 ? '🔥 New Highest Bid' : 'Bid Placed'} by <strong>{bid.teamName}</strong>
+                                  </span>
+                                  <span style={{ fontWeight: '800', color: i === 0 ? 'var(--accent-teal)' : 'var(--accent-gold)' }}>
+                                    {bid.amount.toLocaleString()} pts
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
                 </div>
 
-                {/* Details */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: '1', minWidth: '220px' }}>
-                  <span className="badge badge-registered" style={{ alignSelf: 'flex-start' }}>{activePlayer.preferredRole}</span>
-                  <h2 style={{ fontSize: '28px', fontWeight: '800', marginTop: '4px' }}>{activePlayer.fullName}</h2>
-                  
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginTop: '8px' }}>
-                    <div>
-                      <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Organization</span>
-                      <p style={{ fontWeight: '600' }}>{activePlayer.organization}</p>
+                {/* Back Side: Congratulations Sold details */}
+                <div className="flip-card-back">
+                  <div className="premium-card" style={{
+                    border: '2px solid var(--success)',
+                    boxShadow: '0 0 25px rgba(16, 185, 129, 0.4)',
+                    position: 'relative',
+                    overflow: 'hidden',
+                    height: '100%',
+                    minHeight: '340px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    background: 'linear-gradient(135deg, #064e3b 0%, #022c22 100%)',
+                    textAlign: 'center',
+                    padding: '24px'
+                  }}>
+                    <div style={{ fontSize: '48px', marginBottom: '8px' }}>🎉</div>
+                    <h2 style={{ fontSize: '24px', fontWeight: '900', color: '#fff', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 4px' }}>
+                      Congratulations!
+                    </h2>
+                    <p style={{ fontSize: '16px', color: 'rgba(255,255,255,0.9)', margin: '0 0 12px' }}>
+                      Player <strong style={{ color: 'var(--accent-gold)' }}>{recentlySoldPlayer?.fullName}</strong> has been drafted!
+                    </p>
+                    
+                    <div style={{
+                      background: 'rgba(0,0,0,0.4)',
+                      border: '1.5px solid var(--success)',
+                      borderRadius: '10px',
+                      padding: '12px 20px',
+                      marginBottom: '16px',
+                      width: '100%',
+                      maxWidth: '360px'
+                    }}>
+                      <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.6)', textTransform: 'uppercase', display: 'block', marginBottom: '2px' }}>
+                        Sold To
+                      </span>
+                      <p style={{ fontSize: '20px', fontWeight: '800', color: '#fff', margin: '0 0 6px' }}>
+                        {recentlySoldPlayer?.team?.name}
+                      </p>
+                      <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.6)', textTransform: 'uppercase', display: 'block', marginBottom: '2px' }}>
+                        Final Price
+                      </span>
+                      <p style={{ fontSize: '22px', fontWeight: '900', color: 'var(--accent-gold)', margin: 0 }}>
+                        {recentlySoldPlayer?.soldPrice?.toLocaleString()} pts
+                      </p>
                     </div>
-                    <div>
-                      <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Jersey Size</span>
-                      <p style={{ fontWeight: '600' }}>{activePlayer.jerseySize}</p>
-                    </div>
-                    <div>
-                      <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Experience</span>
-                      <p style={{ fontWeight: '600' }}>{activePlayer.experience}</p>
+
+                    <div style={{
+                      marginTop: 'auto',
+                      fontSize: '11px',
+                      color: 'rgba(255, 255, 255, 0.4)',
+                      letterSpacing: '0.02em',
+                      borderTop: '1px solid rgba(255, 255, 255, 0.1)',
+                      paddingTop: '8px',
+                      width: '100%',
+                      textAlign: 'center'
+                    }}>
+                      This website is powered by The Metro force and Evenzo
                     </div>
                   </div>
-                </div>
-              </div>
-
-              {/* Bidding Telemetry Block */}
-              <div style={{ marginTop: '24px', background: 'var(--bg-secondary)', border: '1px solid var(--card-border)', borderRadius: '12px', padding: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
-                <div>
-                  <span style={{ fontSize: '12px', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Highest Bidding Team</span>
-                  <p className="teal-gradient-text" style={{ fontSize: '24px', fontWeight: '800' }}>{activePlayer.highestBidder}</p>
-                </div>
-                <div style={{ textAlign: 'right' }}>
-                  <span style={{ fontSize: '12px', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Current Bid Amount</span>
-                  <p className="gold-gradient-text" style={{ fontSize: '32px', fontWeight: '800' }}>
-                    {activePlayer.currentBid > 0 ? `${activePlayer.currentBid.toLocaleString()} pts` : 'Starting...'}
-                  </p>
                 </div>
               </div>
             </div>

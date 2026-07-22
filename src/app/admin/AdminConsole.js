@@ -36,11 +36,11 @@ export default function AdminConsole({ username = 'admin' }) {
   const [playerSearch, setPlayerSearch] = useState('');
 
   const [bidForm, setBidForm] = useState({ teamId: '', amount: '' });
-  const [adForm, setAdForm] = useState({ title: '', imageUrl: '', targetUrl: '', position: 'TOP_BANNER' });
+  const [adForm, setAdForm] = useState({ title: '', imageUrl: '', targetUrl: '', contact: '', positions: [] });
   const [setupKey, setSetupKey] = useState('');
   const [configForm, setConfigForm] = useState({ upiId: '', payeeName: '', regFee: '', auctionStatus: 'NOT_STARTED' });
   const [adminTeams, setAdminTeams] = useState([]);
-  const [teamForm, setTeamForm] = useState({ name: '', ownerName: '', pointsPurse: '100000' });
+  const [teamForm, setTeamForm] = useState({ name: '', ownerName: '', ownerContact: '', pointsPurse: '100000', logoUrl: '' });
 
   const showStatus = (type, text) => {
     setStatusMessage({ type, text });
@@ -150,7 +150,7 @@ export default function AdminConsole({ username = 'admin' }) {
       const data = await res.json();
       if (res.ok) {
         showStatus('success', `Franchise team "${data.team.name}" created successfully!`);
-        setTeamForm({ name: '', ownerName: '', pointsPurse: '100000' });
+        setTeamForm({ name: '', ownerName: '', ownerContact: '', pointsPurse: '100000', logoUrl: '' });
         fetchConsoleData();
       } else {
         showStatus('error', data.error || 'Failed to create team');
@@ -336,15 +336,25 @@ export default function AdminConsole({ username = 'admin' }) {
       showStatus('error', 'Please upload an image file or enter an image URL');
       return;
     }
+    if (!adForm.positions || adForm.positions.length === 0) {
+      showStatus('error', 'Please select at least one page route to display the sponsor');
+      return;
+    }
     try {
       const res = await fetch('/api/admin/ads', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
-        body: JSON.stringify(adForm),
+        body: JSON.stringify({
+          title: adForm.title,
+          imageUrl: adForm.imageUrl,
+          targetUrl: adForm.targetUrl,
+          contact: adForm.contact,
+          position: adForm.positions.join(',')
+        }),
       });
       if (res.ok) {
         showStatus('success', 'Sponsor banner added');
-        setAdForm({ title: '', imageUrl: '', targetUrl: '', position: 'TOP_BANNER' });
+        setAdForm({ title: '', imageUrl: '', targetUrl: '', contact: '', positions: [] });
         fetchConsoleData();
       } else {
         const data = await res.json();
@@ -365,6 +375,21 @@ export default function AdminConsole({ username = 'admin' }) {
       const reader = new FileReader();
       reader.onloadend = () => {
         setAdForm((prev) => ({ ...prev, imageUrl: reader.result }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleTeamLogoUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        showStatus('error', 'Logo file size should be less than 2MB');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setTeamForm((prev) => ({ ...prev, logoUrl: reader.result }));
       };
       reader.readAsDataURL(file);
     }
@@ -856,6 +881,16 @@ export default function AdminConsole({ username = 'admin' }) {
                 />
               </div>
               <div>
+                <label className="form-label">Owner Contact Detail</label>
+                <input 
+                  type="text" 
+                  placeholder="e.g. +91 98765 43210" 
+                  value={teamForm.ownerContact} 
+                  onChange={(e) => setTeamForm({ ...teamForm, ownerContact: e.target.value })} 
+                  className="premium-input" 
+                />
+              </div>
+              <div>
                 <label className="form-label">Points Purse (Total Budget)</label>
                 <input 
                   type="number" 
@@ -867,6 +902,49 @@ export default function AdminConsole({ username = 'admin' }) {
                 <p style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '4px' }}>
                   Default is 100,000 points if left empty.
                 </p>
+              </div>
+              <div>
+                <label className="form-label">Team Logo *</label>
+                <div style={{ display: 'flex', gap: '14px', alignItems: 'center', margin: '6px 0 10px' }}>
+                  <div
+                    style={{
+                      width: '60px',
+                      height: '60px',
+                      borderRadius: '50%',
+                      background: 'rgba(7, 11, 25, 0.8)',
+                      border: teamForm.logoUrl ? '2px solid var(--accent-teal)' : '1px dashed var(--card-border)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      overflow: 'hidden',
+                      flexShrink: 0
+                    }}
+                  >
+                    {teamForm.logoUrl ? (
+                      <img src={teamForm.logoUrl} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : (
+                      <Shield size={24} color="var(--text-secondary)" />
+                    )}
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      id="team-logo-upload"
+                      required
+                      onChange={handleTeamLogoUpload}
+                      style={{ display: 'none' }}
+                    />
+                    <label
+                      htmlFor="team-logo-upload"
+                      className="premium-button-secondary"
+                      style={{ padding: '6px 14px', fontSize: '13px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                    >
+                      <Image size={14} /> Upload Logo File
+                    </label>
+                    <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Max file size: 2MB</span>
+                  </div>
+                </div>
               </div>
               <button type="submit" className="premium-button" style={{ justifyContent: 'center' }}>
                 <Plus size={18} /> Add Franchise Team
@@ -903,11 +981,15 @@ export default function AdminConsole({ username = 'admin' }) {
                     >
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                         <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                          <Shield size={20} color="var(--accent-gold)" />
+                          {t.logoUrl ? (
+                            <img src={t.logoUrl} alt="" style={{ width: '28px', height: '28px', borderRadius: '50%', objectFit: 'cover', border: '1px solid var(--accent-gold)' }} />
+                          ) : (
+                            <Shield size={20} color="var(--accent-gold)" />
+                          )}
                           <div>
                             <p style={{ fontWeight: '800', fontSize: '15px' }}>{t.name}</p>
                             <p style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
-                              Owner: <strong>{t.ownerName}</strong>
+                              Owner: <strong>{t.ownerName}</strong> {t.ownerContact ? `(${t.ownerContact})` : ''}
                             </p>
                           </div>
                         </div>
@@ -1012,12 +1094,35 @@ export default function AdminConsole({ username = 'admin' }) {
                 <input type="text" placeholder="https://sponsor-website.com" value={adForm.targetUrl} onChange={(e) => setAdForm({ ...adForm, targetUrl: e.target.value })} className="premium-input" />
               </div>
               <div>
-                <label className="form-label">Placement</label>
-                <select value={adForm.position} onChange={(e) => setAdForm({ ...adForm, position: e.target.value })} className="premium-select">
-                  <option value="TOP_BANNER">Top Banner (Home page marquee)</option>
-                  <option value="SIDEBAR">Sidebar (Teams page)</option>
-                  <option value="FOOTER">Footer</option>
-                </select>
+                <label className="form-label">Sponsor Contact Detail *</label>
+                <input type="text" required placeholder="e.g. +91 98765 43210" value={adForm.contact} onChange={(e) => setAdForm({ ...adForm, contact: e.target.value })} className="premium-input" />
+              </div>
+              <div>
+                <label className="form-label" style={{ marginBottom: '6px', display: 'block' }}>Display Placements (Choose where to show) *</label>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', padding: '6px 0' }}>
+                  {[
+                    { path: '/', label: 'Home Page' },
+                    { path: '/register-player', label: 'Player Register Page' },
+                    { path: '/teams', label: 'Teams Page' },
+                    { path: '/auction', label: 'Live Auction Arena' },
+                  ].map((p) => (
+                    <label key={p.path} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px' }}>
+                      <input
+                        type="checkbox"
+                        checked={adForm.positions ? adForm.positions.includes(p.path) : false}
+                        onChange={(e) => {
+                          const currentPos = adForm.positions || [];
+                          const nextPos = e.target.checked
+                            ? [...currentPos, p.path]
+                            : currentPos.filter((x) => x !== p.path);
+                          setAdForm({ ...adForm, positions: nextPos });
+                        }}
+                        style={{ width: '16px', height: '16px', accentColor: 'var(--accent-teal)' }}
+                      />
+                      <span>{p.label}</span>
+                    </label>
+                  ))}
+                </div>
               </div>
               <button type="submit" className="premium-button" style={{ justifyContent: 'center' }}><Plus size={18} /> Add Banner</button>
             </form>
@@ -1039,6 +1144,7 @@ export default function AdminConsole({ username = 'admin' }) {
                     />
                     <div style={{ flex: 1 }}>
                       <p style={{ fontWeight: '700', fontSize: '14px' }}>{ad.title}</p>
+                      <p style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '2px' }}>Contact: {ad.contact || 'None'}</p>
                       <div style={{ display: 'flex', gap: '6px', marginTop: '4px' }}>
                         <span className="badge badge-registered" style={{ fontSize: '9px' }}>{ad.position}</span>
                         <span className="badge" style={{ fontSize: '9px', background: ad.active ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)', color: ad.active ? 'var(--success)' : 'var(--danger)' }}>

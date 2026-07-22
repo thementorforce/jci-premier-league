@@ -105,7 +105,14 @@ export default function Register() {
     }
   };
 
-  const sponsorList = ads.length ? ads : DEFAULT_SPONSORS;
+  const filteredAds = ads.filter(ad => {
+    if (!ad.position) return false;
+    if (ad.position.includes('/')) {
+      return ad.position.split(',').map(p => p.trim()).includes('/register-player');
+    }
+    return ad.position === 'SIDEBAR' || ad.position === 'TOP_BANNER';
+  });
+  const sponsorList = filteredAds.length ? filteredAds : DEFAULT_SPONSORS;
 
   return (
     <div className="register-layout">
@@ -114,7 +121,7 @@ export default function Register() {
         <div style={{ padding: '36px 20px', textAlign: 'center', background: 'linear-gradient(135deg, #0a2113 0%, #030a05 100%)', border: '1px solid rgba(216, 240, 107, 0.2)', borderRadius: '20px', boxShadow: '0 16px 40px rgba(0,0,0,0.4)', position: 'relative', overflow: 'hidden' }}>
           {/* Decorative Background Glow */}
           <div style={{ position: 'absolute', top: '0', left: '50%', transform: 'translateX(-50%)', width: '300px', height: '150px', background: 'var(--accent-gold)', filter: 'blur(100px)', opacity: 0.15, pointerEvents: 'none' }} />
-          
+
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '28px', marginTop: '8px' }}>
             <span style={{ fontSize: 'clamp(60px, 12vw, 90px)', fontWeight: '900', background: 'linear-gradient(to bottom, #ffffff 0%, #94a3b8 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', filter: 'drop-shadow(0 12px 24px rgba(0,0,0,0.6))', lineHeight: 0.9, letterSpacing: '-0.02em' }}>
               JPL
@@ -123,9 +130,9 @@ export default function Register() {
               Season 1 <span style={{ display: 'inline-block', margin: '0 8px', color: '#fff', WebkitTextFillColor: '#fff', opacity: 0.5 }}>|</span> 2026
             </span>
           </div>
-          
+
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
-            <span style={{ fontSize: '11px', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.25em', fontWeight: '800' }}>Co-hosted By</span>
+            <span style={{ fontSize: '11px', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.25em', fontWeight: '800' }}>Jointly-hosted By</span>
             <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '8px' }}>
               <span style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: '800', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', padding: '8px 16px', borderRadius: '24px', color: '#e2e8f0', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>JCI Tumkur Metro</span>
               <span style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: '800', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', padding: '8px 16px', borderRadius: '24px', color: '#e2e8f0', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>JCOM L Tumkur 1.0</span>
@@ -233,7 +240,12 @@ function SidebarCarousel({ sponsors }) {
               </div>
             )}
             <div>
-              <span className="sponsor-name" style={{ fontSize: '16px', fontWeight: '800', color: '#fff', marginBottom: '6px', display: 'block' }}>{s.title}</span>
+              <span className="sponsor-name" style={{ fontSize: '16px', fontWeight: '800', color: '#fff', marginBottom: '4px', display: 'block' }}>{s.title}</span>
+              {s.contact && (
+                <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.7)', display: 'block', marginBottom: '6px' }}>
+                  Contact: {s.contact}
+                </span>
+              )}
               <span className="sponsor-label" style={{ fontSize: '11px', color: 'var(--accent-teal)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
                 {isClickable && <ExternalLink size={11} />}
                 {s.label || 'Official Sponsor'}
@@ -242,7 +254,7 @@ function SidebarCarousel({ sponsors }) {
           </Wrapper>
         </div>
       ))}
-      
+
       {/* Carousel Dots */}
       <div style={{ position: 'absolute', bottom: '12px', left: 0, right: 0, display: 'flex', justifyContent: 'center', gap: '6px' }}>
         {sponsors.map((_, idx) => (

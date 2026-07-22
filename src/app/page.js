@@ -61,7 +61,13 @@ export default async function Home() {
     };
     latestSale = latestSold;
     activePlayer = biddingPlayer;
-    ads = adRows;
+    ads = adRows.filter(ad => {
+      if (!ad.position) return false;
+      if (ad.position.includes('/')) {
+        return ad.position.split(',').map(p => p.trim()).includes('/');
+      }
+      return ad.position === 'TOP_BANNER';
+    });
   } catch (error) {
     console.error('Database issue on landing page:', error);
     dbError = true;

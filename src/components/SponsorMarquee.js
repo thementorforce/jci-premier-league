@@ -291,6 +291,11 @@ function ImageCard({ ad, isCenter }) {
         <span style={{ display: 'block', fontSize: '16px', fontWeight: '800', color: '#fff', textShadow: '0 1px 8px rgba(0,0,0,0.9)' }}>
           {ad.title}
         </span>
+        {ad.contact && (
+          <span style={{ display: 'block', fontSize: '12px', color: 'rgba(255,255,255,0.85)', marginTop: '2px', fontWeight: '500', textShadow: '0 1px 4px rgba(0,0,0,0.9)' }}>
+            Contact: {ad.contact}
+          </span>
+        )}
         {isCenter && (
           formattedUrl ? (
             <a

@@ -415,6 +415,143 @@ a {
   text-shadow: 0 0 10px rgba(255, 195, 0, 0.4);
 }
 
+/* Small FUT Cards */
+.fut-card-small {
+  width: 110px;
+  height: 160px;
+  background: linear-gradient(135deg, #111827 0%, #030712 100%);
+  border: 1.5px solid var(--accent-gold);
+  border-radius: 10px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--glow-gold), 0 3px 6px rgba(0, 0, 0, 0.5);
+  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 6px;
+}
+
+.fut-card-small:hover {
+  transform: scale(1.08) rotate(1deg);
+  box-shadow: 0 0 15px rgba(255, 195, 0, 0.6);
+}
+
+.fut-card-small::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.05), transparent);
+  transform: rotate(45deg);
+  transition: 0.5s;
+  pointer-events: none;
+}
+
+.fut-card-small:hover::before {
+  left: 100%;
+}
+
+.fut-card-small .fut-photo-container {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  border: 1.5px solid var(--accent-gold);
+  overflow: hidden;
+  background: var(--bg-tertiary);
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.5);
+}
+
+.fut-card-small .fut-badge-role {
+  font-size: 7px;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: #030712;
+  background: var(--accent-gold);
+  padding: 1px 4px;
+  border-radius: 2px;
+  margin-top: -5px;
+  z-index: 10;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.fut-card-small .fut-details {
+  text-align: center;
+  margin-top: 4px;
+  width: 100%;
+}
+
+.fut-card-small .fut-name {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text-primary);
+}
+
+.fut-card-small .fut-org {
+  font-size: 7px;
+  color: var(--text-secondary);
+  font-weight: 600;
+  text-transform: uppercase;
+  margin-top: 1px;
+}
+
+.fut-card-small .fut-price-tag {
+  margin-top: auto;
+  font-size: 11px;
+  font-weight: 900;
+  color: var(--accent-gold);
+  text-shadow: 0 0 4px rgba(255, 195, 0, 0.4);
+}
+
+/* Gender Borders & Glows */
+.fut-card-small.male {
+  border-color: #3b82f6;
+  box-shadow: 0 0 8px rgba(59, 130, 246, 0.3), 0 3px 6px rgba(0, 0, 0, 0.5);
+}
+.fut-card-small.male:hover {
+  box-shadow: 0 0 15px rgba(59, 130, 246, 0.6);
+}
+.fut-card-small.male .fut-photo-container {
+  border-color: #3b82f6;
+}
+.fut-card-small.male .fut-badge-role {
+  background: #3b82f6;
+  color: #fff;
+}
+.fut-card-small.male .fut-price-tag {
+  color: #60a5fa;
+  text-shadow: 0 0 4px rgba(96, 165, 250, 0.4);
+}
+
+.fut-card-small.female {
+  border-color: #ec4899;
+  box-shadow: 0 0 8px rgba(236, 72, 153, 0.3), 0 3px 6px rgba(0, 0, 0, 0.5);
+}
+.fut-card-small.female:hover {
+  box-shadow: 0 0 15px rgba(236, 72, 153, 0.6);
+}
+.fut-card-small.female .fut-photo-container {
+  border-color: #ec4899;
+}
+.fut-card-small.female .fut-badge-role {
+  background: #ec4899;
+  color: #fff;
+}
+.fut-card-small.female .fut-price-tag {
+  color: #f472b6;
+  text-shadow: 0 0 4px rgba(244, 114, 182, 0.4);
+}
+
 /* Navigation */
 .navbar {
   background: rgba(0, 32, 11, 0.412);
@@ -2518,4 +2655,31 @@ a {
 
 .admin-access-loading svg {
   color: var(--accent-teal);
+}
+
+/* Card Flip Styles */
+.flip-card {
+  perspective: 1000px;
+  width: 100%;
+}
+.flip-card-inner {
+  position: relative;
+  width: 100%;
+  transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transform-style: preserve-3d;
+}
+.flip-card.is-flipped .flip-card-inner {
+  transform: rotateY(180deg);
+}
+.flip-card-front, .flip-card-back {
+  width: 100%;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.flip-card-back {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform: rotateY(180deg);
+  height: 100%;
 }

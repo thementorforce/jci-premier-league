@@ -19,10 +19,14 @@ export async function POST(request) {
   if (auth.response) return auth.response;
 
   try {
-    const { title, imageUrl, targetUrl, position } = await request.json();
+    const { title, imageUrl, targetUrl, position, contact } = await request.json();
 
     if (!title || !imageUrl || !position) {
       return NextResponse.json({ error: 'Title, image URL, and position are required' }, { status: 400 });
+    }
+
+    if (!contact) {
+      return NextResponse.json({ error: 'Sponsor contact detail is required' }, { status: 400 });
     }
 
     const newAd = await prisma.adPlacement.create({
@@ -31,6 +35,7 @@ export async function POST(request) {
         imageUrl,
         targetUrl: targetUrl || '#',
         position,
+        contact: contact.trim(),
         active: true
       }
     });

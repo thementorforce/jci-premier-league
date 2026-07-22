@@ -36,7 +36,14 @@ export default async function TeamsPage() {
     { id: 'default-3', title: 'JCI Tumkur Metro', imageUrl: 'https://images.unsplash.com/photo-1461896836934-ffe607be7e72?auto=format&fit=crop&w=800&q=80', targetUrl: '#', position: 'SIDEBAR' },
   ];
   
-  const sponsorList = ads.length > 0 ? ads : DEFAULT_SPONSORS;
+  const filteredAds = ads.filter(ad => {
+    if (!ad.position) return false;
+    if (ad.position.includes('/')) {
+      return ad.position.split(',').map(p => p.trim()).includes('/teams');
+    }
+    return ad.position === 'SIDEBAR';
+  });
+  const sponsorList = filteredAds.length > 0 ? filteredAds : DEFAULT_SPONSORS;
 
   return (
     <div className="page-container-lg">
@@ -80,10 +87,16 @@ export default async function TeamsPage() {
                 {/* Team Header */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', borderBottom: '1px solid var(--card-border)', paddingBottom: '16px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <Shield size={32} color="var(--accent-gold)" />
+                    {team.logoUrl ? (
+                      <img src={team.logoUrl} alt={`${team.name} Logo`} style={{ width: '36px', height: '36px', borderRadius: '50%', objectFit: 'cover', border: '1.5px solid var(--accent-gold)' }} />
+                    ) : (
+                      <Shield size={32} color="var(--accent-gold)" />
+                    )}
                     <div>
                       <h2 style={{ fontSize: '22px', fontWeight: '800' }}>{team.name}</h2>
-                      <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Owner: <strong>{team.ownerName}</strong></span>
+                      <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
+                        Owner: <strong>{team.ownerName}</strong>{team.ownerContact ? ` · Contact: ${team.ownerContact}` : ''}
+                      </span>
                     </div>
                   </div>
 
@@ -109,14 +122,14 @@ export default async function TeamsPage() {
                   {team.players.length === 0 ? (
                     <p style={{ fontStyle: 'italic', color: 'var(--text-secondary)', fontSize: '14px' }}>No players drafted yet.</p>
                   ) : (
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '20px', justifyItems: 'center' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(110px, 1fr))', gap: '12px', justifyItems: 'center' }}>
                       {team.players.map((player) => (
-                        <div key={player.id} className="fut-card">
+                        <div key={player.id} className={`fut-card-small ${player.gender === 'Female' ? 'female' : 'male'}`}>
                           <div className="fut-photo-container">
                             {player.photoUrl ? (
                               <img src={player.photoUrl} alt={player.fullName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                             ) : (
-                              <div style={{ fontSize: '32px' }}>👤</div>
+                              <div style={{ fontSize: '24px' }}>👤</div>
                             )}
                           </div>
                           <div className="fut-badge-role">{player.preferredRole}</div>
@@ -155,6 +168,11 @@ export default async function TeamsPage() {
                 <img src={ad.imageUrl} alt={ad.title} style={{ width: '100%', height: '200px', objectFit: 'cover' }} />
                 <div style={{ padding: '12px', background: 'var(--bg-secondary)' }}>
                   <p style={{ fontSize: '14px', fontWeight: '700' }}>{ad.title}</p>
+                  {ad.contact && (
+                    <p style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                      Contact: <strong>{ad.contact}</strong>
+                    </p>
+                  )}
                   <span style={{ fontSize: '10px', background: 'rgba(255, 183, 3, 0.2)', color: 'var(--accent-gold)', padding: '2px 6px', borderRadius: '4px', display: 'inline-block', marginTop: '6px' }}>Ad</span>
                 </div>
               </a>

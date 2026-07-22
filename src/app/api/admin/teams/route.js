@@ -25,14 +25,19 @@ export async function POST(request) {
   if (auth.response) return auth.response;
 
   try {
-    const { name, ownerName, pointsPurse } = await request.json();
+    const { name, ownerName, ownerContact, pointsPurse, logoUrl } = await request.json();
 
     if (!name || !ownerName) {
       return NextResponse.json({ error: 'Team name and owner name are required' }, { status: 400 });
     }
 
+    if (!logoUrl) {
+      return NextResponse.json({ error: 'Team logo is required' }, { status: 400 });
+    }
+
     const trimmedName = name.trim();
     const trimmedOwnerName = ownerName.trim();
+    const trimmedOwnerContact = ownerContact ? ownerContact.trim() : '';
     const purseVal = parseInt(pointsPurse, 10);
     const purse = isNaN(purseVal) || purseVal <= 0 ? 100000 : purseVal;
 
@@ -50,8 +55,10 @@ export async function POST(request) {
       data: {
         name: trimmedName,
         ownerName: trimmedOwnerName,
+        ownerContact: trimmedOwnerContact,
         pointsPurse: purse,
         pointsSpent: 0,
+        logoUrl: logoUrl,
       }
     });
 

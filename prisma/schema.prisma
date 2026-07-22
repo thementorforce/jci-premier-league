@@ -21,15 +21,17 @@ model User {
 }
 
 model Team {
-  id          String          @id @default(uuid())
-  name        String          @unique
-  ownerName   String
-  ownerUser   User?           @relation("TeamOwner")
-  pointsPurse Int             @default(100000) // Default 100,000 points purse
-  pointsSpent Int             @default(0)
-  players     PlayerProfile[]
-  bids        BidHistory[]
-  createdAt   DateTime        @default(now())
+  id           String          @id @default(uuid())
+  name         String          @unique
+  ownerName    String
+  ownerContact String          @default("")
+  logoUrl      String?
+  ownerUser    User?           @relation("TeamOwner")
+  pointsPurse  Int             @default(100000) // Default 100,000 points purse
+  pointsSpent  Int             @default(0)
+  players      PlayerProfile[]
+  bids         BidHistory[]
+  createdAt    DateTime        @default(now())
 }
 
 model PlayerProfile {
@@ -71,6 +73,7 @@ model AdPlacement {
   title     String
   imageUrl  String
   targetUrl String
+  contact   String   @default("")
   position  String   // "TOP_BANNER", "SIDEBAR", "FOOTER"
   active    Boolean  @default(true)
   createdAt DateTime @default(now())
