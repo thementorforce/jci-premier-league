@@ -2734,3 +2734,246 @@ a {
     transform: translate3d(-50%, 0, 0);
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   Fullscreen Auction Layout — No Scroll, Viewport-Height
+   ═══════════════════════════════════════════════════════════════ */
+
+.auction-fullscreen {
+  height: calc(100vh - 70px);
+  max-height: calc(100vh - 70px);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding: 10px 16px 0;
+  gap: 8px;
+}
+
+/* Hide footer and reset main height when on auction page */
+body:has(.auction-fullscreen) > footer {
+  display: none;
+}
+body:has(.auction-fullscreen) > main {
+  min-height: auto !important;
+}
+
+/* Top bar with title and status */
+.auction-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  padding: 0 4px;
+}
+
+/* Sold Players News Ticker */
+.auction-news-ticker {
+  flex-shrink: 0;
+  display: flex;
+  align-items: stretch;
+  border-radius: 8px;
+  overflow: hidden;
+  background: linear-gradient(90deg, rgba(16, 185, 129, 0.12), rgba(216, 240, 107, 0.06));
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  height: 32px;
+}
+
+.auction-news-ticker-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 12px;
+  background: linear-gradient(135deg, var(--success), #059669);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.auction-news-ticker-track {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  position: relative;
+  mask-image: linear-gradient(90deg, transparent 0%, black 5%, black 95%, transparent 100%);
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, black 5%, black 95%, transparent 100%);
+}
+
+.auction-news-ticker-scroll {
+  display: flex;
+  white-space: nowrap;
+  animation: auction-ticker-scroll 30s linear infinite;
+  will-change: transform;
+}
+
+.auction-news-ticker-scroll span {
+  padding: 0 3rem;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: 0.02em;
+}
+
+@keyframes auction-ticker-scroll {
+  0% { transform: translate3d(0, 0, 0); }
+  100% { transform: translate3d(-50%, 0, 0); }
+}
+
+/* Main 3-column grid */
+.auction-main-grid {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 5fr 3fr 3fr;
+  gap: 12px;
+}
+
+.auction-left-col {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.auction-mid-col {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+}
+
+.auction-right-col {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+}
+
+/* Player card fills available space */
+.auction-player-card {
+  border: 2px solid var(--accent-gold);
+  box-shadow: var(--glow-gold);
+  position: relative;
+  overflow: hidden;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Status placeholder when no active player */
+.auction-status-placeholder {
+  text-align: center;
+  padding: 40px 20px;
+  border: 1px dashed var(--card-border);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+/* Compact panel with scroll */
+.auction-compact-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.auction-scroll-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.1) transparent;
+}
+
+.auction-scroll-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.auction-scroll-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.auction-scroll-list::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.1);
+  border-radius: 2px;
+}
+
+/* List item in sold/unsold/draft panels */
+.auction-list-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(7, 11, 25, 0.4);
+  padding: 6px 10px;
+  border-radius: 6px;
+}
+
+/* Bottom sponsor strip */
+.auction-bottom-sponsors {
+  flex-shrink: 0;
+  margin: 0 -16px;
+  overflow: hidden;
+}
+
+/* ── Responsive: Auction fullscreen ── */
+@media (max-width: 1100px) {
+  .auction-main-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .auction-right-col {
+    grid-column: 1 / -1;
+    flex-direction: row;
+  }
+  .auction-right-col > * {
+    flex: 1;
+  }
+}
+
+@media (max-width: 768px) {
+  .auction-fullscreen {
+    height: auto;
+    max-height: none;
+    overflow: auto;
+    padding: 10px 12px 0;
+  }
+  .auction-main-grid {
+    grid-template-columns: 1fr;
+    flex: none;
+  }
+  .auction-left-col {
+    min-height: 350px;
+  }
+  .auction-mid-col {
+    flex-direction: row;
+  }
+  .auction-mid-col > * {
+    flex: 1;
+    max-height: 250px;
+  }
+  .auction-right-col {
+    flex-direction: column;
+  }
+  .auction-right-col > * {
+    max-height: 200px;
+  }
+  .auction-topbar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+  .auction-news-ticker-scroll span {
+    font-size: 11px;
+  }
+}

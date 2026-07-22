@@ -89,7 +89,6 @@ export default function LiveAuction() {
         }
         lastDataRef.current = jsonStr;
 
-        // Audio bid notification trigger
         if (json.activePlayer) {
           if (json.activePlayer.currentBid > lastBidRef.current) {
             playChime();
@@ -111,10 +110,9 @@ export default function LiveAuction() {
               });
               setTimeout(() => {
                 setRecentlySoldPlayer(null);
-              }, 12000); // Flipped display duration
+              }, 12000);
             }
           }
-          // If a new player becomes active, clear any flipped card immediately
           if (json.activePlayer) {
             setRecentlySoldPlayer(null);
           }
@@ -130,7 +128,7 @@ export default function LiveAuction() {
 
   useEffect(() => {
     fetchStatus();
-    const interval = setInterval(fetchStatus, 5000); // Poll database every 5s
+    const interval = setInterval(fetchStatus, 5000);
     return () => clearInterval(interval);
   }, []);
 
@@ -151,201 +149,127 @@ export default function LiveAuction() {
 
   const { activePlayer, soldPlayers, unsoldPlayers, teams } = data;
 
+  // Build sold news ticker text
+  const soldTickerItems = soldPlayers.length > 0
+    ? soldPlayers.map(p => `\u{1F3CF} ${p.fullName} sold to ${p.team?.name || 'a franchise'} for ${p.soldPrice?.toLocaleString() || '\u2014'} pts`)
+    : ['\u{1F3CF} No players sold yet \u2014 stay tuned for the first signing!'];
+  const soldTickerText = soldTickerItems.join('     \u2605     ');
+
   return (
-    <div className="page-container-lg">
-      
-      {/* Header Dashboard */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
-        <div>
-          <h1 className="gold-gradient-text section-title">⚡ Live Auction Arena</h1>
-          <p style={{ color: 'var(--text-secondary)' }}>Real-time updates directly from the bidding console</p>
+    <div className="auction-fullscreen">
+
+      {/* Top Bar: Title + Status */}
+      <div className="auction-topbar">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <h1 className="gold-gradient-text" style={{ fontSize: '18px', fontWeight: '800', margin: 0, whiteSpace: 'nowrap' }}>{'\u26A1'} Live Auction</h1>
+          {(() => {
+            const sc = STATUS_CONFIG[data.auctionStatus] || STATUS_CONFIG.NOT_STARTED;
+            const StatusIcon = sc.icon;
+            const isLive = data.auctionStatus === 'LIVE';
+            return (
+              <div style={{
+                display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 14px',
+                borderRadius: '8px', background: sc.bg, border: `1px solid ${sc.color}44`,
+                animation: isLive ? 'pulse-glow 2s infinite' : 'none',
+              }}>
+                <div style={{
+                  width: '8px', height: '8px', borderRadius: '50%', background: sc.color, flexShrink: 0,
+                  boxShadow: isLive ? `0 0 6px ${sc.color}` : 'none',
+                  animation: isLive ? 'pulse-glow 1.5s infinite' : 'none',
+                }} />
+                <StatusIcon size={14} color={sc.color} style={{ flexShrink: 0 }} />
+                <span style={{ fontWeight: '800', fontSize: '12px', color: sc.color, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{sc.label}</span>
+              </div>
+            );
+          })()}
         </div>
-
-
+        <p style={{ fontSize: '11px', color: 'var(--text-secondary)', margin: 0 }}>Real-time updates from bidding console</p>
       </div>
 
-      {/* ── Auction Status Banner ── */}
-      {(() => {
-        const sc = STATUS_CONFIG[data.auctionStatus] || STATUS_CONFIG.NOT_STARTED;
-        const StatusIcon = sc.icon;
-        const isLive = data.auctionStatus === 'LIVE';
-        return (
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '14px',
-            padding: '14px 20px',
-            borderRadius: '12px',
-            background: sc.bg,
-            border: `1px solid ${sc.color}55`,
-            boxShadow: isLive ? `0 0 20px ${sc.color}33` : 'none',
-            animation: isLive ? 'pulse-glow 2s infinite' : 'none',
-          }}>
-            {/* Dot */}
-            <div style={{
-              width: '10px', height: '10px', borderRadius: '50%',
-              background: sc.color,
-              flexShrink: 0,
-              boxShadow: isLive ? `0 0 8px ${sc.color}` : 'none',
-              animation: isLive ? 'pulse-glow 1.5s infinite' : 'none',
-            }} />
-            <StatusIcon size={18} color={sc.color} style={{ flexShrink: 0 }} />
-            <div style={{ flex: 1 }}>
-              <span style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-secondary)' }}>Auction Status</span>
-              <p style={{ fontWeight: '800', fontSize: '15px', color: sc.color, margin: 0 }}>{sc.label}</p>
-            </div>
-            <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: 0, textAlign: 'right' }}>
-              {sc.description}
-            </p>
-          </div>
-        );
-      })()}
-
-      <SponsorMarquee ads={(data.ads || []).filter(ad => {
-        if (!ad.position) return false;
-        if (ad.position.includes('/')) {
-          return ad.position.split(',').map(p => p.trim()).includes('/auction');
-        }
-        return ad.position === 'TOP_BANNER';
-      })} title="Official Tournament Sponsors" />
-
-      {/* Modern Scrolling Ticker */}
-      <div className="modern-ticker-container">
-        <div className="modern-ticker-wrap">
-          <div className="modern-ticker-content">
-            <div className="ticker-org-item" style={{ flexShrink: 0 }}>
-              <img src="/logos/jci_metro.svg" alt="JCI" style={{ height: '38px', width: '95px', borderRadius: '4px', flexShrink: 0 }} />
-              <span className="ticker-text-gradient" style={{ flexShrink: 0 }}>JCI TUMKUR METRO</span>
-            </div>
-
-            <div className="ticker-org-item" style={{ flexShrink: 0 }}>
-              <div style={{ background: '#ffffff', padding: '2px 8px', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', height: '38px', width: '100px', flexShrink: 0 }}>
-                <img src="/logos/jcom.svg" alt="JCOM" style={{ height: '28px', width: '84px', flexShrink: 0 }} />
-              </div>
-              <span className="ticker-text-gradient" style={{ flexShrink: 0 }}>JCOM L TUMKUR 1.0</span>
-            </div>
-
-            <div className="ticker-org-item" style={{ flexShrink: 0 }}>
-              <div style={{ background: '#ffffff', padding: '2px 8px', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', height: '38px', width: '93px', flexShrink: 0 }}>
-                <img src="/logos/jac.svg" alt="JAC" style={{ height: '28px', width: '77px', flexShrink: 0 }} />
-              </div>
-              <span className="ticker-text-gradient" style={{ flexShrink: 0 }}>JAC TUMKUR</span>
-            </div>
-
-            <div className="ticker-org-item" style={{ flexShrink: 0 }}>
-              <div style={{ background: '#ffffff', padding: '2px 8px', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', height: '38px', width: '100px', flexShrink: 0 }}>
-                <img src="/logos/rotary.svg" alt="Rotary" style={{ height: '28px', width: '84px', flexShrink: 0 }} />
-              </div>
-              <span className="ticker-text-gradient" style={{ flexShrink: 0 }}>ROTARY TUMKUR PRERANA</span>
-            </div>
-          </div>
-          <div className="modern-ticker-content">
-            <div className="ticker-org-item" style={{ flexShrink: 0 }}>
-              <img src="/logos/jci_metro.svg" alt="JCI" style={{ height: '38px', width: '95px', borderRadius: '4px', flexShrink: 0 }} />
-              <span className="ticker-text-gradient" style={{ flexShrink: 0 }}>JCI TUMKUR METRO</span>
-            </div>
-
-            <div className="ticker-org-item" style={{ flexShrink: 0 }}>
-              <div style={{ background: '#ffffff', padding: '2px 8px', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', height: '38px', width: '100px', flexShrink: 0 }}>
-                <img src="/logos/jcom.svg" alt="JCOM" style={{ height: '28px', width: '84px', flexShrink: 0 }} />
-              </div>
-              <span className="ticker-text-gradient" style={{ flexShrink: 0 }}>JCOM L TUMKUR 1.0</span>
-            </div>
-
-            <div className="ticker-org-item" style={{ flexShrink: 0 }}>
-              <div style={{ background: '#ffffff', padding: '2px 8px', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', height: '38px', width: '93px', flexShrink: 0 }}>
-                <img src="/logos/jac.svg" alt="JAC" style={{ height: '28px', width: '77px', flexShrink: 0 }} />
-              </div>
-              <span className="ticker-text-gradient" style={{ flexShrink: 0 }}>JAC TUMKUR</span>
-            </div>
-
-            <div className="ticker-org-item" style={{ flexShrink: 0 }}>
-              <div style={{ background: '#ffffff', padding: '2px 8px', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', height: '38px', width: '100px', flexShrink: 0 }}>
-                <img src="/logos/rotary.svg" alt="Rotary" style={{ height: '28px', width: '84px', flexShrink: 0 }} />
-              </div>
-              <span className="ticker-text-gradient" style={{ flexShrink: 0 }}>ROTARY TUMKUR PRERANA</span>
-            </div>
+      {/* Sold Players News Ticker */}
+      <div className="auction-news-ticker">
+        <div className="auction-news-ticker-label">
+          <Award size={12} /> SOLD
+        </div>
+        <div className="auction-news-ticker-track">
+          <div className="auction-news-ticker-scroll">
+            <span>{soldTickerText}</span>
+            <span>{soldTickerText}</span>
           </div>
         </div>
       </div>
 
-      <div className="grid-auction-main">
+      {/* Main Content Grid */}
+      <div className="auction-main-grid">
         
-        {/* Left Side: Live Auction Box */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
-          
-          {/* Active Player Cards */}
+        {/* LEFT: Active Player Card */}
+        <div className="auction-left-col">
           {(activePlayer || recentlySoldPlayer) ? (
-            <div className={`flip-card ${recentlySoldPlayer ? 'is-flipped' : ''}`}>
-              <div className="flip-card-inner">
-                {/* Front Side: Bidding details */}
-                <div className="flip-card-front">
+            <div className={`flip-card ${recentlySoldPlayer ? 'is-flipped' : ''}`} style={{ height: '100%' }}>
+              <div className="flip-card-inner" style={{ height: '100%' }}>
+                <div className="flip-card-front" style={{ height: '100%' }}>
                   {(() => {
                     const displayPlayer = activePlayer || recentlySoldPlayer;
                     if (!displayPlayer) return null;
                     return (
-                      <div className="premium-card" style={{ border: '2px solid var(--accent-gold)', boxShadow: 'var(--glow-gold)', position: 'relative', overflow: 'hidden' }}>
-                        <div style={{ position: 'absolute', top: '0', right: '0', background: 'var(--accent-gold)', color: '#070b19', padding: '4px 16px', fontWeight: '800', borderBottomLeftRadius: '12px', fontSize: '12px', letterSpacing: '0.05em', textTransform: 'uppercase' }} className="badge-bidding">
+                      <div className="premium-card auction-player-card">
+                        <div style={{ position: 'absolute', top: '0', right: '0', background: 'var(--accent-gold)', color: '#070b19', padding: '3px 14px', fontWeight: '800', borderBottomLeftRadius: '10px', fontSize: '11px', letterSpacing: '0.05em', textTransform: 'uppercase' }} className="badge-bidding">
                           {recentlySoldPlayer ? 'Sold!' : 'Active Bidding'}
                         </div>
 
-                        <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap', marginTop: '12px' }}>
-                          {/* Photo */}
-                          <div style={{ width: '150px', height: '180px', borderRadius: '12px', background: 'var(--bg-tertiary)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--card-border)' }}>
+                        <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', marginTop: '8px' }}>
+                          <div style={{ width: '120px', height: '140px', borderRadius: '10px', background: 'var(--bg-tertiary)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--card-border)', flexShrink: 0 }}>
                             {displayPlayer.photoUrl ? (
                               <img src={displayPlayer.photoUrl} alt={displayPlayer.fullName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                             ) : (
-                              <div style={{ fontSize: '48px' }}>👤</div>
+                              <div style={{ fontSize: '40px' }}>{'\uD83D\uDC64'}</div>
                             )}
                           </div>
 
-                          {/* Details */}
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: '1', minWidth: '220px' }}>
-                            <span className="badge badge-registered" style={{ alignSelf: 'flex-start' }}>{displayPlayer.preferredRole}</span>
-                            <h2 style={{ fontSize: '28px', fontWeight: '800', marginTop: '4px' }}>{displayPlayer.fullName}</h2>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: '1', minWidth: '180px' }}>
+                            <span className="badge badge-registered" style={{ alignSelf: 'flex-start', fontSize: '10px', padding: '2px 8px' }}>{displayPlayer.preferredRole}</span>
+                            <h2 style={{ fontSize: '22px', fontWeight: '800', marginTop: '2px' }}>{displayPlayer.fullName}</h2>
                             
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginTop: '8px' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', marginTop: '4px' }}>
                               <div>
-                                <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Organization</span>
-                                <p style={{ fontWeight: '600' }}>{displayPlayer.organization}</p>
+                                <span style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>Organization</span>
+                                <p style={{ fontWeight: '600', fontSize: '12px' }}>{displayPlayer.organization}</p>
                               </div>
                               <div>
-                                <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Jersey Size</span>
-                                <p style={{ fontWeight: '600' }}>{displayPlayer.jerseySize}</p>
+                                <span style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>Jersey Size</span>
+                                <p style={{ fontWeight: '600', fontSize: '12px' }}>{displayPlayer.jerseySize}</p>
                               </div>
                               <div>
-                                <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Experience</span>
-                                <p style={{ fontWeight: '600' }}>{displayPlayer.experience}</p>
+                                <span style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>Experience</span>
+                                <p style={{ fontWeight: '600', fontSize: '12px' }}>{displayPlayer.experience}</p>
                               </div>
                             </div>
                           </div>
                         </div>
 
-                        {/* Bidding Telemetry Block */}
-                        <div style={{ marginTop: '24px', background: 'var(--bg-secondary)', border: '1px solid var(--card-border)', borderRadius: '12px', padding: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+                        <div style={{ marginTop: '12px', background: 'var(--bg-secondary)', border: '1px solid var(--card-border)', borderRadius: '10px', padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
                           <div>
-                            <span style={{ fontSize: '12px', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Highest Bidding Team</span>
-                            <p className="teal-gradient-text" style={{ fontSize: '24px', fontWeight: '800' }}>{displayPlayer.highestBidder}</p>
+                            <span style={{ fontSize: '10px', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Highest Bidding Team</span>
+                            <p className="teal-gradient-text" style={{ fontSize: '20px', fontWeight: '800' }}>{displayPlayer.highestBidder}</p>
                           </div>
                           <div style={{ textAlign: 'right' }}>
-                            <span style={{ fontSize: '12px', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Current Bid Amount</span>
-                            <p className="gold-gradient-text" style={{ fontSize: '32px', fontWeight: '800' }}>
+                            <span style={{ fontSize: '10px', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Current Bid Amount</span>
+                            <p className="gold-gradient-text" style={{ fontSize: '28px', fontWeight: '800' }}>
                               {displayPlayer.currentBid > 0 ? `${displayPlayer.currentBid.toLocaleString()} pts` : 'Starting...'}
                             </p>
                           </div>
                         </div>
 
-                        {/* Live Bidding Activity Feed */}
                         {displayPlayer.bidHistory && displayPlayer.bidHistory.length > 0 && (
-                          <div style={{ marginTop: '20px', borderTop: '1px solid var(--card-border)', paddingTop: '16px' }}>
-                            <span style={{ fontSize: '11px', color: 'var(--text-secondary)', textTransform: 'uppercase', display: 'block', marginBottom: '8px', letterSpacing: '0.05em' }}>
-                              ⚡ Bidding Activity Log
+                          <div style={{ marginTop: '10px', borderTop: '1px solid var(--card-border)', paddingTop: '10px' }}>
+                            <span style={{ fontSize: '10px', color: 'var(--text-secondary)', textTransform: 'uppercase', display: 'block', marginBottom: '6px', letterSpacing: '0.05em' }}>
+                              {'\u26A1'} Bidding Activity
                             </span>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '120px', overflowY: 'auto' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                               {displayPlayer.bidHistory.slice(0, 3).map((bid, i) => (
-                                <div key={bid.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px', background: i === 0 ? 'rgba(6, 182, 212, 0.1)' : 'rgba(255,255,255,0.02)', padding: '6px 12px', borderRadius: '6px', border: i === 0 ? '1px solid var(--accent-teal)' : '1px solid transparent' }}>
+                                <div key={bid.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px', background: i === 0 ? 'rgba(6, 182, 212, 0.1)' : 'rgba(255,255,255,0.02)', padding: '4px 10px', borderRadius: '5px', border: i === 0 ? '1px solid var(--accent-teal)' : '1px solid transparent' }}>
                                   <span style={{ color: i === 0 ? '#fff' : 'var(--text-secondary)' }}>
-                                    {i === 0 ? '🔥 New Highest Bid' : 'Bid Placed'} by <strong>{bid.teamName}</strong>
+                                    {i === 0 ? '\uD83D\uDD25 Highest' : 'Bid'} by <strong>{bid.teamName}</strong>
                                   </span>
                                   <span style={{ fontWeight: '800', color: i === 0 ? 'var(--accent-teal)' : 'var(--accent-gold)' }}>
                                     {bid.amount.toLocaleString()} pts
@@ -360,64 +284,25 @@ export default function LiveAuction() {
                   })()}
                 </div>
 
-                {/* Back Side: Congratulations Sold details */}
-                <div className="flip-card-back">
+                <div className="flip-card-back" style={{ height: '100%' }}>
                   <div className="premium-card" style={{
-                    border: '2px solid var(--success)',
-                    boxShadow: '0 0 25px rgba(16, 185, 129, 0.4)',
-                    position: 'relative',
-                    overflow: 'hidden',
-                    height: '100%',
-                    minHeight: '340px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    background: 'linear-gradient(135deg, #064e3b 0%, #022c22 100%)',
-                    textAlign: 'center',
-                    padding: '24px'
+                    border: '2px solid var(--success)', boxShadow: '0 0 25px rgba(16, 185, 129, 0.4)',
+                    position: 'relative', overflow: 'hidden', height: '100%',
+                    display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center',
+                    background: 'linear-gradient(135deg, #064e3b 0%, #022c22 100%)', textAlign: 'center', padding: '20px'
                   }}>
-                    <div style={{ fontSize: '48px', marginBottom: '8px' }}>🎉</div>
-                    <h2 style={{ fontSize: '24px', fontWeight: '900', color: '#fff', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 4px' }}>
-                      Congratulations!
-                    </h2>
-                    <p style={{ fontSize: '16px', color: 'rgba(255,255,255,0.9)', margin: '0 0 12px' }}>
+                    <div style={{ fontSize: '40px', marginBottom: '6px' }}>{'\uD83C\uDF89'}</div>
+                    <h2 style={{ fontSize: '20px', fontWeight: '900', color: '#fff', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 4px' }}>Congratulations!</h2>
+                    <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.9)', margin: '0 0 10px' }}>
                       Player <strong style={{ color: 'var(--accent-gold)' }}>{recentlySoldPlayer?.fullName}</strong> has been drafted!
                     </p>
-                    
-                    <div style={{
-                      background: 'rgba(0,0,0,0.4)',
-                      border: '1.5px solid var(--success)',
-                      borderRadius: '10px',
-                      padding: '12px 20px',
-                      marginBottom: '16px',
-                      width: '100%',
-                      maxWidth: '360px'
-                    }}>
-                      <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.6)', textTransform: 'uppercase', display: 'block', marginBottom: '2px' }}>
-                        Sold To
-                      </span>
-                      <p style={{ fontSize: '20px', fontWeight: '800', color: '#fff', margin: '0 0 6px' }}>
-                        {recentlySoldPlayer?.team?.name}
-                      </p>
-                      <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.6)', textTransform: 'uppercase', display: 'block', marginBottom: '2px' }}>
-                        Final Price
-                      </span>
-                      <p style={{ fontSize: '22px', fontWeight: '900', color: 'var(--accent-gold)', margin: 0 }}>
-                        {recentlySoldPlayer?.soldPrice?.toLocaleString()} pts
-                      </p>
+                    <div style={{ background: 'rgba(0,0,0,0.4)', border: '1.5px solid var(--success)', borderRadius: '10px', padding: '10px 18px', marginBottom: '12px', width: '100%', maxWidth: '320px' }}>
+                      <span style={{ fontSize: '9px', color: 'rgba(255,255,255,0.6)', textTransform: 'uppercase', display: 'block', marginBottom: '2px' }}>Sold To</span>
+                      <p style={{ fontSize: '18px', fontWeight: '800', color: '#fff', margin: '0 0 4px' }}>{recentlySoldPlayer?.team?.name}</p>
+                      <span style={{ fontSize: '9px', color: 'rgba(255,255,255,0.6)', textTransform: 'uppercase', display: 'block', marginBottom: '2px' }}>Final Price</span>
+                      <p style={{ fontSize: '20px', fontWeight: '900', color: 'var(--accent-gold)', margin: 0 }}>{recentlySoldPlayer?.soldPrice?.toLocaleString()} pts</p>
                     </div>
-
-                    <div style={{
-                      marginTop: 'auto',
-                      fontSize: '11px',
-                      color: 'rgba(255, 255, 255, 0.4)',
-                      letterSpacing: '0.02em',
-                      borderTop: '1px solid rgba(255, 255, 255, 0.1)',
-                      paddingTop: '8px',
-                      width: '100%',
-                      textAlign: 'center'
-                    }}>
+                    <div style={{ marginTop: 'auto', fontSize: '10px', color: 'rgba(255, 255, 255, 0.4)', borderTop: '1px solid rgba(255, 255, 255, 0.1)', paddingTop: '6px', width: '100%', textAlign: 'center' }}>
                       This website is powered by The Metro force and Evenzo
                     </div>
                   </div>
@@ -425,120 +310,100 @@ export default function LiveAuction() {
               </div>
             </div>
           ) : data.auctionStatus === 'NOT_STARTED' ? (
-            <div className="premium-card" style={{ textAlign: 'center', padding: '60px 20px', border: '1px dashed var(--card-border)' }}>
-              <span style={{ fontSize: '48px', marginBottom: '16px', display: 'block' }}>⏳</span>
-              <h2 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '8px', color: 'var(--accent-gold)' }}>Not Started Yet</h2>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '14px', maxWidth: '400px', margin: '0 auto' }}>
-                The live auction has not started yet. Bidding will begin when the host activates the draft.
-              </p>
+            <div className="premium-card auction-status-placeholder">
+              <span style={{ fontSize: '40px', marginBottom: '12px', display: 'block' }}>{'\u23F3'}</span>
+              <h2 style={{ fontSize: '18px', fontWeight: '700', marginBottom: '6px', color: 'var(--accent-gold)' }}>Not Started Yet</h2>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '13px', maxWidth: '400px', margin: '0 auto' }}>Bidding will begin when the host activates the draft.</p>
             </div>
           ) : data.auctionStatus === 'BREAK' ? (
-            <div className="premium-card" style={{ textAlign: 'center', padding: '60px 20px', border: '1px dashed var(--card-border)' }}>
-              <span style={{ fontSize: '48px', marginBottom: '16px', display: 'block' }}>☕</span>
-              <h2 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '8px', color: '#f59e0b' }}>On Break</h2>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '14px', maxWidth: '400px', margin: '0 auto' }}>
-                The auction is currently on break. The bidding session will resume shortly.
-              </p>
+            <div className="premium-card auction-status-placeholder">
+              <span style={{ fontSize: '40px', marginBottom: '12px', display: 'block' }}>{'\u2615'}</span>
+              <h2 style={{ fontSize: '18px', fontWeight: '700', marginBottom: '6px', color: '#f59e0b' }}>On Break</h2>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '13px', maxWidth: '400px', margin: '0 auto' }}>The bidding session will resume shortly.</p>
             </div>
           ) : data.auctionStatus === 'PAUSED' ? (
-            <div className="premium-card" style={{ textAlign: 'center', padding: '60px 20px', border: '1px dashed var(--card-border)' }}>
-              <span style={{ fontSize: '48px', marginBottom: '16px', display: 'block' }}>⏸️</span>
-              <h2 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '8px', color: '#ef4444' }}>Paused</h2>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '14px', maxWidth: '400px', margin: '0 auto' }}>
-                The live auction is currently paused. Bidding will resume as soon as the session starts again.
-              </p>
+            <div className="premium-card auction-status-placeholder">
+              <span style={{ fontSize: '40px', marginBottom: '12px', display: 'block' }}>{'\u23F8\uFE0F'}</span>
+              <h2 style={{ fontSize: '18px', fontWeight: '700', marginBottom: '6px', color: '#ef4444' }}>Paused</h2>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '13px', maxWidth: '400px', margin: '0 auto' }}>Bidding will resume as soon as the session starts again.</p>
             </div>
           ) : data.auctionStatus === 'ENDED' ? (
-            <div className="premium-card" style={{ textAlign: 'center', padding: '60px 20px', border: '1px dashed var(--card-border)' }}>
-              <span style={{ fontSize: '48px', marginBottom: '16px', display: 'block' }}>🏁</span>
-              <h2 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '8px', color: '#6366f1' }}>Auction Ended</h2>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '14px', maxWidth: '400px', margin: '0 auto' }}>
-                The live auction has concluded! View the final squads in the Franchise Teams page.
-              </p>
+            <div className="premium-card auction-status-placeholder">
+              <span style={{ fontSize: '40px', marginBottom: '12px', display: 'block' }}>{'\uD83C\uDFC1'}</span>
+              <h2 style={{ fontSize: '18px', fontWeight: '700', marginBottom: '6px', color: '#6366f1' }}>Auction Ended</h2>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '13px', maxWidth: '400px', margin: '0 auto' }}>View the final squads in the Franchise Teams page.</p>
             </div>
           ) : (
-            <div className="premium-card" style={{ textAlign: 'center', padding: '60px 20px', border: '1px dashed var(--card-border)' }}>
-              <span style={{ fontSize: '48px', marginBottom: '16px', display: 'block' }}>💤</span>
-              <h2 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '8px' }}>No Active Bidding Session</h2>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '14px', maxWidth: '400px', margin: '0 auto' }}>
-                The auctioneer has not started bidding on a player. Keep this window open; it will update automatically when the admin starts the draft.
-              </p>
+            <div className="premium-card auction-status-placeholder">
+              <span style={{ fontSize: '40px', marginBottom: '12px', display: 'block' }}>{'\uD83D\uDCA4'}</span>
+              <h2 style={{ fontSize: '18px', fontWeight: '700', marginBottom: '6px' }}>No Active Bidding</h2>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '13px', maxWidth: '400px', margin: '0 auto' }}>Keep this window open; it updates automatically.</p>
             </div>
           )}
-
-          {/* Sold and Unsold Players (Tabs / Split View) */}
-          <div className="grid-sold-unsold">
-            
-            {/* Recently Sold */}
-            <div className="premium-card" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <h3 style={{ fontSize: '16px', fontWeight: '800', borderBottom: '1px solid var(--card-border)', paddingBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <Award size={18} color="var(--success)" /> Sold Drafts
-              </h3>
-              
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '350px', overflowY: 'auto' }}>
-                {soldPlayers.length === 0 ? (
-                  <p style={{ fontSize: '12px', color: 'var(--text-secondary)', fontStyle: 'italic' }}>No players sold yet.</p>
-                ) : (
-                  soldPlayers.map(p => (
-                    <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(7, 11, 25, 0.4)', padding: '10px 14px', borderRadius: '8px', borderLeft: '3px solid var(--success)' }}>
-                      <div>
-                        <p style={{ fontWeight: '700', fontSize: '13px' }}>{p.fullName}</p>
-                        <p style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Sold to: <strong>{p.team?.name}</strong></p>
-                      </div>
-                      <p style={{ fontSize: '13px', fontWeight: '800', color: 'var(--accent-gold)' }}>{p.soldPrice?.toLocaleString()} pts</p>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-
-            {/* Unsold Players */}
-            <div className="premium-card" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <h3 style={{ fontSize: '16px', fontWeight: '800', borderBottom: '1px solid var(--card-border)', paddingBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <Users size={18} color="var(--danger)" /> Unsold Pool
-              </h3>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '350px', overflowY: 'auto' }}>
-                {unsoldPlayers.length === 0 ? (
-                  <p style={{ fontSize: '12px', color: 'var(--text-secondary)', fontStyle: 'italic' }}>No unsold players yet.</p>
-                ) : (
-                  unsoldPlayers.map(p => (
-                    <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(7, 11, 25, 0.4)', padding: '10px 14px', borderRadius: '8px', borderLeft: '3px solid var(--danger)' }}>
-                      <div>
-                        <p style={{ fontWeight: '700', fontSize: '13px' }}>{p.fullName}</p>
-                        <p style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{p.preferredRole} • {p.organization}</p>
-                      </div>
-                      <span className="badge badge-unsold" style={{ fontSize: '9px' }}>Unsold</span>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-
-          </div>
-
         </div>
 
-        {/* Right Side: Franchise Purses (Budgets) & Registered Pool Lookup */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
-          
-          {/* Team Purse Standing */}
-          <div className="premium-card" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <h3 style={{ fontSize: '16px', fontWeight: '800', borderBottom: '1px solid var(--card-border)', paddingBottom: '8px' }}>
-              💰 Franchise Points Standing
+        {/* MIDDLE: Sold & Unsold panels stacked */}
+        <div className="auction-mid-col">
+          <div className="premium-card auction-compact-panel">
+            <h3 style={{ fontSize: '13px', fontWeight: '800', borderBottom: '1px solid var(--card-border)', paddingBottom: '6px', display: 'flex', alignItems: 'center', gap: '5px', margin: 0 }}>
+              <Award size={14} color="var(--success)" /> Sold ({soldPlayers.length})
             </h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div className="auction-scroll-list">
+              {soldPlayers.length === 0 ? (
+                <p style={{ fontSize: '11px', color: 'var(--text-secondary)', fontStyle: 'italic' }}>No players sold yet.</p>
+              ) : (
+                soldPlayers.map(p => (
+                  <div key={p.id} className="auction-list-item" style={{ borderLeft: '3px solid var(--success)' }}>
+                    <div>
+                      <p style={{ fontWeight: '700', fontSize: '12px' }}>{p.fullName}</p>
+                      <p style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>{'\u2192'} {p.team?.name}</p>
+                    </div>
+                    <p style={{ fontSize: '11px', fontWeight: '800', color: 'var(--accent-gold)', whiteSpace: 'nowrap' }}>{p.soldPrice?.toLocaleString()} pts</p>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+          <div className="premium-card auction-compact-panel">
+            <h3 style={{ fontSize: '13px', fontWeight: '800', borderBottom: '1px solid var(--card-border)', paddingBottom: '6px', display: 'flex', alignItems: 'center', gap: '5px', margin: 0 }}>
+              <Users size={14} color="var(--danger)" /> Unsold ({unsoldPlayers.length})
+            </h3>
+            <div className="auction-scroll-list">
+              {unsoldPlayers.length === 0 ? (
+                <p style={{ fontSize: '11px', color: 'var(--text-secondary)', fontStyle: 'italic' }}>No unsold players yet.</p>
+              ) : (
+                unsoldPlayers.map(p => (
+                  <div key={p.id} className="auction-list-item" style={{ borderLeft: '3px solid var(--danger)' }}>
+                    <div>
+                      <p style={{ fontWeight: '700', fontSize: '12px' }}>{p.fullName}</p>
+                      <p style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>{p.preferredRole}</p>
+                    </div>
+                    <span className="badge badge-unsold" style={{ fontSize: '8px' }}>Unsold</span>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* RIGHT: Team purses & draft pool */}
+        <div className="auction-right-col">
+          <div className="premium-card auction-compact-panel">
+            <h3 style={{ fontSize: '13px', fontWeight: '800', borderBottom: '1px solid var(--card-border)', paddingBottom: '6px', margin: 0 }}>
+              {'\uD83D\uDCB0'} Franchise Points
+            </h3>
+            <div className="auction-scroll-list">
               {teams.map(t => {
                 const remaining = t.pointsPurse - t.pointsSpent;
                 const percentSpent = (t.pointsSpent / t.pointsPurse) * 100;
                 return (
-                  <div key={t.id} style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
+                  <div key={t.id} style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px' }}>
                       <span style={{ fontWeight: '600' }}>{t.name}</span>
-                      <span style={{ fontWeight: '800', color: 'var(--accent-teal)' }}>{remaining.toLocaleString()} pts</span>
+                      <span style={{ fontWeight: '800', color: 'var(--accent-teal)', fontSize: '11px' }}>{remaining.toLocaleString()} pts</span>
                     </div>
-                    {/* Visual Progress Bar */}
-                    <div style={{ height: '6px', background: 'var(--bg-tertiary)', borderRadius: '3px', overflow: 'hidden' }}>
+                    <div style={{ height: '4px', background: 'var(--bg-tertiary)', borderRadius: '2px', overflow: 'hidden' }}>
                       <div style={{ height: '100%', width: `${Math.min(100, Math.max(0, percentSpent))}%`, background: 'var(--accent-gold)' }}></div>
                     </div>
                   </div>
@@ -547,43 +412,48 @@ export default function LiveAuction() {
             </div>
           </div>
 
-          {/* Searchable Player Draft Pool */}
-          <div className="premium-card" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <h3 style={{ fontSize: '16px', fontWeight: '800' }}>🔍 Draft Pool Search</h3>
-            
+          <div className="premium-card auction-compact-panel">
+            <h3 style={{ fontSize: '13px', fontWeight: '800', margin: 0 }}>{'\uD83D\uDD0D'} Draft Pool</h3>
             <div style={{ position: 'relative' }}>
               <input 
                 type="text" 
-                placeholder="Search player, role or org..." 
+                placeholder="Search player, role..." 
                 value={search} 
                 onChange={(e) => setSearch(e.target.value)} 
                 className="premium-input"
-                style={{ paddingLeft: '40px' }}
+                style={{ paddingLeft: '32px', fontSize: '12px', padding: '8px 10px 8px 32px' }}
               />
-              <Search size={18} color="var(--text-secondary)" style={{ position: 'absolute', left: '12px', top: '14px' }} />
+              <Search size={14} color="var(--text-secondary)" style={{ position: 'absolute', left: '10px', top: '10px' }} />
             </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '250px', overflowY: 'auto' }}>
+            <div className="auction-scroll-list">
               {filteredDraft.length === 0 ? (
-                <p style={{ fontSize: '12px', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>No matching players</p>
+                <p style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>No matching players</p>
               ) : (
                 filteredDraft.map(p => (
-                  <div key={p.id} style={{ padding: '8px 12px', borderRadius: '6px', background: 'rgba(7, 11, 25, 0.4)', fontSize: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div key={p.id} className="auction-list-item">
                     <div>
-                      <p style={{ fontWeight: '700' }}>{p.fullName}</p>
-                      <p style={{ color: 'var(--text-secondary)', fontSize: '10px' }}>{p.preferredRole} • {p.organization}</p>
+                      <p style={{ fontWeight: '700', fontSize: '11px' }}>{p.fullName}</p>
+                      <p style={{ color: 'var(--text-secondary)', fontSize: '9px' }}>{p.preferredRole} {'\u2022'} {p.organization}</p>
                     </div>
-                    <span className="badge badge-registered" style={{ fontSize: '8px' }}>Draft Pool</span>
+                    <span className="badge badge-registered" style={{ fontSize: '7px' }}>Pool</span>
                   </div>
                 ))
               )}
             </div>
           </div>
-
         </div>
-
       </div>
 
+      {/* Bottom Sponsor Bar */}
+      <div className="auction-bottom-sponsors">
+        <SponsorMarquee ads={(data.ads || []).filter(ad => {
+          if (!ad.position) return false;
+          if (ad.position.includes('/')) {
+            return ad.position.split(',').map(p => p.trim()).includes('/auction');
+          }
+          return ad.position === 'TOP_BANNER';
+        })} title="Official Tournament Sponsors" />
+      </div>
     </div>
   );
 }
