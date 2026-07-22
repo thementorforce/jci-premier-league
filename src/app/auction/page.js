@@ -398,6 +398,23 @@ export default function LiveAuction() {
             </div>
           )}
 
+          {/* Running Partner Text Marquee */}
+          <div style={{
+            background: 'linear-gradient(90deg, rgba(6,182,212,0.15) 0%, rgba(7,11,25,0.85) 50%, rgba(6,182,212,0.15) 100%)',
+            border: '1px solid rgba(6,182,212,0.25)',
+            borderRadius: '10px',
+            padding: '12px 18px',
+            overflow: 'hidden',
+            whiteSpace: 'nowrap',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.4)',
+            display: 'flex',
+            alignItems: 'center'
+          }}>
+            <marquee behavior="scroll" direction="left" scrollamount="4" style={{ fontWeight: '800', fontSize: '15px', color: 'var(--accent-teal)', letterSpacing: '0.08em' }}>
+              CI TUMKUR METRO &nbsp;&nbsp;&bull;&nbsp;&nbsp; JCOM L TUMKUR 1.0 &nbsp;&nbsp;&bull;&nbsp;&nbsp; JAC TUMKUR &nbsp;&nbsp;&bull;&nbsp;&nbsp; ROTARY TUMKUR PRERANA
+            </marquee>
+          </div>
+
           {/* Sold and Unsold Players (Tabs / Split View) */}
           <div className="grid-sold-unsold">
             
