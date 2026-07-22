@@ -19,7 +19,7 @@ export async function POST(request) {
   if (auth.response) return auth.response;
 
   try {
-    const { title, imageUrl, targetUrl, position, contact } = await request.json();
+    const { title, imageUrl, targetUrl, position, contact, sponsorType } = await request.json();
 
     if (!title || !imageUrl || !position) {
       return NextResponse.json({ error: 'Title, image URL, and position are required' }, { status: 400 });
@@ -36,6 +36,7 @@ export async function POST(request) {
         targetUrl: targetUrl || '#',
         position,
         contact: contact.trim(),
+        sponsorType: sponsorType || 'General',
         active: true
       }
     });

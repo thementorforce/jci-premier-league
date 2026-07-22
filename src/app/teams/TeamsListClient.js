@@ -186,13 +186,21 @@ export default function TeamsListClient({ initialTeams = [], sponsorList = [], d
               >
                 <img src={ad.imageUrl} alt={ad.title} style={{ width: '100%', height: '200px', objectFit: 'cover' }} />
                 <div style={{ padding: '12px', background: 'var(--bg-secondary)' }}>
+                  {ad.sponsorType && ad.sponsorType !== 'General' ? (
+                    <span style={{ fontSize: '9px', fontWeight: '800', textTransform: 'uppercase', background: 'rgba(245, 197, 24, 0.15)', color: 'var(--accent-gold)', padding: '2px 8px', borderRadius: '4px', display: 'inline-block', marginBottom: '8px', border: '1px solid rgba(245, 197, 24, 0.3)', letterSpacing: '0.05em' }}>
+                      {ad.sponsorType}
+                    </span>
+                  ) : (
+                    <span style={{ fontSize: '9px', fontWeight: '800', textTransform: 'uppercase', background: 'rgba(78, 204, 163, 0.15)', color: 'var(--accent-teal)', padding: '2px 8px', borderRadius: '4px', display: 'inline-block', marginBottom: '8px', border: '1px solid rgba(78, 204, 163, 0.3)', letterSpacing: '0.05em' }}>
+                      Sponsor
+                    </span>
+                  )}
                   <p style={{ fontSize: '14px', fontWeight: '700' }}>{ad.title}</p>
                   {ad.contact && (
                     <p style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '4px' }}>
                       Contact: <strong>{ad.contact}</strong>
                     </p>
                   )}
-                  <span style={{ fontSize: '10px', background: 'rgba(255, 183, 3, 0.2)', color: 'var(--accent-gold)', padding: '2px 6px', borderRadius: '4px', display: 'inline-block', marginTop: '6px' }}>Ad</span>
                 </div>
               </a>
             ))}

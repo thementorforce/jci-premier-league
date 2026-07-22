@@ -182,7 +182,7 @@ function GradientCard({ sponsor, isCenter }) {
             padding: '4px 10px',
           }}
         >
-          {sponsor.category}
+          {sponsor.sponsorType && sponsor.sponsorType !== 'General' ? sponsor.sponsorType : (sponsor.category || 'Sponsor')}
         </span>
       </div>
 
@@ -288,6 +288,25 @@ function ImageCard({ ad, isCenter }) {
         }}
       />
       <div style={{ position: 'absolute', bottom: '16px', left: '18px', right: '18px' }}>
+        {ad.sponsorType && ad.sponsorType !== 'General' && (
+          <span
+            style={{
+              display: 'inline-block',
+              fontSize: '8px',
+              fontWeight: '800',
+              textTransform: 'uppercase',
+              letterSpacing: '0.08em',
+              color: 'var(--accent-gold, #f5c518)',
+              background: 'rgba(245,197,24,0.15)',
+              border: '1px solid rgba(245,197,24,0.3)',
+              borderRadius: '4px',
+              padding: '2px 6px',
+              marginBottom: '6px',
+            }}
+          >
+            {ad.sponsorType}
+          </span>
+        )}
         <span style={{ display: 'block', fontSize: '16px', fontWeight: '800', color: '#fff', textShadow: '0 1px 8px rgba(0,0,0,0.9)' }}>
           {ad.title}
         </span>

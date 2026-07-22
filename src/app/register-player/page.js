@@ -248,7 +248,7 @@ function SidebarCarousel({ sponsors }) {
               )}
               <span className="sponsor-label" style={{ fontSize: '11px', color: 'var(--accent-teal)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
                 {isClickable && <ExternalLink size={11} />}
-                {s.label || 'Official Sponsor'}
+                {s.sponsorType && s.sponsorType !== 'General' ? s.sponsorType : (s.label || 'Official Sponsor')}
               </span>
             </div>
           </Wrapper>

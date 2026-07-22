@@ -69,14 +69,15 @@ model BidHistory {
 }
 
 model AdPlacement {
-  id        String   @id @default(uuid())
-  title     String
-  imageUrl  String
-  targetUrl String
-  contact   String   @default("")
-  position  String   // "TOP_BANNER", "SIDEBAR", "FOOTER"
-  active    Boolean  @default(true)
-  createdAt DateTime @default(now())
+  id          String   @id @default(uuid())
+  title       String
+  imageUrl    String
+  targetUrl   String
+  contact     String   @default("")
+  position    String   // "TOP_BANNER", "SIDEBAR", "FOOTER"
+  sponsorType String   @default("General")
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
 }
 
 model SystemConfig {

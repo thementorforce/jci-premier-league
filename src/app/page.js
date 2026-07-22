@@ -112,7 +112,7 @@ export default async function Home() {
                 Premier League - 2026
               </p>
             </div>
-
+            <div className="eyebrow" style={{ fontSize: "22px" }}>Jointly Hosted by</div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginBottom: '36px' }}>
               <span style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: '800', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', padding: '8px 16px', borderRadius: '24px', color: '#cbd5e1' }}>JCI Tumkur Metro</span>
               <span style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: '800', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', padding: '8px 16px', borderRadius: '24px', color: '#cbd5e1' }}>JCOM L Tumkur 1.0</span>

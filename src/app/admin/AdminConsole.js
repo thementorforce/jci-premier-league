@@ -40,7 +40,7 @@ export default function AdminConsole({ username = 'admin' }) {
   const [playerSearch, setPlayerSearch] = useState('');
 
   const [bidForm, setBidForm] = useState({ teamId: '', amount: '' });
-  const [adForm, setAdForm] = useState({ title: '', imageUrl: '', targetUrl: '', contact: '', positions: [] });
+  const [adForm, setAdForm] = useState({ title: '', imageUrl: '', targetUrl: '', contact: '', positions: [], sponsorType: 'General' });
   const [setupKey, setSetupKey] = useState('');
   const [configForm, setConfigForm] = useState({ upiId: '', payeeName: '', regFee: '', auctionStatus: 'NOT_STARTED' });
   const [adminTeams, setAdminTeams] = useState([]);
@@ -415,12 +415,13 @@ export default function AdminConsole({ username = 'admin' }) {
           imageUrl: adForm.imageUrl,
           targetUrl: adForm.targetUrl,
           contact: adForm.contact,
+          sponsorType: adForm.sponsorType || 'General',
           position: adForm.positions.join(',')
         }),
       });
       if (res.ok) {
         showStatus('success', 'Sponsor banner added');
-        setAdForm({ title: '', imageUrl: '', targetUrl: '', contact: '', positions: [] });
+        setAdForm({ title: '', imageUrl: '', targetUrl: '', contact: '', positions: [], sponsorType: 'General' });
         fetchConsoleData();
       } else {
         const data = await res.json();
@@ -1175,6 +1176,21 @@ export default function AdminConsole({ username = 'admin' }) {
             <h2 style={{ fontSize: '18px', fontWeight: '800', marginBottom: '16px', color: 'var(--accent-teal)' }}>Add Sponsor Banner</h2>
             <form onSubmit={handleAddAd} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
               <div>
+                <label className="form-label">Sponsor Type *</label>
+                <select
+                  value={adForm.sponsorType || 'General'}
+                  onChange={(e) => setAdForm({ ...adForm, sponsorType: e.target.value })}
+                  className="premium-input"
+                  style={{ background: 'var(--bg-secondary)', cursor: 'pointer' }}
+                >
+                  <option value="General">General Sponsor</option>
+                  <option value="Title Sponsor">Title Sponsor</option>
+                  <option value="Bat Sponsor">Bat Sponsor</option>
+                  <option value="Ball Sponsor">Ball Sponsor</option>
+                  <option value="Food Sponsor">Food Sponsor</option>
+                </select>
+              </div>
+              <div>
                 <label className="form-label">Sponsor Title</label>
                 <input type="text" required placeholder="e.g. Decathlon Tumkur" value={adForm.title} onChange={(e) => setAdForm({ ...adForm, title: e.target.value })} className="premium-input" />
               </div>
@@ -1279,7 +1295,8 @@ export default function AdminConsole({ username = 'admin' }) {
                     <div style={{ flex: 1 }}>
                       <p style={{ fontWeight: '700', fontSize: '14px' }}>{ad.title}</p>
                       <p style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '2px' }}>Contact: {ad.contact || 'None'}</p>
-                      <div style={{ display: 'flex', gap: '6px', marginTop: '4px' }}>
+                      <div style={{ display: 'flex', gap: '6px', marginTop: '4px', flexWrap: 'wrap' }}>
+                        <span className="badge" style={{ fontSize: '9px', background: 'rgba(78,204,163,0.15)', color: 'var(--accent-teal)' }}>{ad.sponsorType || 'General'}</span>
                         <span className="badge badge-registered" style={{ fontSize: '9px' }}>{ad.position}</span>
                         <span className="badge" style={{ fontSize: '9px', background: ad.active ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)', color: ad.active ? 'var(--success)' : 'var(--danger)' }}>
                           {ad.active ? 'Active' : 'Hidden'}
