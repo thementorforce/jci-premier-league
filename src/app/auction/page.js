@@ -205,45 +205,37 @@ export default function LiveAuction() {
       <div className="modern-ticker-container">
         <div className="modern-ticker-wrap">
           <div className="modern-ticker-content">
-            <div className="ticker-org-item">
-              <img src="/logos/jci_metro.svg" alt="JCI" style={{ height: '48px', width: 'auto' }} />
-              <span className="ticker-text-gradient">JCI TUMKUR METRO</span>
+            <div className="ticker-org-card ticker-card-blue">
+              <img src="/logos/jci_metro.svg" alt="JCI Tumkur Metro" />
             </div>
 
-            <div className="ticker-org-item">
-              <img src="/logos/jcom.svg" alt="JCOM" style={{ height: '48px', width: 'auto' }} />
-              <span className="ticker-text-gradient">JCOM L TUMKUR 1.0</span>
+            <div className="ticker-org-card ticker-card-white">
+              <img src="/logos/jcom.svg" alt="JCOM L Tumkur 1.0" />
             </div>
 
-            <div className="ticker-org-item">
-              <img src="/logos/jac.svg" alt="JAC" style={{ height: '48px', width: 'auto' }} />
-              <span className="ticker-text-gradient">JAC TUMKUR</span>
+            <div className="ticker-org-card ticker-card-white">
+              <img src="/logos/jac.svg" alt="JAC Tumkur" />
             </div>
 
-            <div className="ticker-org-item">
-              <img src="/logos/rotary.svg" alt="Rotary" style={{ height: '48px', width: 'auto' }} />
-              <span className="ticker-text-gradient">ROTARY TUMKUR PRERANA</span>
+            <div className="ticker-org-card ticker-card-white">
+              <img src="/logos/rotary.svg" alt="Rotary Tumkur Prerana" />
             </div>
           </div>
           <div className="modern-ticker-content">
-            <div className="ticker-org-item">
-              <img src="/logos/jci_metro.svg" alt="JCI" style={{ height: '48px', width: 'auto' }} />
-              <span className="ticker-text-gradient">JCI TUMKUR METRO</span>
+            <div className="ticker-org-card ticker-card-blue">
+              <img src="/logos/jci_metro.svg" alt="JCI Tumkur Metro" />
             </div>
 
-            <div className="ticker-org-item">
-              <img src="/logos/jcom.svg" alt="JCOM" style={{ height: '48px', width: 'auto' }} />
-              <span className="ticker-text-gradient">JCOM L TUMKUR 1.0</span>
+            <div className="ticker-org-card ticker-card-white">
+              <img src="/logos/jcom.svg" alt="JCOM L Tumkur 1.0" />
             </div>
 
-            <div className="ticker-org-item">
-              <img src="/logos/jac.svg" alt="JAC" style={{ height: '48px', width: 'auto' }} />
-              <span className="ticker-text-gradient">JAC TUMKUR</span>
+            <div className="ticker-org-card ticker-card-white">
+              <img src="/logos/jac.svg" alt="JAC Tumkur" />
             </div>
 
-            <div className="ticker-org-item">
-              <img src="/logos/rotary.svg" alt="Rotary" style={{ height: '48px', width: 'auto' }} />
-              <span className="ticker-text-gradient">ROTARY TUMKUR PRERANA</span>
+            <div className="ticker-org-card ticker-card-white">
+              <img src="/logos/rotary.svg" alt="Rotary Tumkur Prerana" />
             </div>
           </div>
         </div>
