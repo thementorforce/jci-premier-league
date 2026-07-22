@@ -2708,28 +2708,23 @@ a {
 .modern-ticker-content {
   display: flex;
   align-items: center;
-  gap: 8rem;
-  padding-right: 8rem;
+  gap: 6rem;
+  padding-right: 6rem;
 }
-.ticker-org-card {
+.ticker-text-gradient {
+  background: linear-gradient(90deg, #5ce1e6 0%, #ffffff 50%, #ffde59 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 900;
+  font-size: 22px;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+}
+.ticker-org-item {
   display: flex;
   align-items: center;
-  justify-content: center;
-  height: 64px;
-  padding: 8px 24px;
-  border-radius: 10px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-}
-.ticker-org-card img {
-  height: 100%;
-  width: auto;
-}
-.ticker-card-blue {
-  background: #0096da;
-}
-.ticker-card-white {
-  background: #ffffff;
+  gap: 15px;
 }
 @keyframes modern-ticker {
   0% {

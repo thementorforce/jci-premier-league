@@ -205,37 +205,57 @@ export default function LiveAuction() {
       <div className="modern-ticker-container">
         <div className="modern-ticker-wrap">
           <div className="modern-ticker-content">
-            <div className="ticker-org-card ticker-card-blue">
-              <img src="/logos/jci_metro.svg" alt="JCI Tumkur Metro" />
+            <div className="ticker-org-item">
+              <img src="/logos/jci_metro.svg" alt="JCI" style={{ height: '48px', width: 'auto', borderRadius: '4px' }} />
+              <span className="ticker-text-gradient">JCI TUMKUR METRO</span>
             </div>
 
-            <div className="ticker-org-card ticker-card-white">
-              <img src="/logos/jcom.svg" alt="JCOM L Tumkur 1.0" />
+            <div className="ticker-org-item">
+              <div style={{ background: '#ffffff', padding: '2px 8px', borderRadius: '4px', display: 'flex', alignItems: 'center', height: '48px' }}>
+                <img src="/logos/jcom.svg" alt="JCOM" style={{ height: '36px', width: 'auto' }} />
+              </div>
+              <span className="ticker-text-gradient">JCOM L TUMKUR 1.0</span>
             </div>
 
-            <div className="ticker-org-card ticker-card-white">
-              <img src="/logos/jac.svg" alt="JAC Tumkur" />
+            <div className="ticker-org-item">
+              <div style={{ background: '#ffffff', padding: '2px 8px', borderRadius: '4px', display: 'flex', alignItems: 'center', height: '48px' }}>
+                <img src="/logos/jac.svg" alt="JAC" style={{ height: '36px', width: 'auto' }} />
+              </div>
+              <span className="ticker-text-gradient">JAC TUMKUR</span>
             </div>
 
-            <div className="ticker-org-card ticker-card-white">
-              <img src="/logos/rotary.svg" alt="Rotary Tumkur Prerana" />
+            <div className="ticker-org-item">
+              <div style={{ background: '#ffffff', padding: '2px 8px', borderRadius: '4px', display: 'flex', alignItems: 'center', height: '48px' }}>
+                <img src="/logos/rotary.svg" alt="Rotary" style={{ height: '36px', width: 'auto' }} />
+              </div>
+              <span className="ticker-text-gradient">ROTARY TUMKUR PRERANA</span>
             </div>
           </div>
           <div className="modern-ticker-content">
-            <div className="ticker-org-card ticker-card-blue">
-              <img src="/logos/jci_metro.svg" alt="JCI Tumkur Metro" />
+            <div className="ticker-org-item">
+              <img src="/logos/jci_metro.svg" alt="JCI" style={{ height: '48px', width: 'auto', borderRadius: '4px' }} />
+              <span className="ticker-text-gradient">JCI TUMKUR METRO</span>
             </div>
 
-            <div className="ticker-org-card ticker-card-white">
-              <img src="/logos/jcom.svg" alt="JCOM L Tumkur 1.0" />
+            <div className="ticker-org-item">
+              <div style={{ background: '#ffffff', padding: '2px 8px', borderRadius: '4px', display: 'flex', alignItems: 'center', height: '48px' }}>
+                <img src="/logos/jcom.svg" alt="JCOM" style={{ height: '36px', width: 'auto' }} />
+              </div>
+              <span className="ticker-text-gradient">JCOM L TUMKUR 1.0</span>
             </div>
 
-            <div className="ticker-org-card ticker-card-white">
-              <img src="/logos/jac.svg" alt="JAC Tumkur" />
+            <div className="ticker-org-item">
+              <div style={{ background: '#ffffff', padding: '2px 8px', borderRadius: '4px', display: 'flex', alignItems: 'center', height: '48px' }}>
+                <img src="/logos/jac.svg" alt="JAC" style={{ height: '36px', width: 'auto' }} />
+              </div>
+              <span className="ticker-text-gradient">JAC TUMKUR</span>
             </div>
 
-            <div className="ticker-org-card ticker-card-white">
-              <img src="/logos/rotary.svg" alt="Rotary Tumkur Prerana" />
+            <div className="ticker-org-item">
+              <div style={{ background: '#ffffff', padding: '2px 8px', borderRadius: '4px', display: 'flex', alignItems: 'center', height: '48px' }}>
+                <img src="/logos/rotary.svg" alt="Rotary" style={{ height: '36px', width: 'auto' }} />
+              </div>
+              <span className="ticker-text-gradient">ROTARY TUMKUR PRERANA</span>
             </div>
           </div>
         </div>
