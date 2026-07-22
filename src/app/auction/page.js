@@ -205,10 +205,38 @@ export default function LiveAuction() {
       <div className="modern-ticker-container">
         <div className="modern-ticker-wrap">
           <div className="modern-ticker-content">
-            JCI TUMKUR METRO &nbsp;&nbsp;&bull;&nbsp;&nbsp; JCOM L TUMKUR 1.0 &nbsp;&nbsp;&bull;&nbsp;&nbsp; JAC TUMKUR &nbsp;&nbsp;&bull;&nbsp;&nbsp; ROTARY TUMKUR PRERANA &nbsp;&nbsp;&nbsp;&nbsp;&bull;&nbsp;&nbsp;&nbsp;&nbsp;
+            <img src="/logos/jci_metro.svg" alt="JCI" style={{ height: '24px', width: 'auto', marginRight: '6px' }} />
+            JCI TUMKUR METRO
+            <span style={{ margin: '0 2rem', opacity: 0.3 }}>&bull;</span>
+
+            <img src="/logos/jcom.svg" alt="JCOM" style={{ height: '24px', width: 'auto', marginRight: '6px' }} />
+            JCOM L TUMKUR 1.0
+            <span style={{ margin: '0 2rem', opacity: 0.3 }}>&bull;</span>
+
+            <img src="/logos/jac.svg" alt="JAC" style={{ height: '24px', width: 'auto', marginRight: '6px' }} />
+            JAC TUMKUR
+            <span style={{ margin: '0 2rem', opacity: 0.3 }}>&bull;</span>
+
+            <img src="/logos/rotary.svg" alt="Rotary" style={{ height: '24px', width: 'auto', marginRight: '6px' }} />
+            ROTARY TUMKUR PRERANA
+            <span style={{ margin: '0 2rem', opacity: 0.3 }}>&bull;</span>
           </div>
           <div className="modern-ticker-content">
-            JCI TUMKUR METRO &nbsp;&nbsp;&bull;&nbsp;&nbsp; JCOM L TUMKUR 1.0 &nbsp;&nbsp;&bull;&nbsp;&nbsp; JAC TUMKUR &nbsp;&nbsp;&bull;&nbsp;&nbsp; ROTARY TUMKUR PRERANA &nbsp;&nbsp;&nbsp;&nbsp;&bull;&nbsp;&nbsp;&nbsp;&nbsp;
+            <img src="/logos/jci_metro.svg" alt="JCI" style={{ height: '24px', width: 'auto', marginRight: '6px' }} />
+            JCI TUMKUR METRO
+            <span style={{ margin: '0 2rem', opacity: 0.3 }}>&bull;</span>
+
+            <img src="/logos/jcom.svg" alt="JCOM" style={{ height: '24px', width: 'auto', marginRight: '6px' }} />
+            JCOM L TUMKUR 1.0
+            <span style={{ margin: '0 2rem', opacity: 0.3 }}>&bull;</span>
+
+            <img src="/logos/jac.svg" alt="JAC" style={{ height: '24px', width: 'auto', marginRight: '6px' }} />
+            JAC TUMKUR
+            <span style={{ margin: '0 2rem', opacity: 0.3 }}>&bull;</span>
+
+            <img src="/logos/rotary.svg" alt="Rotary" style={{ height: '24px', width: 'auto', marginRight: '6px' }} />
+            ROTARY TUMKUR PRERANA
+            <span style={{ margin: '0 2rem', opacity: 0.3 }}>&bull;</span>
           </div>
         </div>
       </div>
