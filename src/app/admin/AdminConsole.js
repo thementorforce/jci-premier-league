@@ -104,38 +104,27 @@ export default function AdminConsole({ username = 'admin' }) {
 
     try {
       const authHeaders = getAuthHeaders();
-      const opts = (extra = {}) => ({ ...extra, headers: { ...authHeaders, ...(extra.headers || {}) }, signal });
+      const res = await fetch('/api/admin/dashboard', {
+        headers: { ...authHeaders },
+        signal
+      });
 
-      const [auctionRes, adsRes, pendingRes, paymentsRes, adminTeamsRes] = await Promise.all([
-        fetch('/api/auction/status', { signal }),
-        fetch('/api/admin/ads', opts()),
-        fetch('/api/admin/approve-player', opts()),
-        fetch('/api/admin/payments', opts()),
-        fetch('/api/admin/teams', opts()),
-      ]);
+      if (handleUnauthorized(res)) return;
 
-      if ([adsRes, pendingRes, paymentsRes, adminTeamsRes].some((res) => handleUnauthorized(res))) return;
-
-      if (auctionRes.ok) {
-        const data = await auctionRes.json();
+      if (res.ok) {
+        const data = await res.json();
         setActivePlayer(data.activePlayer);
         setDraftPool(data.draftPool);
         setUnsoldPlayers(data.unsoldPlayers || []);
-        setTeams(data.teams);
+        setTeams(data.teams || []);
         setSoldPlayers(data.soldPlayers || []);
         setAuctionSummary(data.summary || {});
         setAuctionStatus(data.auctionStatus || 'NOT_STARTED');
-      }
-
-      if (adsRes.ok) setAds(await adsRes.json());
-      if (pendingRes.ok) setPendingPlayers(await pendingRes.json());
-      if (paymentsRes.ok) {
-        const payData = await paymentsRes.json();
-        setAllPayments(payData.players || []);
-        setPaymentStats(payData.stats || {});
-      }
-      if (adminTeamsRes.ok) {
-        setAdminTeams(await adminTeamsRes.json());
+        setAds(data.ads || []);
+        setPendingPlayers(data.pendingPlayers || []);
+        setAllPayments(data.allPayments || []);
+        setPaymentStats(data.paymentStats || {});
+        setAdminTeams(data.teams || []);
       }
     } catch (e) {
       if (e.name !== 'AbortError') console.error(e);
@@ -187,7 +176,7 @@ export default function AdminConsole({ username = 'admin' }) {
   useEffect(() => {
     fetchConfig();
     fetchConsoleData();
-    const interval = setInterval(fetchConsoleData, 8000);
+    const interval = setInterval(fetchConsoleData, 3000);
     return () => {
       clearInterval(interval);
       if (abortRef.current) abortRef.current.abort();
