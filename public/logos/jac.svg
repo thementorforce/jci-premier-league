@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 80" width="220" height="80">
-  <text x="10" y="46" font-family="'Outfit', 'Inter', sans-serif" font-weight="900" font-style="italic" fill="#0c1d37" font-size="34">JCI</text>
+  <text x="10" y="46" font-family="'Outfit', 'Inter', sans-serif" font-weight="900" font-style="italic" fill="#ffffff" font-size="34">JCI</text>
   <!-- Shield emblem -->
   <path d="M82 24 C82 24 91 21 100 24 C100 35 100 46 91 53 C82 46 82 35 82 24 Z" fill="none" stroke="#0096da" stroke-width="2.5"/>
   <path d="M85 27 C85 27 91 25 97 27 C97 34 97 42 91 48 C85 42 85 34 85 27 Z" fill="#0096da" opacity="0.3"/>

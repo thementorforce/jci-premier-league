@@ -2708,16 +2708,23 @@ a {
 .modern-ticker-content {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
-  font-weight: 900;
-  font-size: 16px;
-  background: linear-gradient(95deg, var(--accent-teal) 0%, var(--accent-gold) 50%, var(--accent-teal) 100%);
+  gap: 3rem;
+  padding-right: 3rem;
+}
+.ticker-text-gradient {
+  background: linear-gradient(90deg, #5ce1e6 0%, #ffffff 50%, #ffde59 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  font-weight: 800;
+  font-size: 15px;
   text-transform: uppercase;
-  letter-spacing: 0.18em;
-  padding-right: 4rem;
+  letter-spacing: 0.15em;
+}
+.ticker-org-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 @keyframes modern-ticker {
   0% {

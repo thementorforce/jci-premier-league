@@ -205,38 +205,54 @@ export default function LiveAuction() {
       <div className="modern-ticker-container">
         <div className="modern-ticker-wrap">
           <div className="modern-ticker-content">
-            <img src="/logos/jci_metro.svg" alt="JCI" style={{ height: '24px', width: 'auto', marginRight: '6px' }} />
-            JCI TUMKUR METRO
-            <span style={{ margin: '0 2rem', opacity: 0.3 }}>&bull;</span>
+            <div className="ticker-org-item">
+              <img src="/logos/jci_metro.svg" alt="JCI" style={{ height: '32px', width: 'auto' }} />
+              <span className="ticker-text-gradient">JCI TUMKUR METRO</span>
+            </div>
+            <span style={{ color: 'rgba(255,255,255,0.15)', fontSize: '20px' }}>✦</span>
 
-            <img src="/logos/jcom.svg" alt="JCOM" style={{ height: '24px', width: 'auto', marginRight: '6px' }} />
-            JCOM L TUMKUR 1.0
-            <span style={{ margin: '0 2rem', opacity: 0.3 }}>&bull;</span>
+            <div className="ticker-org-item">
+              <img src="/logos/jcom.svg" alt="JCOM" style={{ height: '32px', width: 'auto' }} />
+              <span className="ticker-text-gradient">JCOM L TUMKUR 1.0</span>
+            </div>
+            <span style={{ color: 'rgba(255,255,255,0.15)', fontSize: '20px' }}>✦</span>
 
-            <img src="/logos/jac.svg" alt="JAC" style={{ height: '24px', width: 'auto', marginRight: '6px' }} />
-            JAC TUMKUR
-            <span style={{ margin: '0 2rem', opacity: 0.3 }}>&bull;</span>
+            <div className="ticker-org-item">
+              <img src="/logos/jac.svg" alt="JAC" style={{ height: '32px', width: 'auto' }} />
+              <span className="ticker-text-gradient">JAC TUMKUR</span>
+            </div>
+            <span style={{ color: 'rgba(255,255,255,0.15)', fontSize: '20px' }}>✦</span>
 
-            <img src="/logos/rotary.svg" alt="Rotary" style={{ height: '24px', width: 'auto', marginRight: '6px' }} />
-            ROTARY TUMKUR PRERANA
-            <span style={{ margin: '0 2rem', opacity: 0.3 }}>&bull;</span>
+            <div className="ticker-org-item">
+              <img src="/logos/rotary.svg" alt="Rotary" style={{ height: '32px', width: 'auto' }} />
+              <span className="ticker-text-gradient">ROTARY TUMKUR PRERANA</span>
+            </div>
+            <span style={{ color: 'rgba(255,255,255,0.15)', fontSize: '20px' }}>✦</span>
           </div>
           <div className="modern-ticker-content">
-            <img src="/logos/jci_metro.svg" alt="JCI" style={{ height: '24px', width: 'auto', marginRight: '6px' }} />
-            JCI TUMKUR METRO
-            <span style={{ margin: '0 2rem', opacity: 0.3 }}>&bull;</span>
+            <div className="ticker-org-item">
+              <img src="/logos/jci_metro.svg" alt="JCI" style={{ height: '32px', width: 'auto' }} />
+              <span className="ticker-text-gradient">JCI TUMKUR METRO</span>
+            </div>
+            <span style={{ color: 'rgba(255,255,255,0.15)', fontSize: '20px' }}>✦</span>
 
-            <img src="/logos/jcom.svg" alt="JCOM" style={{ height: '24px', width: 'auto', marginRight: '6px' }} />
-            JCOM L TUMKUR 1.0
-            <span style={{ margin: '0 2rem', opacity: 0.3 }}>&bull;</span>
+            <div className="ticker-org-item">
+              <img src="/logos/jcom.svg" alt="JCOM" style={{ height: '32px', width: 'auto' }} />
+              <span className="ticker-text-gradient">JCOM L TUMKUR 1.0</span>
+            </div>
+            <span style={{ color: 'rgba(255,255,255,0.15)', fontSize: '20px' }}>✦</span>
 
-            <img src="/logos/jac.svg" alt="JAC" style={{ height: '24px', width: 'auto', marginRight: '6px' }} />
-            JAC TUMKUR
-            <span style={{ margin: '0 2rem', opacity: 0.3 }}>&bull;</span>
+            <div className="ticker-org-item">
+              <img src="/logos/jac.svg" alt="JAC" style={{ height: '32px', width: 'auto' }} />
+              <span className="ticker-text-gradient">JAC TUMKUR</span>
+            </div>
+            <span style={{ color: 'rgba(255,255,255,0.15)', fontSize: '20px' }}>✦</span>
 
-            <img src="/logos/rotary.svg" alt="Rotary" style={{ height: '24px', width: 'auto', marginRight: '6px' }} />
-            ROTARY TUMKUR PRERANA
-            <span style={{ margin: '0 2rem', opacity: 0.3 }}>&bull;</span>
+            <div className="ticker-org-item">
+              <img src="/logos/rotary.svg" alt="Rotary" style={{ height: '32px', width: 'auto' }} />
+              <span className="ticker-text-gradient">ROTARY TUMKUR PRERANA</span>
+            </div>
+            <span style={{ color: 'rgba(255,255,255,0.15)', fontSize: '20px' }}>✦</span>
           </div>
         </div>
       </div>
