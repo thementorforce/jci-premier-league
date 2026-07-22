@@ -105,14 +105,14 @@ export default async function Home() {
                 Diamond Opticals Presents
               </p>
             </div>
-            
+
             <div style={{ marginBottom: '36px' }}>
               <h1 className="gold-gradient-text" style={{ fontSize: 'clamp(6rem, 16vw, 12rem)', letterSpacing: '-0.06em', lineHeight: 0.85, textShadow: 'var(--glow-gold)', marginBottom: '8px' }}>JPL</h1>
               <p style={{ fontSize: 'clamp(24px, 5.5vw, 48px)', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--accent-gold)', textShadow: '0 0 20px rgba(216, 240, 107, 0.4)', margin: 0 }}>
-                JCI Premier League
+                Premier League - 2026
               </p>
             </div>
-            
+
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginBottom: '36px' }}>
               <span style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: '800', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', padding: '8px 16px', borderRadius: '24px', color: '#cbd5e1' }}>JCI Tumkur Metro</span>
               <span style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: '800', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', padding: '8px 16px', borderRadius: '24px', color: '#cbd5e1' }}>JCOM L Tumkur 1.0</span>

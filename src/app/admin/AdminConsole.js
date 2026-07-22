@@ -6,6 +6,7 @@ import {
   Play, Check, X, Plus, Trash2, RotateCcw, AlertTriangle,
   Radio, Coffee, Pause, Flag, Clock, Eye, EyeOff, IndianRupee,
   Users, Trophy, CreditCard, Image, LogOut, Shield, Search, UserRound, CalendarDays, ArrowRight,
+  RefreshCw, Download,
 } from 'lucide-react';
 
 const AUCTION_STATUSES = [
@@ -23,6 +24,9 @@ export default function AdminConsole({ username = 'admin' }) {
 
   const [activePlayer, setActivePlayer] = useState(null);
   const [draftPool, setDraftPool] = useState([]);
+  const [unsoldPlayers, setUnsoldPlayers] = useState([]);
+  const [shuffledPool, setShuffledPool] = useState([]);
+  const [isShuffled, setIsShuffled] = useState(false);
   const [teams, setTeams] = useState([]);
   const [soldPlayers, setSoldPlayers] = useState([]);
   const [auctionSummary, setAuctionSummary] = useState({});
@@ -116,6 +120,7 @@ export default function AdminConsole({ username = 'admin' }) {
         const data = await auctionRes.json();
         setActivePlayer(data.activePlayer);
         setDraftPool(data.draftPool);
+        setUnsoldPlayers(data.unsoldPlayers || []);
         setTeams(data.teams);
         setSoldPlayers(data.soldPlayers || []);
         setAuctionSummary(data.summary || {});
@@ -188,6 +193,78 @@ export default function AdminConsole({ username = 'admin' }) {
       if (abortRef.current) abortRef.current.abort();
     };
   }, [fetchConfig, fetchConsoleData]);
+
+  // Sync shuffled draft pool with polling updates
+  useEffect(() => {
+    if (!isShuffled) {
+      setShuffledPool(draftPool);
+    } else {
+      const currentIds = new Set(draftPool.map(p => p.id));
+      const existingShuffled = shuffledPool.filter(p => currentIds.has(p.id));
+      const existingIds = new Set(existingShuffled.map(p => p.id));
+      const newPlayers = draftPool.filter(p => !existingIds.has(p.id));
+      setShuffledPool([...existingShuffled, ...newPlayers]);
+    }
+  }, [draftPool, isShuffled]);
+
+  const handleShufflePool = () => {
+    const shuffled = [...draftPool].sort(() => Math.random() - 0.5);
+    setShuffledPool(shuffled);
+    setIsShuffled(true);
+  };
+
+  const handleResetSort = () => {
+    setIsShuffled(false);
+  };
+
+  const handleResetUnsold = async (playerId) => {
+    try {
+      const res = await fetch('/api/admin/reset-unsold', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+        body: JSON.stringify({ playerId })
+      });
+      if (res.ok) {
+        showStatus('success', 'Player moved back to draft pool');
+        fetchConsoleData();
+      } else {
+        const err = await res.json();
+        showStatus('error', err.error || 'Failed to reset player');
+      }
+    } catch {
+      showStatus('error', 'Failed to communicate with server');
+    }
+  };
+
+  const handleExportTeamCSV = (team) => {
+    const players = team.players || [];
+    if (players.length === 0) {
+      alert("No players have been drafted to this team yet.");
+      return;
+    }
+    
+    const headers = ["Player Name", "Email", "Mobile Number", "Organization", "Preferred Role", "Experience", "Sold Price"];
+    const rows = players.map(p => [
+      p.fullName,
+      p.email || '',
+      p.mobileNumber || '',
+      p.organization || '',
+      p.preferredRole || '',
+      p.experience || '',
+      p.soldPrice || 0
+    ]);
+    
+    const csvString = [headers.join(","), ...rows.map(e => e.map(val => `"${String(val).replace(/"/g, '""')}"`).join(","))].join("\n");
+    const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `${team.name.replace(/\s+/g, '_')}_players.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
 
   const handleSetAuctionStatus = async (status) => {
     try {
@@ -748,41 +825,98 @@ export default function AdminConsole({ username = 'admin' }) {
             )}
           </div>
 
-          {/* Draft Pool */}
-          <div className="premium-card" style={{ alignSelf: 'start' }}>
-            <h2 style={{ fontSize: '18px', fontWeight: '800', color: 'var(--accent-gold)', marginBottom: '8px' }}>
-              Draft Pool ({draftPool.length})
-            </h2>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '12px', marginBottom: '16px' }}>
-              Approved players ready to go live on auction
-            </p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '600px', overflowY: 'auto' }}>
-              {draftPool.length === 0 ? (
-                <p style={{ fontSize: '13px', color: 'var(--text-secondary)', fontStyle: 'italic' }}>No players in draft pool. Approve payments first.</p>
-              ) : (
-                draftPool.map((p) => (
-                  <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px', background: 'rgba(7, 11, 25, 0.4)', border: '1px solid var(--card-border)', borderRadius: '8px' }}>
-                    <div>
-                      <p style={{ fontWeight: '700', fontSize: '14px' }}>{p.fullName}</p>
-                      <p style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{p.preferredRole} &bull; {p.organization}</p>
+          {/* Draft Pool Column */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', alignSelf: 'start' }}>
+            
+            {/* Draft Pool */}
+            <div className="premium-card" style={{ width: '100%' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', gap: '10px' }}>
+                <h2 style={{ fontSize: '18px', fontWeight: '800', color: 'var(--accent-gold)', margin: 0 }}>
+                  Draft Pool ({draftPool.length})
+                </h2>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  {isShuffled ? (
+                    <button 
+                      onClick={handleResetSort} 
+                      className="premium-button-secondary" 
+                      style={{ padding: '4px 10px', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '4px' }}
+                    >
+                      <RefreshCw size={11} /> Sort A-Z
+                    </button>
+                  ) : (
+                    <button 
+                      onClick={handleShufflePool} 
+                      className="premium-button-secondary" 
+                      style={{ padding: '4px 10px', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '4px' }}
+                    >
+                      <span>🎲 Shuffle</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '12px', marginBottom: '16px' }}>
+                Approved players ready to go live on auction {isShuffled && '• Shuffled'}
+              </p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '500px', overflowY: 'auto' }}>
+                {shuffledPool.length === 0 ? (
+                  <p style={{ fontSize: '13px', color: 'var(--text-secondary)', fontStyle: 'italic' }}>No players in draft pool. Approve payments first.</p>
+                ) : (
+                  shuffledPool.map((p) => (
+                    <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px', background: 'rgba(7, 11, 25, 0.4)', border: '1px solid var(--card-border)', borderRadius: '8px' }}>
+                      <div>
+                        <p style={{ fontWeight: '700', fontSize: '14px' }}>{p.fullName}</p>
+                        <p style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{p.preferredRole} &bull; {p.organization}</p>
+                      </div>
+                      <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                        <button onClick={() => handleStartBidding(p.id)} className="premium-button" style={{ padding: '6px 12px', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <Play size={12} /> Go Live
+                        </button>
+                        <button
+                          onClick={() => handleDeletePlayer(p.id, p.fullName)}
+                          className="premium-button-secondary"
+                          style={{ padding: '6px', borderRadius: '50%', border: '1px solid var(--danger)', color: 'var(--danger)' }}
+                          title="Delete player"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
                     </div>
-                    <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                      <button onClick={() => handleStartBidding(p.id)} className="premium-button" style={{ padding: '6px 12px', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                        <Play size={12} /> Go Live
-                      </button>
-                      <button
-                        onClick={() => handleDeletePlayer(p.id, p.fullName)}
-                        className="premium-button-secondary"
-                        style={{ padding: '6px', borderRadius: '50%', border: '1px solid var(--danger)', color: 'var(--danger)' }}
-                        title="Delete player"
-                      >
-                        <Trash2 size={14} />
-                      </button>
-                    </div>
-                  </div>
-                ))
-              )}
+                  ))
+                )}
+              </div>
             </div>
+
+            {/* Unsold Pool */}
+            <div className="premium-card" style={{ width: '100%' }}>
+              <h2 style={{ fontSize: '18px', fontWeight: '800', color: 'var(--danger)', marginBottom: '8px' }}>
+                Unsold Pool ({unsoldPlayers.length})
+              </h2>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '12px', marginBottom: '16px' }}>
+                Players who went unsold. Move them back to the draft pool if needed.
+              </p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '400px', overflowY: 'auto' }}>
+                {unsoldPlayers.length === 0 ? (
+                  <p style={{ fontSize: '13px', color: 'var(--text-secondary)', fontStyle: 'italic' }}>No unsold players yet.</p>
+                ) : (
+                  unsoldPlayers.map((p) => (
+                    <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px', background: 'rgba(7, 11, 25, 0.4)', border: '1px solid var(--card-border)', borderRadius: '8px' }}>
+                      <div>
+                        <p style={{ fontWeight: '700', fontSize: '14px' }}>{p.fullName}</p>
+                        <p style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{p.preferredRole} &bull; {p.organization}</p>
+                      </div>
+                      <button 
+                        onClick={() => handleResetUnsold(p.id)} 
+                        className="premium-button-secondary" 
+                        style={{ padding: '6px 12px', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '4px', border: '1px solid var(--success)', color: 'var(--success)' }}
+                      >
+                        <RefreshCw size={12} /> Move to Draft
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
           </div>
         </div>
       )}
@@ -1025,6 +1159,17 @@ export default function AdminConsole({ username = 'admin' }) {
                           <strong style={{ color: 'var(--success)' }}>{draftedCount}</strong>
                         </div>
                       </div>
+
+                      {/* Export Button */}
+                      {draftedCount > 0 && (
+                        <button
+                          onClick={() => handleExportTeamCSV(t)}
+                          className="premium-button"
+                          style={{ width: '100%', justifyContent: 'center', fontSize: '12px', padding: '8px 12px', marginTop: '4px', gap: '6px' }}
+                        >
+                          <Download size={14} /> Export Squad Excel
+                        </button>
+                      )}
                     </div>
                   );
                 })
