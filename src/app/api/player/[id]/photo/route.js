@@ -3,7 +3,7 @@ import prisma from '@/lib/db';
 
 export async function GET(request, { params }) {
   try {
-    const { id } = params;
+    const { id } = await params;
     
     // We only select photoUrl to keep the query extremely fast
     const player = await prisma.playerProfile.findUnique({

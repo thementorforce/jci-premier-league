@@ -3,7 +3,7 @@ import prisma from '@/lib/db';
 
 export async function GET(request, { params }) {
   try {
-    const { id } = params;
+    const { id } = await params;
     
     const player = await prisma.playerProfile.findUnique({
       where: { id },
