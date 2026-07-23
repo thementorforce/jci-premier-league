@@ -40,6 +40,7 @@ export default function AdminConsole({ username = 'admin' }) {
   const [playerSearch, setPlayerSearch] = useState('');
   const [paymentLimit, setPaymentLimit] = useState(30);
   const [draftLimit, setDraftLimit] = useState(50);
+  const [receiptModal, setReceiptModal] = useState(null);
 
   const [bidForm, setBidForm] = useState({ teamId: '', amount: '' });
   const [adForm, setAdForm] = useState({ title: '', imageUrl: '', targetUrl: '', contact: '', positions: [], sponsorType: 'General' });
@@ -400,6 +401,29 @@ export default function AdminConsole({ username = 'admin' }) {
       }
     } catch {
       showStatus('error', 'Server connection error');
+    }
+  };
+
+  const handleExportPlayers = async () => {
+    try {
+      showStatus('info', 'Generating export...');
+      const response = await fetch('/api/admin/export-players', {
+        headers: getAuthHeaders()
+      });
+      if (!response.ok) throw new Error('Failed to export players');
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'jpl_players_export.csv';
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      showStatus('success', 'Export downloaded successfully');
+    } catch (error) {
+      showStatus('error', 'Error exporting players: ' + error.message);
     }
   };
 
@@ -947,7 +971,7 @@ export default function AdminConsole({ username = 'admin' }) {
               </h2>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 {pendingPlayers.map((p) => (
-                  <PaymentCard key={p.id} player={p} onApprove={(id, action) => handleApprovePlayer(id, action)} showActions />
+                  <PaymentCard key={p.id} player={p} onApprove={(id, action) => handleApprovePlayer(id, action)} showActions onViewReceipt={() => setReceiptModal(`/api/player/${p.id}/screenshot`)} />
                 ))}
               </div>
             </div>
@@ -959,7 +983,11 @@ export default function AdminConsole({ username = 'admin' }) {
               <div><p className="admin-kicker">Complete player register</p><h2>Players & payment ledger</h2><p>Every registration field, payment proof, and current auction status in one searchable view.</p></div>
               <div className="admin-ledger-controls">
                 <label className="admin-search"><Search size={17} /><input value={playerSearch} onChange={(e) => setPlayerSearch(e.target.value)} placeholder="Search name, phone, UTR…" /></label>
-                <div style={{ display: 'flex', gap: '8px' }}>
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  <button onClick={handleExportPlayers} className="premium-button-secondary" style={{ padding: '4px 14px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px' }} title="Export to Excel">
+                    <Download size={14} /> Export CSV
+                  </button>
+                  <div style={{ width: '1px', height: '20px', background: 'var(--card-border)' }} />
                 {['all', 'pending', 'approved'].map((f) => (
                   <button key={f} onClick={() => setPaymentFilter(f)} className={paymentFilter === f ? 'premium-button' : 'premium-button-secondary'} style={{ padding: '4px 14px', fontSize: '12px', textTransform: 'capitalize' }}>
                     {f}
@@ -975,7 +1003,7 @@ export default function AdminConsole({ username = 'admin' }) {
               ) : (
                 <>
                   {filteredPayments.slice(0, paymentLimit).map((p) => (
-                    <PlayerRecord key={p.id} player={p} onApprove={handleApprovePlayer} onDelete={handleDeletePlayer} />
+                    <PlayerRecord key={p.id} player={p} onApprove={handleApprovePlayer} onDelete={handleDeletePlayer} onViewReceipt={() => setReceiptModal(`/api/player/${p.id}/screenshot`)} />
                   ))}
                   {filteredPayments.length > paymentLimit && (
                     <button onClick={() => setPaymentLimit(paymentLimit + 30)} className="premium-button-secondary" style={{ width: '100%', justifyContent: 'center', padding: '12px', marginTop: '12px' }}>
@@ -1397,11 +1425,24 @@ export default function AdminConsole({ username = 'admin' }) {
           </div>
         </div>
       )}
+      {receiptModal && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.85)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }} onClick={() => setReceiptModal(null)}>
+          <div style={{ position: 'relative', background: 'var(--bg-primary)', padding: '16px', borderRadius: '12px', border: '1px solid var(--card-border)', maxWidth: '90vw', maxHeight: '90vh', display: 'flex', flexDirection: 'column' }} onClick={e => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+              <h3 style={{ fontSize: '16px', fontWeight: '800' }}>Payment Receipt</h3>
+              <button onClick={() => setReceiptModal(null)} className="premium-button-secondary" style={{ padding: '6px', borderRadius: '50%' }}><X size={16} /></button>
+            </div>
+            <div style={{ flex: 1, overflow: 'auto', display: 'flex', justifyContent: 'center', alignItems: 'center', background: 'rgba(7, 11, 25, 0.5)', borderRadius: '8px' }}>
+              <img src={receiptModal} alt="Payment Receipt" style={{ maxWidth: '100%', maxHeight: 'calc(90vh - 100px)', objectFit: 'contain' }} />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
-function PaymentCard({ player, onApprove, showActions }) {
+function PaymentCard({ player, onApprove, showActions, onViewReceipt }) {
   const statusColor = player.paymentStatus === 'Approved' ? 'var(--success)' : 'var(--accent-gold)';
   return (
     <div style={{ border: '1px solid var(--card-border)', borderRadius: '10px', padding: '16px', background: 'rgba(7, 11, 25, 0.4)', display: 'flex', gap: '16px', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -1417,10 +1458,10 @@ function PaymentCard({ player, onApprove, showActions }) {
       </div>
       <div style={{ minWidth: '160px' }}>
         <p style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Payment proof</p>
-          <a href={`/api/player/${player.id}/screenshot`} target="_blank" rel="noopener noreferrer" style={{ fontSize: '11px', color: 'var(--accent-gold)', marginTop: '4px', display: 'inline-flex', alignItems: 'center', gap: '6px', textDecoration: 'none' }}>
+          <button type="button" onClick={onViewReceipt} style={{ fontSize: '11px', color: 'var(--accent-gold)', marginTop: '4px', display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'transparent', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'inherit' }}>
             <img src={`/api/player/${player.id}/screenshot`} alt="Receipt" style={{ width: '28px', height: '28px', borderRadius: '4px', objectFit: 'cover', border: '1px solid var(--accent-gold)' }} />
             View receipt ↗
-          </a>
+          </button>
       </div>
       <div style={{ textAlign: 'center', minWidth: '100px' }}>
         <span className="badge" style={{ fontSize: '10px', background: `${statusColor}22`, color: statusColor }}>{player.paymentStatus}</span>
@@ -1480,7 +1521,7 @@ function EmptyState({ title, text }) {
   return <div className="admin-empty-state"><Users size={25} /><b>{title}</b><span>{text}</span></div>;
 }
 
-function PlayerRecord({ player, onApprove, onDelete }) {
+function PlayerRecord({ player, onApprove, onDelete, onViewReceipt }) {
   const canReview = player.paymentStatus === 'Pending';
   return (
     <article className="admin-player-record">
@@ -1497,7 +1538,7 @@ function PlayerRecord({ player, onApprove, onDelete }) {
       <div className="admin-record-contact"><span>{player.mobileNumber}</span><span>{player.email || 'No email supplied'}</span></div>
       <div className="admin-record-actions">
         {canReview && <><button onClick={() => onApprove(player.id, 'approve')} className="admin-approve-button"><Check size={15} /> Approve</button><button onClick={() => onApprove(player.id, 'reject')} className="admin-reject-button"><X size={15} /> Reject</button></>}
-        <a href={`/api/player/${player.id}/screenshot`} target="_blank" rel="noopener noreferrer" className="admin-receipt-link"><Eye size={15} /> Receipt</a>
+        <button type="button" onClick={onViewReceipt} className="admin-receipt-link" style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}><Eye size={15} /> Receipt</button>
         {onDelete && (
           <button
             onClick={() => onDelete(player.id, player.fullName)}

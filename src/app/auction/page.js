@@ -6,11 +6,11 @@ import Link from 'next/link';
 import SponsorMarquee from '@/components/SponsorMarquee';
 
 const STATUS_CONFIG = {
-  NOT_STARTED: { label: 'Not Started', icon: Clock, color: '#94a3b8', bg: 'rgba(148,163,184,0.1)', description: 'The auction has not started yet. Stay tuned!' },
-  LIVE: { label: 'Live', icon: Radio, color: '#10b981', bg: 'rgba(16,185,129,0.12)', description: 'Bidding is live! Watch the draft in real time.' },
-  BREAK: { label: 'On Break', icon: Coffee, color: '#f59e0b', bg: 'rgba(245,158,11,0.12)', description: 'Short break in progress. Bidding resumes shortly.' },
-  PAUSED: { label: 'Paused', icon: Pause, color: '#ef4444', bg: 'rgba(239,68,68,0.12)', description: 'Auction is temporarily paused.' },
-  ENDED: { label: 'Ended', icon: Flag, color: '#6366f1', bg: 'rgba(99,102,241,0.12)', description: 'The auction has concluded. Check the final squads!' },
+  NOT_STARTED: { label: 'Not Started', icon: Clock,  color: '#94a3b8', bg: 'rgba(148,163,184,0.1)', description: 'The auction has not started yet. Stay tuned!' },
+  LIVE:        { label: 'Live',        icon: Radio,  color: '#10b981', bg: 'rgba(16,185,129,0.12)', description: 'Bidding is live! Watch the draft in real time.' },
+  BREAK:       { label: 'On Break',    icon: Coffee, color: '#f59e0b', bg: 'rgba(245,158,11,0.12)', description: 'Short break in progress. Bidding resumes shortly.' },
+  PAUSED:      { label: 'Paused',      icon: Pause,  color: '#ef4444', bg: 'rgba(239,68,68,0.12)',  description: 'Auction is temporarily paused.' },
+  ENDED:       { label: 'Ended',       icon: Flag,   color: '#6366f1', bg: 'rgba(99,102,241,0.12)', description: 'The auction has concluded. Check the final squads!' },
 };
 
 export default function LiveAuction() {
@@ -26,7 +26,7 @@ export default function LiveAuction() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [recentlySoldPlayer, setRecentlySoldPlayer] = useState(null);
-
+  
   const lastBidRef = useRef(0);
   const lastDataRef = useRef('');
 
@@ -47,7 +47,7 @@ export default function LiveAuction() {
           gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.22);
           osc.start(ctx.currentTime);
           osc.stop(ctx.currentTime + 0.25);
-        } catch { }
+        } catch {}
       }
     }
   };
@@ -71,7 +71,7 @@ export default function LiveAuction() {
             osc.start(ctx.currentTime + i * 0.08);
             osc.stop(ctx.currentTime + i * 0.08 + 0.35);
           });
-        } catch { }
+        } catch {}
       }
     }
   };
@@ -81,7 +81,7 @@ export default function LiveAuction() {
       const res = await fetch('/api/auction/status');
       if (res.ok) {
         const json = await res.json();
-
+        
         const jsonStr = JSON.stringify(json);
         if (jsonStr === lastDataRef.current) {
           setLoading(false);
@@ -132,8 +132,8 @@ export default function LiveAuction() {
     return () => clearInterval(interval);
   }, []);
 
-  const filteredDraft = data.draftPool.filter(p =>
-    p.fullName.toLowerCase().includes(search.toLowerCase()) ||
+  const filteredDraft = data.draftPool.filter(p => 
+    p.fullName.toLowerCase().includes(search.toLowerCase()) || 
     p.preferredRole.toLowerCase().includes(search.toLowerCase()) ||
     p.organization.toLowerCase().includes(search.toLowerCase())
   );
@@ -255,7 +255,7 @@ export default function LiveAuction() {
 
       {/* Main Content Grid */}
       <div className="auction-main-grid">
-
+        
         {/* LEFT: Active Player Card */}
         <div className="auction-left-col">
           {(activePlayer || recentlySoldPlayer) ? (
@@ -283,7 +283,7 @@ export default function LiveAuction() {
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: '1', minWidth: '180px' }}>
                             <span className="badge badge-registered" style={{ alignSelf: 'flex-start', fontSize: '10px', padding: '2px 8px' }}>{displayPlayer.preferredRole}</span>
                             <h2 style={{ fontSize: '22px', fontWeight: '800', marginTop: '2px' }}>{displayPlayer.fullName}</h2>
-
+                            
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', marginTop: '4px' }}>
                               <div>
                                 <span style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>Organization</span>
@@ -469,11 +469,11 @@ export default function LiveAuction() {
           <div className="premium-card auction-compact-panel">
             <h3 style={{ fontSize: '13px', fontWeight: '800', margin: 0 }}>{'\uD83D\uDD0D'} Draft Pool</h3>
             <div style={{ position: 'relative' }}>
-              <input
-                type="text"
-                placeholder="Search player, role..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
+              <input 
+                type="text" 
+                placeholder="Search player, role..." 
+                value={search} 
+                onChange={(e) => setSearch(e.target.value)} 
                 className="premium-input"
                 style={{ paddingLeft: '32px', fontSize: '12px', padding: '8px 10px 8px 32px' }}
               />
