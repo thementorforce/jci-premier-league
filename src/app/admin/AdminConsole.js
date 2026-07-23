@@ -38,6 +38,8 @@ export default function AdminConsole({ username = 'admin' }) {
   const [paymentStats, setPaymentStats] = useState({});
   const [paymentFilter, setPaymentFilter] = useState('all');
   const [playerSearch, setPlayerSearch] = useState('');
+  const [paymentLimit, setPaymentLimit] = useState(30);
+  const [draftLimit, setDraftLimit] = useState(50);
 
   const [bidForm, setBidForm] = useState({ teamId: '', amount: '' });
   const [adForm, setAdForm] = useState({ title: '', imageUrl: '', targetUrl: '', contact: '', positions: [], sponsorType: 'General' });
@@ -852,27 +854,34 @@ export default function AdminConsole({ username = 'admin' }) {
                 {shuffledPool.length === 0 ? (
                   <p style={{ fontSize: '13px', color: 'var(--text-secondary)', fontStyle: 'italic' }}>No players in draft pool. Approve payments first.</p>
                 ) : (
-                  shuffledPool.map((p) => (
-                    <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px', background: 'rgba(7, 11, 25, 0.4)', border: '1px solid var(--card-border)', borderRadius: '8px' }}>
-                      <div>
-                        <p style={{ fontWeight: '700', fontSize: '14px' }}>{p.fullName}</p>
-                        <p style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{p.preferredRole} &bull; {p.organization}</p>
+                  <>
+                    {shuffledPool.slice(0, draftLimit).map((p) => (
+                      <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px', background: 'rgba(7, 11, 25, 0.4)', border: '1px solid var(--card-border)', borderRadius: '8px' }}>
+                        <div>
+                          <p style={{ fontWeight: '700', fontSize: '14px' }}>{p.fullName}</p>
+                          <p style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{p.preferredRole} &bull; {p.organization}</p>
+                        </div>
+                        <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                          <button onClick={() => handleStartBidding(p.id)} className="premium-button" style={{ padding: '6px 12px', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <Play size={12} /> Go Live
+                          </button>
+                          <button
+                            onClick={() => handleDeletePlayer(p.id, p.fullName)}
+                            className="premium-button-secondary"
+                            style={{ padding: '6px', borderRadius: '50%', border: '1px solid var(--danger)', color: 'var(--danger)' }}
+                            title="Delete player"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
                       </div>
-                      <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                        <button onClick={() => handleStartBidding(p.id)} className="premium-button" style={{ padding: '6px 12px', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          <Play size={12} /> Go Live
-                        </button>
-                        <button
-                          onClick={() => handleDeletePlayer(p.id, p.fullName)}
-                          className="premium-button-secondary"
-                          style={{ padding: '6px', borderRadius: '50%', border: '1px solid var(--danger)', color: 'var(--danger)' }}
-                          title="Delete player"
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      </div>
-                    </div>
-                  ))
+                    ))}
+                    {shuffledPool.length > draftLimit && (
+                      <button onClick={() => setDraftLimit(draftLimit + 50)} className="premium-button-secondary" style={{ justifyContent: 'center', padding: '10px' }}>
+                        Load More Players
+                      </button>
+                    )}
+                  </>
                 )}
               </div>
             </div>
@@ -964,9 +973,16 @@ export default function AdminConsole({ username = 'admin' }) {
               {filteredPayments.length === 0 ? (
                 <p style={{ textAlign: 'center', padding: '30px', color: 'var(--text-secondary)' }}>No payment records found.</p>
               ) : (
-                filteredPayments.map((p) => (
-                  <PlayerRecord key={p.id} player={p} onApprove={handleApprovePlayer} onDelete={handleDeletePlayer} />
-                ))
+                <>
+                  {filteredPayments.slice(0, paymentLimit).map((p) => (
+                    <PlayerRecord key={p.id} player={p} onApprove={handleApprovePlayer} onDelete={handleDeletePlayer} />
+                  ))}
+                  {filteredPayments.length > paymentLimit && (
+                    <button onClick={() => setPaymentLimit(paymentLimit + 30)} className="premium-button-secondary" style={{ width: '100%', justifyContent: 'center', padding: '12px', marginTop: '12px' }}>
+                      Load More Players
+                    </button>
+                  )}
+                </>
               )}
             </div>
           </div>
