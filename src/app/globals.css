@@ -557,7 +557,7 @@ a {
   background: rgba(0, 32, 11, 0.412);
   backdrop-filter: blur(50px);
   border-bottom: 1px solid var(--card-border);
-  padding: 20px 40px;
+  padding: 12px 40px;
   position: sticky;
   top: 0;
   z-index: 100;
@@ -2740,13 +2740,13 @@ a {
    ═══════════════════════════════════════════════════════════════ */
 
 .auction-fullscreen {
-  height: calc(100vh - 70px);
-  max-height: calc(100vh - 70px);
+  height: calc(100vh - 54px);
+  max-height: calc(100vh - 54px);
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  padding: 10px 16px 0;
-  gap: 8px;
+  padding: 8px 16px 0;
+  gap: 6px;
 }
 
 /* Hide footer and reset main height when on auction page */
@@ -2755,6 +2755,11 @@ body:has(.auction-fullscreen) > footer {
 }
 body:has(.auction-fullscreen) > main {
   min-height: auto !important;
+}
+
+/* Compact org ticker inside auction page */
+.auction-fullscreen .modern-ticker-container {
+  padding: 6px 0;
 }
 
 /* Top bar with title and status */
