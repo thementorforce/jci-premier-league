@@ -38,7 +38,7 @@ export default function Register() {
 
   useEffect(() => {
     const DEADLINE = new Date('2026-07-27T22:00:00+05:30').getTime();
-    
+
     const updateTimer = () => {
       const now = Date.now();
       const diff = DEADLINE - now;
@@ -54,7 +54,7 @@ export default function Register() {
         });
       }
     };
-    
+
     updateTimer();
     const interval = setInterval(updateTimer, 1000);
     return () => clearInterval(interval);
@@ -223,7 +223,7 @@ export default function Register() {
                 <SelectField label="6. Age Group *" name="ageGroup" value={formData.ageGroup} onChange={handleChange} options={['Below 25 Years', '25–40 Years', 'Above 40 Years']} />
               </div>
               <div className="grid-2-col">
-                <SelectField label="7. Jersey Size *" name="jerseySize" value={formData.jerseySize} onChange={handleChange} options={['S', 'M', 'L', 'XL', 'XXL', 'XXXL']} />
+                <SelectField label="7. Jersey Size *" name="jerseySize" value={formData.jerseySize} onChange={handleChange} options={['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL']} />
                 <SelectField label="8. Preferred Playing Role *" name="preferredRole" value={formData.preferredRole} onChange={handleChange} options={['Batsman', 'Bowler', 'All-Rounder', 'Wicketkeeper', 'Any Role']} />
               </div>
               <SelectField label="9. Cricket Playing Experience *" name="experience" value={formData.experience} onChange={handleChange} options={['Beginner', 'Intermediate', 'Experienced']} />
