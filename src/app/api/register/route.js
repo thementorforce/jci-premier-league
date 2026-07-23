@@ -5,6 +5,11 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export async function POST(request) {
   try {
+    const DEADLINE = new Date('2026-07-27T22:00:00+05:30').getTime();
+    if (Date.now() > DEADLINE) {
+      return NextResponse.json({ error: 'Registration is now closed.' }, { status: 400 });
+    }
+
     const body = await request.json();
     const {
       fullName,

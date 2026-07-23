@@ -33,6 +33,33 @@ export default function Register() {
   const [registeredPlayer, setRegisteredPlayer] = useState(null);
   const [ads, setAds] = useState([]);
 
+  const [timeLeft, setTimeLeft] = useState(null);
+  const [isClosed, setIsClosed] = useState(false);
+
+  useEffect(() => {
+    const DEADLINE = new Date('2026-07-27T22:00:00+05:30').getTime();
+    
+    const updateTimer = () => {
+      const now = Date.now();
+      const diff = DEADLINE - now;
+      if (diff <= 0) {
+        setIsClosed(true);
+        setTimeLeft({ d: 0, h: 0, m: 0, s: 0 });
+      } else {
+        setTimeLeft({
+          d: Math.floor(diff / (1000 * 60 * 60 * 24)),
+          h: Math.floor((diff / (1000 * 60 * 60)) % 24),
+          m: Math.floor((diff / 1000 / 60) % 60),
+          s: Math.floor((diff / 1000) % 60),
+        });
+      }
+    };
+    
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
   useEffect(() => {
     const fetchAds = async () => {
       try {
@@ -151,9 +178,27 @@ export default function Register() {
             <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginTop: '4px' }}>Franchise Cricket League – Season Draft</p>
           </div>
 
+          {timeLeft && !isClosed && (
+            <div style={{ textAlign: 'center', background: 'rgba(216, 240, 107, 0.1)', border: '1px solid var(--accent-gold)', borderRadius: '12px', padding: '16px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <p style={{ color: 'var(--accent-gold)', fontSize: '13px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '8px' }}>Registration Closes In</p>
+              <div style={{ display: 'flex', gap: '16px', justifyContent: 'center' }}>
+                <div style={{ textAlign: 'center' }}><strong style={{ fontSize: '24px', color: '#fff' }}>{timeLeft.d}</strong><span style={{ display: 'block', fontSize: '11px', color: 'var(--text-secondary)' }}>Days</span></div>
+                <div style={{ textAlign: 'center' }}><strong style={{ fontSize: '24px', color: '#fff' }}>{timeLeft.h}</strong><span style={{ display: 'block', fontSize: '11px', color: 'var(--text-secondary)' }}>Hours</span></div>
+                <div style={{ textAlign: 'center' }}><strong style={{ fontSize: '24px', color: '#fff' }}>{timeLeft.m}</strong><span style={{ display: 'block', fontSize: '11px', color: 'var(--text-secondary)' }}>Mins</span></div>
+                <div style={{ textAlign: 'center' }}><strong style={{ fontSize: '24px', color: '#fff' }}>{timeLeft.s}</strong><span style={{ display: 'block', fontSize: '11px', color: 'var(--text-secondary)' }}>Secs</span></div>
+              </div>
+            </div>
+          )}
+
           {status.type === 'error' && <Notice icon={<AlertCircle color="var(--danger)" size={24} />} tone="danger">{status.message}</Notice>}
 
-          {registeredPlayer ? (
+          {isClosed ? (
+            <div style={{ textAlign: 'center', padding: '40px 20px', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid var(--danger)', borderRadius: '12px' }}>
+              <AlertCircle size={48} color="var(--danger)" style={{ margin: '0 auto 16px' }} />
+              <h2 style={{ fontSize: '24px', fontWeight: '900', color: 'var(--text-primary)', marginBottom: '8px' }}>Registration Closed</h2>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '15px' }}>The registration deadline (27th July 2026, 10:00 PM) has passed. Thank you for your interest.</p>
+            </div>
+          ) : registeredPlayer ? (
             <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px', padding: '30px 10px' }}>
               <CheckCircle2 size={64} color="var(--success)" />
               <div style={{ maxWidth: '440px' }}>
