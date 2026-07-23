@@ -68,6 +68,20 @@ export default function AdminConsole({ username = 'admin' }) {
     return token ? { 'Authorization': `Bearer ${token}` } : {};
   };
 
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && receiptModal) {
+        setReceiptModal(null);
+      }
+    };
+    
+    if (receiptModal) {
+      window.addEventListener('keydown', handleKeyDown);
+    }
+    
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [receiptModal]);
+
   const abortRef = useRef(null);
   const isFetchingRef = useRef(false);
   const lastDataRef = useRef('');
