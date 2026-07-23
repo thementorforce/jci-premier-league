@@ -15,16 +15,31 @@ export default function Navbar() {
   }, [pathname]);
 
   useEffect(() => {
+    const cached = sessionStorage.getItem('fcl_admin_session');
+    if (cached) {
+      try {
+        const { isAdmin: cachedAdmin, timestamp } = JSON.parse(cached);
+        if (Date.now() - timestamp < 5 * 60 * 1000) {
+          setIsAdmin(cachedAdmin);
+          return;
+        }
+      } catch {}
+    }
     const token = typeof window !== 'undefined' ? localStorage.getItem('fcl_admin_token') : null;
     if (!token) {
       setIsAdmin(false);
+      sessionStorage.setItem('fcl_admin_session', JSON.stringify({ isAdmin: false, timestamp: Date.now() }));
       return;
     }
     fetch('/api/auth/session', { headers: { 'Authorization': `Bearer ${token}` } })
       .then((res) => res.ok ? res.json() : null)
-      .then((data) => setIsAdmin(data?.authenticated && data?.user?.role === 'ADMIN'))
+      .then((data) => {
+        const adminStatus = data?.authenticated && data?.user?.role === 'ADMIN';
+        setIsAdmin(adminStatus);
+        sessionStorage.setItem('fcl_admin_session', JSON.stringify({ isAdmin: adminStatus, timestamp: Date.now() }));
+      })
       .catch(() => setIsAdmin(false));
-  }, [pathname]);
+  }, []);
 
   const navLinks = [
     { href: '/', label: 'Home' },
@@ -75,6 +90,7 @@ export default function Navbar() {
             <li>
               <Link
                 href={adminLink.href}
+                prefetch={false}
                 className={`nav-link ${pathname.startsWith('/admin') ? 'active' : ''}`}
                 style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
               >
@@ -89,6 +105,7 @@ export default function Navbar() {
             <li>
               <Link
                 href={adminLink.href}
+                prefetch={false}
                 className={`nav-link ${pathname.startsWith('/admin') ? 'active' : ''}`}
                 onClick={() => setMenuOpen(false)}
                 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}

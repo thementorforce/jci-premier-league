@@ -74,7 +74,6 @@ export async function GET() {
           organization: true,
           experience: true,
           jerseySize: true,
-          photoUrl: true,
           status: true,
           gender: true,
           ageGroup: true,
@@ -93,7 +92,6 @@ export async function GET() {
               soldPrice: true,
               status: true,
               gender: true,
-              photoUrl: true,
             }
           }
         }
@@ -117,8 +115,6 @@ export async function GET() {
           preferredRole: true,
           paymentStatus: true,
           transactionId: true,
-          paymentScreenshot: true,
-          photoUrl: true,
           createdAt: true,
           status: true,
           gender: true,

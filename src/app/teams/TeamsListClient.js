@@ -145,11 +145,7 @@ export default function TeamsListClient({ initialTeams = [], sponsorList = [], d
                       {team.players.map((player) => (
                         <div key={player.id} className={`fut-card-small ${player.gender === 'Female' ? 'female' : 'male'}`}>
                           <div className="fut-photo-container">
-                            {player.photoUrl ? (
-                              <img src={player.photoUrl} alt={player.fullName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                            ) : (
-                              <div style={{ fontSize: '24px' }}>👤</div>
-                            )}
+                            <img src={`/api/player/${player.id}/photo`} alt={player.fullName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                           </div>
                           <div className="fut-badge-role">{player.preferredRole}</div>
                           

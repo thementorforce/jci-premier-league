@@ -3,7 +3,16 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { LoaderCircle, ShieldAlert } from 'lucide-react';
-import AdminConsole from './AdminConsole';
+import dynamic from 'next/dynamic';
+
+const AdminConsole = dynamic(() => import('./AdminConsole'), {
+  loading: () => (
+    <div className="admin-access-loading" role="status">
+      <div><LoaderCircle className="animate-spin" size={30} /><p>Loading admin console…</p></div>
+    </div>
+  ),
+  ssr: false,
+});
 
 export default function AdminAccessGate() {
   const router = useRouter();

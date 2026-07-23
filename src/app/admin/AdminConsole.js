@@ -704,11 +704,7 @@ export default function AdminConsole({ username = 'admin' }) {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                   <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
                     <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'var(--bg-tertiary)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid var(--accent-gold)' }}>
-                      {activePlayer.photoUrl ? (
-                        <img src={activePlayer.photoUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                      ) : (
-                        <Users size={28} color="var(--text-secondary)" />
-                      )}
+                      <img src={`/api/player/${activePlayer.id}/photo`} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     </div>
                     <div>
                       <h3 style={{ fontSize: '20px', fontWeight: '800' }}>{activePlayer.fullName}</h3>
@@ -1395,7 +1391,7 @@ function PaymentCard({ player, onApprove, showActions }) {
     <div style={{ border: '1px solid var(--card-border)', borderRadius: '10px', padding: '16px', background: 'rgba(7, 11, 25, 0.4)', display: 'flex', gap: '16px', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center' }}>
       <div style={{ display: 'flex', gap: '14px', alignItems: 'center', minWidth: '220px' }}>
         <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'var(--bg-tertiary)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          {player.photoUrl ? <img src={player.photoUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <Users size={20} color="var(--text-secondary)" />}
+          <img src={`/api/player/${player.id}/photo`} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         </div>
         <div>
           <p style={{ fontWeight: '700', fontSize: '15px' }}>{player.fullName}</p>
@@ -1405,14 +1401,10 @@ function PaymentCard({ player, onApprove, showActions }) {
       </div>
       <div style={{ minWidth: '160px' }}>
         <p style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Payment proof</p>
-        {player.paymentScreenshot ? (
-          <a href={player.paymentScreenshot} target="_blank" rel="noopener noreferrer" style={{ fontSize: '11px', color: 'var(--accent-gold)', marginTop: '4px', display: 'inline-flex', alignItems: 'center', gap: '6px', textDecoration: 'none' }}>
-            <img src={player.paymentScreenshot} alt="Receipt" style={{ width: '28px', height: '28px', borderRadius: '4px', objectFit: 'cover', border: '1px solid var(--accent-gold)' }} />
+          <a href={`/api/player/${player.id}/screenshot`} target="_blank" rel="noopener noreferrer" style={{ fontSize: '11px', color: 'var(--accent-gold)', marginTop: '4px', display: 'inline-flex', alignItems: 'center', gap: '6px', textDecoration: 'none' }}>
+            <img src={`/api/player/${player.id}/screenshot`} alt="Receipt" style={{ width: '28px', height: '28px', borderRadius: '4px', objectFit: 'cover', border: '1px solid var(--accent-gold)' }} />
             View receipt ↗
           </a>
-        ) : (
-          <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Not uploaded</span>
-        )}
       </div>
       <div style={{ textAlign: 'center', minWidth: '100px' }}>
         <span className="badge" style={{ fontSize: '10px', background: `${statusColor}22`, color: statusColor }}>{player.paymentStatus}</span>
@@ -1448,10 +1440,10 @@ function QueuePlayer({ player, onApprove }) {
   return (
     <div className="admin-queue-player">
       <div className="admin-player-avatar">
-        {player.photoUrl ? <img src={player.photoUrl} alt="" /> : <UserRound size={19} />}
+        <img src={`/api/player/${player.id}/photo`} alt="" />
       </div>
       <div className="admin-queue-name"><b>{player.fullName}</b><span>{player.preferredRole} · {player.organization}</span></div>
-      <div className="admin-queue-reference"><span>Payment proof</span><b>{player.paymentScreenshot ? 'Screenshot uploaded' : 'Not supplied'}</b></div>
+      <div className="admin-queue-reference"><span>Payment proof</span><b>Screenshot uploaded</b></div>
       <button onClick={() => onApprove(player.id, 'approve')} className="admin-approve-button"><Check size={15} /> Approve</button>
     </div>
   );
@@ -1478,7 +1470,7 @@ function PlayerRecord({ player, onApprove, onDelete }) {
     <article className="admin-player-record">
       <div className="admin-record-primary">
         <div className="admin-player-avatar admin-record-photo">
-          {player.photoUrl ? <img src={player.photoUrl} alt={`${player.fullName}`} /> : <UserRound size={23} />}
+          <img src={`/api/player/${player.id}/photo`} alt={`${player.fullName}`} />
         </div>
         <div><h3>{player.fullName}</h3><p>{player.preferredRole} · {player.organization}</p></div>
       </div>
@@ -1489,7 +1481,7 @@ function PlayerRecord({ player, onApprove, onDelete }) {
       <div className="admin-record-contact"><span>{player.mobileNumber}</span><span>{player.email || 'No email supplied'}</span></div>
       <div className="admin-record-actions">
         {canReview && <><button onClick={() => onApprove(player.id, 'approve')} className="admin-approve-button"><Check size={15} /> Approve</button><button onClick={() => onApprove(player.id, 'reject')} className="admin-reject-button"><X size={15} /> Reject</button></>}
-        {player.paymentScreenshot && <a href={player.paymentScreenshot} target="_blank" rel="noopener noreferrer" className="admin-receipt-link"><Eye size={15} /> Receipt</a>}
+        <a href={`/api/player/${player.id}/screenshot`} target="_blank" rel="noopener noreferrer" className="admin-receipt-link"><Eye size={15} /> Receipt</a>
         {onDelete && (
           <button
             onClick={() => onDelete(player.id, player.fullName)}
@@ -1514,7 +1506,7 @@ function PlayerRecord({ player, onApprove, onDelete }) {
           <Detail label="Experience" value={player.experience} />
           <Detail label="Jersey size" value={player.jerseySize} />
           <Detail label="Payment state" value={player.paymentStatus} />
-          <Detail label="Payment proof" value={player.paymentScreenshot ? 'Screenshot uploaded' : 'Not supplied'} />
+          <Detail label="Payment proof" value="Available (See Receipt link)" />
           <Detail label="Registered on" value={formatDate(player.createdAt)} />
           <Detail label="Player status" value={player.status} />
           <Detail label="Drafted by" value={player.team?.name || 'Not drafted'} />

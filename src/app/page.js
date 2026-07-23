@@ -39,7 +39,7 @@ export default async function Home() {
     const { readConfig } = await import('@/lib/config');
     const [playerCount, teamRows, soldCount, latestSold, biddingPlayer, adRows, configData] = await Promise.all([
       prisma.playerProfile.count(),
-      prisma.team.findMany({ include: { players: true }, orderBy: { pointsSpent: 'desc' } }),
+      prisma.team.findMany({ include: { players: { select: { id: true } } }, orderBy: { pointsSpent: 'desc' } }),
       prisma.playerProfile.count({ where: { status: 'Sold' } }),
       prisma.playerProfile.findFirst({
         where: { status: 'Sold' },

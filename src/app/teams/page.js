@@ -13,7 +13,17 @@ export default async function TeamsPage() {
     [teams, ads] = await Promise.all([
       prisma.team.findMany({
         include: {
-          players: true,
+          players: {
+            select: {
+              id: true,
+              fullName: true,
+              preferredRole: true,
+              organization: true,
+              gender: true,
+              soldPrice: true,
+              // We intentionally exclude photoUrl here to prevent sending 100MB+ of base64 in the page payload
+            }
+          }
         },
         orderBy: {
           name: 'asc',

@@ -21,7 +21,5 @@ const prisma = globalForPrisma.prismaGlobal ?? prismaClientSingleton();
 
 export default prisma;
 
-if (process.env.NODE_ENV !== 'production') {
-  globalForPrisma.prismaGlobal = prisma;
-}
-
+// Always cache globally to prevent connection pool exhaustion in serverless
+globalForPrisma.prismaGlobal = prisma;

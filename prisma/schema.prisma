@@ -56,6 +56,10 @@ model PlayerProfile {
   paymentScreenshot String?      // base64 screenshot
   createdAt         DateTime     @default(now())
   updatedAt         DateTime     @default(now()) @updatedAt
+
+  @@index([status])
+  @@index([paymentStatus])
+  @@index([teamId])
 }
 
 model BidHistory {
@@ -66,6 +70,9 @@ model BidHistory {
   team            Team          @relation(fields: [teamId], references: [id], onDelete: Cascade)
   amount          Int
   createdAt       DateTime      @default(now())
+
+  @@index([playerId])
+  @@index([teamId])
 }
 
 model AdPlacement {
