@@ -37,7 +37,7 @@ export default function Register() {
   const [isClosed, setIsClosed] = useState(false);
 
   useEffect(() => {
-    const DEADLINE = new Date('2026-07-27T22:00:00+05:30').getTime();
+    const DEADLINE = new Date('2026-07-29T22:00:00+05:30').getTime();
 
     const updateTimer = () => {
       const now = Date.now();
@@ -196,7 +196,7 @@ export default function Register() {
             <div style={{ textAlign: 'center', padding: '40px 20px', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid var(--danger)', borderRadius: '12px' }}>
               <AlertCircle size={48} color="var(--danger)" style={{ margin: '0 auto 16px' }} />
               <h2 style={{ fontSize: '24px', fontWeight: '900', color: 'var(--text-primary)', marginBottom: '8px' }}>Registration Closed</h2>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '15px' }}>The registration deadline (27th July 2026, 10:00 PM) has passed. Thank you for your interest.</p>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '15px' }}>The registration deadline (29th July 2026, 10:00 PM) has passed. Thank you for your interest.</p>
             </div>
           ) : registeredPlayer ? (
             <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px', padding: '30px 10px' }}>
