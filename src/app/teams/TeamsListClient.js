@@ -181,7 +181,7 @@ export default function TeamsListClient({ initialTeams = [], sponsorList = [], d
                 style={{ display: 'block', padding: '0', overflow: 'hidden', position: 'relative', marginBottom: '16px' }}
               >
                 <div style={{ position: 'relative' }}>
-                  <img src={ad.imageUrl} alt={ad.title} style={{ width: '100%', height: '200px', objectFit: 'cover' }} />
+                  <img src={ad.imageUrl} alt={ad.title} style={{ width: '100%', height: 'auto', maxHeight: '250px', objectFit: 'contain', display: 'block' }} />
                   {ad.sponsorType && ad.sponsorType !== 'General' && (
                     <div style={{
                       position: 'absolute',
