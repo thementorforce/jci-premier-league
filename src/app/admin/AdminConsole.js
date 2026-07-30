@@ -381,7 +381,7 @@ export default function AdminConsole({ username = 'admin' }) {
   };
 
   const handleDeletePlayer = async (playerId, playerName) => {
-    if (!confirm(`Permanently delete player "${playerName}"? This cannot be undone. If the player was sold, points will be refunded to the team.`)) return;
+    if (!confirm(`Delete player "${playerName}"? If the player is already sold, they will be removed from their team and returned to the auction pool. Otherwise, they will be permanently deleted.`)) return;
     try {
       const res = await fetch(`/api/admin/delete-player?id=${playerId}`, {
         method: 'DELETE',

@@ -22,23 +22,44 @@ export async function DELETE(request) {
       return NextResponse.json({ error: 'Player not found' }, { status: 404 });
     }
 
-    // If this player was sold and assigned to a team, refund the team's points
-    if (player.status === 'Sold' && player.teamId && player.soldPrice) {
-      await prisma.team.update({
-        where: { id: player.teamId },
+    // If this player was sold, return them to the auction pool instead of deleting
+    if (player.status === 'Sold') {
+      if (player.teamId && player.soldPrice) {
+        await prisma.team.update({
+          where: { id: player.teamId },
+          data: {
+            pointsSpent: { decrement: player.soldPrice },
+          },
+        });
+      }
+
+      await prisma.bidHistory.deleteMany({
+        where: { playerId: playerId },
+      });
+
+      await prisma.playerProfile.update({
+        where: { id: playerId },
         data: {
-          pointsSpent: { decrement: player.soldPrice },
+          status: 'Registered',
+          teamId: null,
+          soldPrice: null,
         },
+      });
+
+      return NextResponse.json({
+        success: true,
+        message: `Player "${player.fullName}" removed from team and returned to auction pool.`,
+        refunded: player.soldPrice || 0,
       });
     }
 
-    // Delete the player (BidHistory cascade-deletes automatically via Prisma schema)
+    // Permanently delete players who are not sold (e.g. rejected, spam, or draft pool)
     await prisma.playerProfile.delete({ where: { id: playerId } });
 
     return NextResponse.json({
       success: true,
-      message: `Player "${player.fullName}" has been deleted.`,
-      refunded: player.status === 'Sold' ? player.soldPrice : 0,
+      message: `Player "${player.fullName}" has been permanently deleted.`,
+      refunded: 0,
     });
   } catch (error) {
     console.error('Error deleting player:', error);
