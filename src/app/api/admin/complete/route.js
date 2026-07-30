@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/db';
 import { requireAdmin } from '@/lib/auth';
+import { revalidateTag } from 'next/cache';
 
 export async function POST(request) {
   const auth = await requireAdmin();
@@ -56,6 +57,8 @@ export async function POST(request) {
         }
       });
     });
+
+    revalidateTag('auction-status');
 
     return NextResponse.json({ success: true, message: `Player sold to ${highestBid.team.name} for ${highestBid.amount} points.` });
   } catch (error) {

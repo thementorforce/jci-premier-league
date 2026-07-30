@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { readConfig, writeConfig, VALID_AUCTION_STATUSES } from '@/lib/config';
 import { requireAdmin } from '@/lib/auth';
+import { revalidateTag } from 'next/cache';
 
 export async function GET() {
   const config = await readConfig();
@@ -31,6 +32,7 @@ export async function POST(request) {
     };
 
     await writeConfig(config);
+    revalidateTag('auction-status');
     return NextResponse.json({ success: true, config });
   } catch (error) {
     console.error('Error writing config:', error);

@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/db';
 import { readConfig } from '@/lib/config';
+import { unstable_cache } from 'next/cache';
 
-export const revalidate = 0;
+export const revalidate = 3600;
 
-export async function GET() {
-  try {
+const getCachedAuctionStatus = unstable_cache(
+  async () => {
     const config = await readConfig();
 
     const activePlayer = await prisma.playerProfile.findFirst({
@@ -66,7 +67,7 @@ export async function GET() {
 
     const highestBid = activePlayer?.bids[0];
 
-    return NextResponse.json({
+    return {
       auctionStatus: config.auctionStatus,
       ads,
       activePlayer: activePlayer
@@ -100,7 +101,16 @@ export async function GET() {
         registered: registeredCount,
         total: soldCount + unsoldCount + registeredCount + (activePlayer ? 1 : 0),
       },
-    });
+    };
+  },
+  ['auction-status-data'],
+  { tags: ['auction-status'] }
+);
+
+export async function GET() {
+  try {
+    const data = await getCachedAuctionStatus();
+    return NextResponse.json(data);
   } catch (error) {
     console.error('Error fetching auction status:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
