@@ -178,37 +178,87 @@ export default function TeamsListClient({ initialTeams = [], sponsorList = [], d
                 target="_blank" 
                 rel="noopener noreferrer" 
                 className="premium-card" 
-                style={{ display: 'block', padding: '0', overflow: 'hidden', position: 'relative', marginBottom: '16px' }}
+                style={{ 
+                  display: 'block', 
+                  padding: '0', 
+                  overflow: 'hidden', 
+                  position: 'relative', 
+                  marginBottom: '16px',
+                  aspectRatio: '16/9',
+                  borderRadius: '16px',
+                  background: '#07120e'
+                }}
               >
-                <div style={{ position: 'relative' }}>
-                  <img src={ad.imageUrl} alt={ad.title} style={{ width: '100%', height: 'auto', maxHeight: '250px', objectFit: 'contain', display: 'block' }} />
-                  {ad.sponsorType && ad.sponsorType !== 'General' && (
-                    <div style={{
-                      position: 'absolute',
-                      top: '10px',
-                      left: '0',
-                      background: 'linear-gradient(135deg, rgba(245,197,24,0.95), rgba(218,165,32,0.9))',
-                      color: '#000',
-                      fontSize: '9px',
-                      fontWeight: '900',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.1em',
-                      padding: '4px 12px 4px 8px',
-                      borderRadius: '0 5px 5px 0',
-                      boxShadow: '0 2px 10px rgba(245,197,24,0.4)',
-                    }}>
-                      ★ {ad.sponsorType}
-                    </div>
-                  )}
+                {/* Blurred Background Layer to fill empty space */}
+                <div style={{
+                  position: 'absolute',
+                  inset: '-20px',
+                  backgroundImage: `url(${ad.imageUrl})`,
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                  filter: 'blur(15px) brightness(0.4)',
+                  zIndex: 0
+                }} />
+                
+                {/* Main Logo Image */}
+                <div style={{
+                  position: 'absolute',
+                  inset: '0',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: '12px',
+                  zIndex: 1
+                }}>
+                  <img 
+                    src={ad.imageUrl} 
+                    alt={ad.title} 
+                    style={{ 
+                      width: '100%', 
+                      height: '100%', 
+                      objectFit: 'contain',
+                      filter: 'drop-shadow(0 8px 16px rgba(0,0,0,0.5))'
+                    }} 
+                  />
                 </div>
-                <div style={{ padding: '12px', background: 'var(--bg-secondary)' }}>
-                  <p style={{ fontSize: '14px', fontWeight: '700', wordBreak: 'break-word' }}>{ad.title}</p>
-                  {ad.contact && (
-                    <p style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '4px', wordBreak: 'break-word' }}>
-                      Contact: <strong>{ad.contact}</strong>
-                    </p>
-                  )}
-                </div>
+
+                {ad.sponsorType && ad.sponsorType !== 'General' && (
+                  <div style={{
+                    position: 'absolute',
+                    top: '12px',
+                    left: '0',
+                    background: 'linear-gradient(135deg, rgba(245,197,24,0.95), rgba(218,165,32,0.9))',
+                    color: '#000',
+                    fontSize: '10px',
+                    fontWeight: '900',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.1em',
+                    padding: '5px 12px 5px 8px',
+                    borderRadius: '0 6px 6px 0',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
+                    zIndex: 2
+                  }}>
+                    ★ {ad.sponsorType}
+                  </div>
+                )}
+                
+                {/* Optional overlay text if titles are provided (currently omitted by user often, but we keep it elegant at the bottom if present) */}
+                {ad.title && ad.title.trim() !== '' && (
+                  <div style={{
+                    position: 'absolute',
+                    bottom: '0',
+                    left: '0',
+                    right: '0',
+                    background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 100%)',
+                    padding: '24px 12px 12px',
+                    zIndex: 2
+                  }}>
+                    <p style={{ fontSize: '13px', fontWeight: '800', margin: 0, color: '#fff', textShadow: '0 2px 4px rgba(0,0,0,0.8)' }}>{ad.title}</p>
+                    {ad.contact && (
+                      <p style={{ fontSize: '10px', color: 'rgba(255,255,255,0.7)', margin: '2px 0 0', fontWeight: '600' }}>Contact: {ad.contact}</p>
+                    )}
+                  </div>
+                )}
               </a>
             ))}
             
