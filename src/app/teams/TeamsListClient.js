@@ -202,9 +202,9 @@ export default function TeamsListClient({ initialTeams = [], sponsorList = [], d
                   )}
                 </div>
                 <div style={{ padding: '12px', background: 'var(--bg-secondary)' }}>
-                  <p style={{ fontSize: '14px', fontWeight: '700' }}>{ad.title}</p>
+                  <p style={{ fontSize: '14px', fontWeight: '700', wordBreak: 'break-word' }}>{ad.title}</p>
                   {ad.contact && (
-                    <p style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                    <p style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '4px', wordBreak: 'break-word' }}>
                       Contact: <strong>{ad.contact}</strong>
                     </p>
                   )}

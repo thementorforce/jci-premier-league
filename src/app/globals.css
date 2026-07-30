@@ -778,6 +778,13 @@ a {
   display: flex;
   flex-direction: column;
   gap: 24px;
+  max-height: calc(100vh - 120px);
+  overflow-y: auto;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.sidebar-sticky::-webkit-scrollbar {
+  display: none;
 }
 
 /* Mobile navigation */
@@ -2950,33 +2957,34 @@ body:has(.auction-fullscreen) > main {
   .auction-fullscreen {
     height: auto;
     max-height: none;
-    overflow: auto;
-    padding: 10px 12px 0;
+    overflow: visible;
+    padding: 10px 12px 24px;
   }
   .auction-main-grid {
     grid-template-columns: 1fr;
     flex: none;
+    gap: 16px;
   }
   .auction-left-col {
-    min-height: 350px;
+    min-height: auto;
   }
   .auction-mid-col {
-    flex-direction: row;
+    flex-direction: column;
   }
   .auction-mid-col > * {
-    flex: 1;
-    max-height: 250px;
+    flex: none;
+    max-height: 300px;
   }
   .auction-right-col {
     flex-direction: column;
   }
   .auction-right-col > * {
-    max-height: 200px;
+    max-height: 300px;
   }
   .auction-topbar {
     flex-direction: column;
     align-items: flex-start;
-    gap: 4px;
+    gap: 8px;
   }
   .auction-news-ticker-scroll span {
     font-size: 11px;

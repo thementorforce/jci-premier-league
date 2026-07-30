@@ -160,7 +160,7 @@ export default function LiveAuction() {
 
       {/* Top Bar: Title + Status */}
       <div className="auction-topbar">
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
           <h1 className="gold-gradient-text" style={{ fontSize: '18px', fontWeight: '800', margin: 0, whiteSpace: 'nowrap' }}>{'\u26A1'} Live Auction</h1>
           {(() => {
             const sc = STATUS_CONFIG[data.auctionStatus] || STATUS_CONFIG.NOT_STARTED;
@@ -284,7 +284,7 @@ export default function LiveAuction() {
                             <span className="badge badge-registered" style={{ alignSelf: 'flex-start', fontSize: '10px', padding: '2px 8px' }}>{displayPlayer.preferredRole}</span>
                             <h2 style={{ fontSize: '22px', fontWeight: '800', marginTop: '2px' }}>{displayPlayer.fullName}</h2>
                             
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', marginTop: '4px' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(80px, 1fr))', gap: '8px', marginTop: '4px' }}>
                               <div>
                                 <span style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>Organization</span>
                                 <p style={{ fontWeight: '600', fontSize: '12px' }}>{displayPlayer.organization}</p>
