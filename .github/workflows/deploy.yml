@@ -13,22 +13,22 @@ env:
 jobs:
   deploy:
     name: Deploy to Google Cloud Run
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       # Authentication with Google Cloud
       - name: Google Auth
         id: auth
-        uses: google-github-actions/auth@v1
+        uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }} # Add GCP Service Account JSON key to GitHub Secrets
 
       # Setup gcloud CLI
       - name: Set up Cloud SDK
-        uses: google-github-actions/setup-gcloud@v1
+        uses: google-github-actions/setup-gcloud@v2
 
       # Configure Docker to use Artifact Registry
       - name: Authorize Docker
@@ -51,7 +51,10 @@ jobs:
       # Build and Push Docker Image
       - name: Build and Push Docker Image
         run: |
-          docker build -t asia-south1-docker.pkg.dev/${{ env.PROJECT_ID }}/fcl-repo/${{ env.SERVICE_NAME }}:${{ github.sha }} .
+          docker build \
+            --platform linux/amd64 \
+            -t asia-south1-docker.pkg.dev/${{ env.PROJECT_ID }}/fcl-repo/${{ env.SERVICE_NAME }}:${{ github.sha }} \
+            .
           docker push asia-south1-docker.pkg.dev/${{ env.PROJECT_ID }}/fcl-repo/${{ env.SERVICE_NAME }}:${{ github.sha }}
 
       # Deploy to Google Cloud Run
@@ -65,4 +68,3 @@ jobs:
             --cpu-throttling \
             --min-instances 0 \
             --set-env-vars DATABASE_URL="${{ secrets.GCP_DATABASE_URL }}",DB_HOST="${{ secrets.DB_HOST }}",DB_PORT="${{ secrets.DB_PORT }}",DB_NAME="${{ secrets.DB_NAME }}",DB_USER="${{ secrets.DB_USER }}",DB_PASSWORD="${{ secrets.DB_PASSWORD }}"
-
