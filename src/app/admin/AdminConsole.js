@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
   Play, Check, X, Plus, Trash2, RotateCcw, AlertTriangle,
@@ -717,6 +718,24 @@ export default function AdminConsole({ username = 'admin' }) {
               <div className="admin-panel-heading"><div><p className="admin-kicker">Auction signal</p><h2>{currentStatusConfig.label}</h2></div><span className={`admin-status-dot ${auctionStatus === 'LIVE' ? 'is-live' : ''}`} style={{ background: currentStatusConfig.color }} /></div>
               {activePlayer ? <><p className="admin-brief-label">On the block</p><h3>{activePlayer.fullName}</h3><p className="admin-brief-meta">{activePlayer.preferredRole} · {activePlayer.organization}</p><div className="admin-bid-brief"><span>Current bid</span><strong>{activePlayer.currentBid.toLocaleString()} <small>PTS</small></strong><b>{activePlayer.highestBidder}</b></div></> : <EmptyState title="No player live right now" text="Choose an approved player in Auction Control to begin the next bidding round." />}
               <button onClick={() => setActiveTab('auction')} className="admin-outline-button">Open auction control <Trophy size={15} /></button>
+            </div>
+          </section>
+
+          <section className="admin-dashboard-grid" style={{ marginTop: '24px' }}>
+            <div className="admin-panel" style={{ background: 'linear-gradient(135deg, rgba(255, 215, 0, 0.05) 0%, rgba(255, 165, 0, 0.1) 100%)', borderColor: 'rgba(255, 215, 0, 0.2)' }}>
+              <div className="admin-panel-heading">
+                <div>
+                  <p className="admin-kicker" style={{ color: 'var(--accent-gold)' }}>Live Event</p>
+                  <h2>Tournament Management</h2>
+                </div>
+              </div>
+              <div style={{ padding: '24px 0', textAlign: 'center' }}>
+                <Trophy size={48} className="text-yellow-500 mx-auto mb-4 opacity-80" />
+                <p style={{ color: 'var(--text-secondary)', marginBottom: '24px' }}>Manage fixtures, update live match scores, and track tournament statistics.</p>
+                <Link href="/admin/matches" className="premium-button" style={{ display: 'inline-flex', padding: '12px 24px', fontSize: '15px', borderRadius: '12px', textDecoration: 'none' }}>
+                  Open Tournament Scorer <ArrowRightIcon size={18} />
+                </Link>
+              </div>
             </div>
           </section>
 

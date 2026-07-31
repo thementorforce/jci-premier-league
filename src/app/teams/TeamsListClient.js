@@ -192,17 +192,33 @@ export default function TeamsListClient({ initialTeams = [], dbError = false, er
               </div>
 
               {/* Franchise Stats Block */}
-              <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
-                <div style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid var(--card-border)', padding: '12px 20px', borderRadius: '12px', minWidth: '120px' }}>
-                  <span style={{ fontSize: '10px', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Squad Size</span>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
-                    <Users size={16} color="var(--accent-teal)" />
-                    <span style={{ fontSize: '20px', fontWeight: '800' }}>{activeTeam.players.length}</span>
+              <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                <div style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid var(--card-border)', padding: '10px 16px', borderRadius: '12px', minWidth: '80px' }}>
+                  <span style={{ fontSize: '10px', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Squad</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '4px' }}>
+                    <Users size={14} color="var(--accent-teal)" />
+                    <span style={{ fontSize: '16px', fontWeight: '800' }}>{activeTeam.players.length}</span>
                   </div>
                 </div>
-                <div style={{ background: 'rgba(6, 182, 212, 0.05)', border: '1px solid rgba(6, 182, 212, 0.3)', padding: '12px 20px', borderRadius: '12px', minWidth: '160px' }}>
-                  <span style={{ fontSize: '10px', color: 'var(--accent-teal)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Purse Remaining</span>
-                  <p style={{ fontSize: '20px', fontWeight: '800', color: 'var(--accent-teal)', margin: '4px 0 0' }}>{(activeTeam.pointsPurse - activeTeam.pointsSpent).toLocaleString()} <span style={{ fontSize: '12px' }}>pts</span></p>
+                
+                <div style={{ background: 'rgba(255, 255, 255, 0.05)', border: '1px solid rgba(255, 255, 255, 0.1)', padding: '10px 16px', borderRadius: '12px', textAlign: 'center' }}>
+                  <span style={{ fontSize: '10px', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Played</span>
+                  <p style={{ fontSize: '16px', fontWeight: '800', color: 'white', margin: '4px 0 0' }}>{activeTeam.matchesPlayed || 0}</p>
+                </div>
+                
+                <div style={{ background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.3)', padding: '10px 16px', borderRadius: '12px', textAlign: 'center' }}>
+                  <span style={{ fontSize: '10px', color: '#34d399', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Won</span>
+                  <p style={{ fontSize: '16px', fontWeight: '800', color: '#34d399', margin: '4px 0 0' }}>{activeTeam.won || 0}</p>
+                </div>
+                
+                <div style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', padding: '10px 16px', borderRadius: '12px', textAlign: 'center' }}>
+                  <span style={{ fontSize: '10px', color: '#f87171', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Lost</span>
+                  <p style={{ fontSize: '16px', fontWeight: '800', color: '#f87171', margin: '4px 0 0' }}>{activeTeam.lost || 0}</p>
+                </div>
+
+                <div style={{ background: 'rgba(255, 215, 0, 0.1)', border: '1px solid rgba(255, 215, 0, 0.3)', padding: '10px 16px', borderRadius: '12px', textAlign: 'center' }}>
+                  <span style={{ fontSize: '10px', color: 'var(--accent-gold)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Points</span>
+                  <p style={{ fontSize: '16px', fontWeight: '900', color: 'var(--accent-gold)', margin: '4px 0 0' }}>{activeTeam.points || 0}</p>
                 </div>
               </div>
             </div>
@@ -249,6 +265,14 @@ export default function TeamsListClient({ initialTeams = [], dbError = false, er
                               <Crown size={12} /> MARQUEE
                             </div>
                           )}
+                          
+                          {/* Captain / Vice Captain Badge */}
+                          {(player.isCaptain || player.isViceCaptain) && (
+                            <div className="absolute top-1 right-1 bg-yellow-500 text-black w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black z-10 shadow-md border-2 border-gray-950">
+                              {player.isCaptain ? 'C' : 'VC'}
+                            </div>
+                          )}
+
                           <div className="fut-photo-container">
                             <img src={`/api/player/${player.id}/photo`} alt={player.fullName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                           </div>

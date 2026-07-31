@@ -29,8 +29,21 @@ model Team {
   ownerUser    User?           @relation("TeamOwner")
   pointsPurse  Int             @default(100000) // Default 100,000 points purse
   pointsSpent  Int             @default(0)
+  
+  // Tournament Stats
+  matchesPlayed Int            @default(0)
+  won           Int            @default(0)
+  lost          Int            @default(0)
+  points        Int            @default(0)
+  nrr           Float          @default(0.0)
+
   players      PlayerProfile[]
   bids         BidHistory[]
+  
+  matchesAsTeam1 Match[]       @relation("MatchTeam1")
+  matchesAsTeam2 Match[]       @relation("MatchTeam2")
+  matchesWon     Match[]       @relation("MatchWinner")
+
   createdAt    DateTime        @default(now())
 }
 
@@ -54,6 +67,12 @@ model PlayerProfile {
   paymentStatus     String       @default("Pending") // Pending / Approved
   transactionId     String?
   paymentScreenshot String?      // base64 screenshot
+  
+  // Tournament Status
+  isCaptain         Boolean      @default(false)
+  isViceCaptain     Boolean      @default(false)
+  stats             PlayerStats?
+
   createdAt         DateTime     @default(now())
   updatedAt         DateTime     @default(now()) @updatedAt
 
@@ -91,4 +110,50 @@ model SystemConfig {
   key       String   @id
   value     String
   updatedAt DateTime @default(now()) @updatedAt
+}
+
+// --- Tournament Management ---
+
+model Match {
+  id            String   @id @default(uuid())
+  matchNumber   Int      // e.g. 1
+  date          DateTime
+  venue         String
+  
+  team1Id       String
+  team1         Team     @relation("MatchTeam1", fields: [team1Id], references: [id])
+  
+  team2Id       String
+  team2         Team     @relation("MatchTeam2", fields: [team2Id], references: [id])
+  
+  status        String   @default("SCHEDULED") // SCHEDULED, LIVE, COMPLETED
+  result        String?  // e.g. "Team 1 won by 5 wickets"
+  
+  winnerId      String?
+  winner        Team?    @relation("MatchWinner", fields: [winnerId], references: [id])
+  
+  tossWinnerId  String?
+  tossDecision  String?  // BAT, BOWL
+  
+  team1Score    String?  // e.g. "150/4 (20.0)"
+  team2Score    String?  
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model PlayerStats {
+  id           String        @id @default(uuid())
+  playerId     String        @unique
+  player       PlayerProfile @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  
+  matches      Int           @default(0)
+  runs         Int           @default(0)
+  wickets      Int           @default(0)
+  sixes        Int           @default(0)
+  fours        Int           @default(0)
+  ballsFaced   Int           @default(0)
+  oversBowled  Float         @default(0)
+  runsConceded Int           @default(0)
+  momAwards    Int           @default(0) // Man of the match
 }

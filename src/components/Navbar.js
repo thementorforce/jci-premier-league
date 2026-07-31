@@ -43,7 +43,9 @@ export default function Navbar() {
 
   const navLinks = [
     { href: '/', label: 'Home' },
-    { href: '/register-player', label: 'Player Register' },
+    { href: '/matches', label: 'Matches' },
+    { href: '/standings', label: 'Standings' },
+    { href: '/stats', label: 'Stats' },
     { href: '/teams', label: 'Teams' },
     { href: '/auction', label: 'Live Auction' },
   ];
