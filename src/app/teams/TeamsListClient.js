@@ -1,10 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { Search, Shield, Users } from 'lucide-react';
+import { Shield, Users, Search, AlertCircle, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
 
-export default function TeamsListClient({ initialTeams = [], sponsorList = [], dbError = false, errorMessage = '' }) {
+export default function TeamsListClient({ initialTeams = [], dbError = false, errorMessage = '' }) {
   const [searchTerm, setSearchTerm] = useState('');
 
   // Filtering logic
@@ -81,8 +81,8 @@ export default function TeamsListClient({ initialTeams = [], sponsorList = [], d
         </div>
       )}
 
-      {/* Main Layout Grid */}
-      <div className="grid-teams-layout">
+      {/* Main Layout */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '32px', width: '100%', maxWidth: '1200px', margin: '0 auto' }}>
         
         {/* Teams List */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
@@ -164,120 +164,6 @@ export default function TeamsListClient({ initialTeams = [], sponsorList = [], d
               </div>
             );
           })}
-        </div>
-
-        {/* Sidebar Ads */}
-        <div>
-          <div className="sidebar-sticky">
-            <h3 style={{ fontSize: '14px', textTransform: 'uppercase', color: 'var(--text-secondary)', letterSpacing: '0.05em' }}>Sponsors</h3>
-            
-            {sponsorList.map((ad) => (
-              <a 
-                key={ad.id} 
-                href={ad.targetUrl} 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                className="premium-card" 
-                style={{ 
-                  display: 'flex', 
-                  flexDirection: 'column',
-                  padding: '0', 
-                  overflow: 'hidden', 
-                  position: 'relative', 
-                  marginBottom: '16px',
-                  height: '200px',
-                  borderRadius: '16px',
-                  background: '#07120e',
-                  border: '1px solid rgba(255,255,255,0.08)',
-                  boxShadow: '0 8px 24px rgba(0,0,0,0.4)'
-                }}
-              >
-                {/* Blurred Background Layer to fill empty space */}
-                <div style={{
-                  position: 'absolute',
-                  inset: '-20px',
-                  backgroundImage: `url(${ad.imageUrl})`,
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center',
-                  filter: 'blur(20px) brightness(0.35)',
-                  zIndex: 0
-                }} />
-                
-                {ad.sponsorType && ad.sponsorType !== 'General' && (
-                  <div style={{
-                    position: 'absolute',
-                    top: '12px',
-                    left: '0',
-                    background: 'linear-gradient(135deg, rgba(245,197,24,0.95), rgba(218,165,32,0.9))',
-                    color: '#000',
-                    fontSize: '10px',
-                    fontWeight: '900',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.1em',
-                    padding: '5px 12px 5px 10px',
-                    borderRadius: '0 6px 6px 0',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
-                    zIndex: 3
-                  }}>
-                    ★ {ad.sponsorType}
-                  </div>
-                )}
-
-                {/* Main Logo Image Container */}
-                <div style={{
-                  flex: 1,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  padding: '24px 20px',
-                  zIndex: 1,
-                  position: 'relative'
-                }}>
-                  <img 
-                    src={ad.imageUrl} 
-                    alt={ad.title || 'Sponsor'} 
-                    style={{ 
-                      maxWidth: '100%', 
-                      maxHeight: '100%', 
-                      objectFit: 'contain',
-                      filter: 'drop-shadow(0 6px 12px rgba(0,0,0,0.8))'
-                    }} 
-                  />
-                </div>
-
-                {/* Optional overlay text if titles/contact are provided */}
-                {(ad.title || ad.contact) && (
-                  <div style={{
-                    background: 'rgba(0, 0, 0, 0.65)',
-                    backdropFilter: 'blur(10px)',
-                    borderTop: '1px solid rgba(255,255,255,0.06)',
-                    padding: '12px 16px',
-                    zIndex: 2,
-                    position: 'relative',
-                    textAlign: 'center'
-                  }}>
-                    {ad.title && ad.title.trim() !== '' && (
-                      <p style={{ fontSize: '14px', fontWeight: '800', margin: 0, color: '#fff', textShadow: '0 2px 4px rgba(0,0,0,0.8)' }}>
-                        {ad.title}
-                      </p>
-                    )}
-                    {ad.contact && (
-                      <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.75)', margin: (ad.title && ad.title.trim() !== '') ? '4px 0 0' : '0', fontWeight: '600' }}>
-                        Contact: {ad.contact}
-                      </p>
-                    )}
-                  </div>
-                )}
-              </a>
-            ))}
-            
-            {sponsorList.length === 0 && (
-              <div className="premium-card" style={{ padding: '16px', textAlign: 'center', background: 'rgba(6, 182, 212, 0.05)' }}>
-                <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Support Franchise Cricket League by placing ads here!</p>
-                <Link href="/admin/login" style={{ fontSize: '11px', color: 'var(--accent-teal)', marginTop: '8px', display: 'inline-block', fontWeight: '600' }}>Manage Ads &rarr;</Link>
-              </div>
-            )}
-          </div>
         </div>
 
       </div>

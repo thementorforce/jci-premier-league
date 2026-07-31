@@ -1,5 +1,6 @@
 import prisma from '@/lib/db';
 import TeamsListClient from './TeamsListClient';
+import SponsorMarquee from '@/components/SponsorMarquee';
 
 export const revalidate = 30;
 
@@ -64,7 +65,11 @@ export default async function TeamsPage() {
         <p style={{ color: 'var(--text-secondary)' }}>View team budgets, purses, and recruited player lists</p>
       </div>
 
-      <TeamsListClient initialTeams={teams} sponsorList={sponsorList} dbError={dbError} errorMessage={errorMessage} />
+      <div style={{ margin: '30px 0' }}>
+        <SponsorMarquee ads={sponsorList} title="Tournament Partners" />
+      </div>
+
+      <TeamsListClient initialTeams={teams} dbError={dbError} errorMessage={errorMessage} />
 
     </div>
   );
