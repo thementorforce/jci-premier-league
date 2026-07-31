@@ -417,8 +417,9 @@ a {
 
 /* Small FUT Cards */
 .fut-card-small {
-  width: 110px;
-  height: 160px;
+  width: 100%;
+  max-width: 140px;
+  min-height: 180px;
   background: linear-gradient(135deg, #111827 0%, #030712 100%);
   border: 1.5px solid var(--accent-gold);
   border-radius: 10px;

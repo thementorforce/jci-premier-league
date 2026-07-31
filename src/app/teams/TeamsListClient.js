@@ -230,23 +230,23 @@ export default function TeamsListClient({ initialTeams = [], dbError = false, er
                           {isMarquee && (
                             <div style={{
                               position: 'absolute',
-                              top: '-10px',
-                              left: '50%',
-                              transform: 'translateX(-50%)',
+                              top: '0',
+                              left: '0',
+                              width: '100%',
                               background: 'linear-gradient(135deg, #FFD700, #FFA500)',
                               color: '#000',
-                              fontSize: '9px',
+                              fontSize: '10px',
                               fontWeight: '900',
-                              padding: '2px 8px',
-                              borderRadius: '10px',
+                              padding: '4px 0',
                               zIndex: 10,
-                              whiteSpace: 'nowrap',
+                              textAlign: 'center',
                               boxShadow: '0 4px 12px rgba(255, 215, 0, 0.4)',
                               display: 'flex',
                               alignItems: 'center',
+                              justifyContent: 'center',
                               gap: '3px'
                             }}>
-                              <Crown size={10} /> MARQUEE
+                              <Crown size={12} /> MARQUEE
                             </div>
                           )}
                           <div className="fut-photo-container">
