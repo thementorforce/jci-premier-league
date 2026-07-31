@@ -1,13 +1,13 @@
 import StandingsClient from "./StandingsClient";
 import prisma from "@/lib/db";
 import SponsorMarquee from "@/components/SponsorMarquee";
-import { unstable_cache } from "next/cache";
 
-export const revalidate = 30; // Revalidate every 30 seconds
+export const dynamic = 'force-dynamic';
 
-const getStandings = unstable_cache(
-  async () => {
-    return await prisma.team.findMany({
+export default async function StandingsPage() {
+  let standings = [];
+  try {
+    standings = await prisma.team.findMany({
       select: {
         id: true,
         name: true,
@@ -16,21 +16,17 @@ const getStandings = unstable_cache(
         won: true,
         lost: true,
         points: true,
-        nrr: true,
+        nrr: true
       },
       orderBy: [
-        { points: "desc" },
-        { nrr: "desc" },
-      ],
+        { points: 'desc' },
+        { nrr: 'desc' }
+      ]
     });
-  },
-  ['tournament-standings'],
-  { tags: ['teams', 'matches'], revalidate: 30 }
-);
+  } catch (e) {
+    console.error("Standings page DB error:", e.message);
+  }
 
-export default async function StandingsPage() {
-  const standings = await getStandings();
-  
   return (
     <div className="min-h-screen bg-gray-950 pb-20">
       <SponsorMarquee />

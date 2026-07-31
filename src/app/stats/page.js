@@ -1,41 +1,33 @@
 import StatsClient from "./StatsClient";
 import prisma from "@/lib/db";
 import SponsorMarquee from "@/components/SponsorMarquee";
-import { unstable_cache } from "next/cache";
 
-export const revalidate = 60; // Revalidate every minute
+export const dynamic = 'force-dynamic';
 
-const getTopStats = unstable_cache(
-  async (category) => {
+async function getTopStats(category) {
+  try {
     const orderBy = {};
     orderBy[category] = 'desc';
-
     return await prisma.playerStats.findMany({
       take: 10,
-      orderBy: [
-        orderBy,
-        { matches: 'asc' }
-      ],
-      where: {
-        [category]: { gt: 0 }
-      },
+      orderBy: [orderBy, { matches: 'asc' }],
+      where: { [category]: { gt: 0 } },
       include: {
         player: {
           select: {
             id: true,
             fullName: true,
             photoUrl: true,
-            team: {
-              select: { name: true }
-            }
+            team: { select: { name: true } }
           }
         }
       }
     });
-  },
-  ['tournament-stats'],
-  { tags: ['stats'], revalidate: 60 }
-);
+  } catch (e) {
+    console.error(`Stats DB error (${category}):`, e.message);
+    return [];
+  }
+}
 
 export default async function StatsPage() {
   const [topRuns, topWickets, topSixes] = await Promise.all([
