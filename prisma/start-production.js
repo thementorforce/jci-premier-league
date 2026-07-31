@@ -49,7 +49,7 @@ async function initializeDatabase() {
     console.warn('DATABASE_URL is not configured. Skipping database initialization.');
     return;
   }
-  for (let attempt = 1; attempt <= 5; attempt += 1) {
+  for (let attempt = 1; attempt <= 3; attempt += 1) {
     try {
       console.log(`Database init attempt ${attempt}...`);
       await run(process.execPath, ['node_modules/prisma/build/index.js', 'db', 'push', '--accept-data-loss']);
@@ -58,17 +58,16 @@ async function initializeDatabase() {
       return;
     } catch (error) {
       console.error(`Database init attempt ${attempt} failed: ${error.message}`);
-      if (attempt < 5) await new Promise((resolve) => setTimeout(resolve, 5000));
+      if (attempt < 3) await new Promise((resolve) => setTimeout(resolve, 3000));
     }
   }
+  console.error('All database init attempts failed. Server will start but may be unstable.');
 }
 
-// Run schema migration first, THEN start the server.
-// Cloud Run allows up to 240s for startup — prisma db push completes in < 30s.
-// This prevents the race condition where requests arrive before new columns exist in the DB.
-initializeDatabase()
-  .catch((err) => console.error('Database initialization failed, starting server anyway:', err))
-  .finally(() => {
-    const server = spawn(process.execPath, ['server.js'], { env: environment, stdio: 'inherit' });
-    server.once('exit', (code) => process.exit(code ?? 0));
-  });
+// Start HTTP server immediately so Cloud Run health checks pass (port must be open within 60s).
+// Schema migration runs in background — all routes have try/catch so they degrade gracefully
+// during the brief window before migration completes (~5-10s on first deploy with new schema).
+const server = spawn(process.execPath, ['server.js'], { env: environment, stdio: 'inherit' });
+server.once('exit', (code) => process.exit(code ?? 0));
+
+initializeDatabase().catch((err) => console.error('Database initialization error:', err));
