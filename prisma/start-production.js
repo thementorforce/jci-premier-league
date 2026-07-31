@@ -63,8 +63,12 @@ async function initializeDatabase() {
   }
 }
 
-// Serve requests while schema sync retries in the background, allowing Cloud Run to pass port health checks
-initializeDatabase().catch((err) => console.error('Database initialization background error:', err));
-const server = spawn(process.execPath, ['server.js'], { env: environment, stdio: 'inherit' });
-server.once('exit', (code) => process.exit(code ?? 0));
-
+// Run schema migration first, THEN start the server.
+// Cloud Run allows up to 240s for startup — prisma db push completes in < 30s.
+// This prevents the race condition where requests arrive before new columns exist in the DB.
+initializeDatabase()
+  .catch((err) => console.error('Database initialization failed, starting server anyway:', err))
+  .finally(() => {
+    const server = spawn(process.execPath, ['server.js'], { env: environment, stdio: 'inherit' });
+    server.once('exit', (code) => process.exit(code ?? 0));
+  });
