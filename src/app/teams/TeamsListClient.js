@@ -1,153 +1,257 @@
 'use client';
 
-import { useState } from 'react';
-import { Shield, Users, Search, AlertCircle, RefreshCw } from 'lucide-react';
-import Link from 'next/link';
+import { useState, useMemo, useEffect } from 'react';
+import { Shield, Search, Users, Trophy, Star, Crown } from 'lucide-react';
 
 export default function TeamsListClient({ initialTeams = [], dbError = false, errorMessage = '' }) {
   const [searchTerm, setSearchTerm] = useState('');
+  const [activeTeamId, setActiveTeamId] = useState(initialTeams[0]?.id || null);
 
   // Filtering logic
-  const filteredTeams = initialTeams.map(team => {
-    const query = searchTerm.trim().toLowerCase();
-    
-    // Check if team name or owner matches query
-    const matchesTeamName = team.name.toLowerCase().includes(query) || 
-                            team.ownerName.toLowerCase().includes(query);
-    
-    // Check if any player matches query
-    const filteredPlayers = (team.players || []).filter(player => 
-      player.fullName.toLowerCase().includes(query) ||
-      (player.preferredRole || '').toLowerCase().includes(query) ||
-      (player.organization || '').toLowerCase().includes(query)
-    );
+  const filteredTeams = useMemo(() => {
+    return initialTeams.map(team => {
+      const query = searchTerm.trim().toLowerCase();
+      
+      const matchesTeamName = team.name.toLowerCase().includes(query) || 
+                              team.ownerName.toLowerCase().includes(query);
+      
+      const filteredPlayers = (team.players || []).filter(player => 
+        player.fullName.toLowerCase().includes(query) ||
+        (player.preferredRole || '').toLowerCase().includes(query) ||
+        (player.organization || '').toLowerCase().includes(query)
+      );
 
-    // If search is active:
-    // - If team matches the query, show all its players.
-    // - Otherwise, show only the matching players in that team.
-    const displayPlayers = query ? (matchesTeamName ? team.players : filteredPlayers) : team.players;
+      const displayPlayers = query ? (matchesTeamName ? team.players : filteredPlayers) : team.players;
 
-    if (!query || matchesTeamName || filteredPlayers.length > 0) {
-      return {
-        ...team,
-        players: displayPlayers,
-        totalSquadCount: team.players?.length || 0,
-        matchedCount: displayPlayers?.length || 0
-      };
+      if (!query || matchesTeamName || filteredPlayers.length > 0) {
+        return {
+          ...team,
+          players: displayPlayers,
+          totalSquadCount: team.players?.length || 0,
+          matchedCount: displayPlayers?.length || 0
+        };
+      }
+      return null;
+    }).filter(Boolean);
+  }, [initialTeams, searchTerm]);
+
+  // Keep active tab valid
+  useEffect(() => {
+    if (filteredTeams.length > 0 && !filteredTeams.find(t => t.id === activeTeamId)) {
+      setActiveTeamId(filteredTeams[0].id);
     }
-    return null;
-  }).filter(Boolean);
+  }, [filteredTeams, activeTeamId]);
 
-  // Total matching players count
+  const activeTeam = filteredTeams.find(t => t.id === activeTeamId) || filteredTeams[0];
+
+  // Group players for active team
+  const { groupedPlayers, highestPrice } = useMemo(() => {
+    if (!activeTeam) return { groupedPlayers: {}, highestPrice: 0 };
+    
+    const groups = {
+      'Batsman': [],
+      'All-Rounder': [],
+      'Wicketkeeper': [],
+      'Bowler': [],
+      'Other': []
+    };
+    
+    let maxPrice = 0;
+    
+    activeTeam.players.forEach(p => {
+      if ((p.soldPrice || 0) > maxPrice) maxPrice = p.soldPrice;
+      
+      const role = p.preferredRole || 'Other';
+      if (role.includes('Batsman')) groups['Batsman'].push(p);
+      else if (role.includes('All-Rounder')) groups['All-Rounder'].push(p);
+      else if (role.includes('Wicketkeeper')) groups['Wicketkeeper'].push(p);
+      else if (role.includes('Bowler')) groups['Bowler'].push(p);
+      else groups['Other'].push(p);
+    });
+    
+    return { groupedPlayers: groups, highestPrice: maxPrice };
+  }, [activeTeam]);
+
   const totalMatchingPlayers = filteredTeams.reduce((sum, t) => sum + (searchTerm ? t.matchedCount : t.totalSquadCount), 0);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', width: '100%', maxWidth: '1200px', margin: '0 auto' }}>
       
-      {/* Search Input Card */}
-      <div className="premium-card" style={{ padding: '16px 24px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+      {/* Search Bar */}
+      <div className="premium-card" style={{ padding: '16px 24px' }}>
         <div style={{ position: 'relative', width: '100%' }}>
           <input
             type="text"
-            placeholder="Search players by name, role, organization, or search team names..."
+            placeholder="Search players or franchise..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="premium-input"
             style={{ paddingLeft: '44px', width: '100%', fontSize: '15px' }}
           />
-          <Search 
-            size={20} 
-            color="var(--text-secondary)" 
-            style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} 
-          />
+          <Search size={20} color="var(--text-secondary)" style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)' }} />
         </div>
-        {searchTerm.trim() && (
-          <p style={{ fontSize: '13px', color: 'var(--accent-teal)', margin: '0' }}>
-            Found <strong>{filteredTeams.length}</strong> matching teams and <strong>{totalMatchingPlayers}</strong> matching players
-          </p>
-        )}
       </div>
 
       {dbError && (
-        <div style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid var(--danger)', padding: '16px', borderRadius: '8px', textAlign: 'center', color: 'var(--text-primary)' }}>
-          <p>Database connection issues. Please make sure the migrations and seeds are applied.</p>
-          {errorMessage && (
-            <div style={{ marginTop: '12px', padding: '10px', background: 'rgba(0, 0, 0, 0.4)', borderRadius: '4px', borderLeft: '3px solid var(--danger)', fontFamily: 'monospace', fontSize: '12px', overflowX: 'auto', whiteSpace: 'pre-wrap', textAlign: 'left', wordBreak: 'break-all' }}>
-              <strong>Error Details:</strong>
-              <br />
-              {errorMessage}
-            </div>
-          )}
+        <div className="premium-card" style={{ border: '1px solid var(--danger)', background: 'rgba(239, 68, 68, 0.1)' }}>
+          <p>Database connection error.</p>
         </div>
       )}
 
-      {/* Main Layout */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '32px', width: '100%', maxWidth: '1200px', margin: '0 auto' }}>
-        
-        {/* Teams List */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
-          {filteredTeams.length === 0 && !dbError && (
-            <div className="premium-card" style={{ textAlign: 'center', padding: '40px' }}>
-              <p style={{ color: 'var(--text-secondary)' }}>No matching teams or players found.</p>
-            </div>
-          )}
+      {filteredTeams.length === 0 && !dbError ? (
+        <div className="premium-card" style={{ textAlign: 'center', padding: '60px 20px' }}>
+          <p style={{ color: 'var(--text-secondary)' }}>No matching teams or players found.</p>
+        </div>
+      ) : activeTeam && (
+        <>
+          {/* Horizontal Franchise Tab Bar */}
+          <div style={{ 
+            display: 'flex', 
+            overflowX: 'auto', 
+            gap: '12px', 
+            paddingBottom: '12px',
+            scrollbarWidth: 'none', /* Firefox */
+            msOverflowStyle: 'none' /* IE 10+ */
+          }} className="hide-scrollbar">
+            {filteredTeams.map(team => {
+              const isActive = team.id === activeTeamId;
+              return (
+                <button
+                  key={team.id}
+                  onClick={() => setActiveTeamId(team.id)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    padding: '10px 20px',
+                    borderRadius: '100px',
+                    background: isActive ? 'linear-gradient(135deg, rgba(218,165,32,0.15), rgba(218,165,32,0.05))' : 'var(--bg-secondary)',
+                    border: `1px solid ${isActive ? 'var(--accent-gold)' : 'var(--card-border)'}`,
+                    color: isActive ? 'var(--accent-gold)' : 'var(--text-secondary)',
+                    fontWeight: isActive ? '800' : '600',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease',
+                    whiteSpace: 'nowrap',
+                    boxShadow: isActive ? '0 0 15px rgba(218,165,32,0.1)' : 'none'
+                  }}
+                >
+                  {team.logoUrl ? (
+                    <img src={team.logoUrl} alt="" style={{ width: '24px', height: '24px', borderRadius: '50%', objectFit: 'cover' }} />
+                  ) : (
+                    <Shield size={18} />
+                  )}
+                  {team.name}
+                </button>
+              );
+            })}
+          </div>
 
-          {filteredTeams.map((team) => {
-            const purseRemaining = team.pointsPurse - team.pointsSpent;
-            return (
-              <div key={team.id} className="premium-card" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                {/* Team Header */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', borderBottom: '1px solid var(--card-border)', paddingBottom: '16px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    {team.logoUrl ? (
-                      <img src={team.logoUrl} alt={`${team.name} Logo`} style={{ width: '36px', height: '36px', borderRadius: '50%', objectFit: 'cover', border: '1.5px solid var(--accent-gold)' }} />
-                    ) : (
-                      <Shield size={32} color="var(--accent-gold)" />
-                    )}
-                    <div>
-                      <h2 style={{ fontSize: '22px', fontWeight: '800' }}>{team.name}</h2>
-                      <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
-                        Owner: <strong>{team.ownerName}</strong>{team.ownerContact ? ` · Contact: ${team.ownerContact}` : ''}
-                      </span>
-                    </div>
-                  </div>
+          {/* Franchise Hero Banner */}
+          <div className="premium-card" style={{ 
+            position: 'relative', 
+            overflow: 'hidden',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '24px',
+            padding: '32px'
+          }}>
+            {/* Ambient Background Glow based on logo if available */}
+            {activeTeam.logoUrl && (
+              <div style={{
+                position: 'absolute',
+                top: '-50%',
+                right: '-10%',
+                width: '400px',
+                height: '400px',
+                backgroundImage: `url(${activeTeam.logoUrl})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                filter: 'blur(100px) opacity(0.15)',
+                zIndex: 0,
+                pointerEvents: 'none'
+              }} />
+            )}
 
-                  {/* Purse Tracker */}
-                  <div style={{ display: 'flex', gap: '16px' }}>
-                    <div style={{ background: 'rgba(7, 11, 25, 0.6)', border: '1px solid var(--card-border)', padding: '8px 16px', borderRadius: '8px', textAlign: 'center' }}>
-                      <span style={{ fontSize: '10px', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Points Spent</span>
-                      <p style={{ fontSize: '18px', fontWeight: '800', color: 'var(--text-primary)' }}>{team.pointsSpent.toLocaleString()}</p>
-                    </div>
-                    <div style={{ background: 'rgba(6, 182, 212, 0.1)', border: '1px solid var(--accent-teal)', padding: '8px 16px', borderRadius: '8px', textAlign: 'center' }}>
-                      <span style={{ fontSize: '10px', color: 'var(--accent-teal)', textTransform: 'uppercase' }}>Purse Remaining</span>
-                      <p style={{ fontSize: '18px', fontWeight: '800', color: 'var(--accent-teal)' }}>{purseRemaining.toLocaleString()}</p>
-                    </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '24px', alignItems: 'center', position: 'relative', zIndex: 1 }}>
+              {activeTeam.logoUrl ? (
+                <img src={activeTeam.logoUrl} alt={activeTeam.name} style={{ width: '100px', height: '100px', borderRadius: '16px', objectFit: 'cover', border: '2px solid var(--accent-gold)', boxShadow: '0 8px 24px rgba(0,0,0,0.5)' }} />
+              ) : (
+                <div style={{ width: '100px', height: '100px', borderRadius: '16px', background: 'var(--bg-tertiary)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid var(--accent-gold)' }}>
+                  <Shield size={48} color="var(--accent-gold)" />
+                </div>
+              )}
+              
+              <div style={{ flex: 1, minWidth: '250px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '4px' }}>
+                  <h2 style={{ fontSize: '32px', fontWeight: '900', letterSpacing: '-0.02em', margin: 0 }} className="gold-gradient-text">{activeTeam.name}</h2>
+                </div>
+                <p style={{ fontSize: '15px', color: 'var(--text-secondary)', margin: 0 }}>
+                  Owner: <strong style={{ color: 'var(--text-primary)' }}>{activeTeam.ownerName}</strong> 
+                  {activeTeam.ownerContact && ` • ${activeTeam.ownerContact}`}
+                </p>
+              </div>
+
+              {/* Franchise Stats Block */}
+              <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+                <div style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid var(--card-border)', padding: '12px 20px', borderRadius: '12px', minWidth: '120px' }}>
+                  <span style={{ fontSize: '10px', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Squad Size</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
+                    <Users size={16} color="var(--accent-teal)" />
+                    <span style={{ fontSize: '20px', fontWeight: '800' }}>{activeTeam.players.length}</span>
                   </div>
                 </div>
+                <div style={{ background: 'rgba(6, 182, 212, 0.05)', border: '1px solid rgba(6, 182, 212, 0.3)', padding: '12px 20px', borderRadius: '12px', minWidth: '160px' }}>
+                  <span style={{ fontSize: '10px', color: 'var(--accent-teal)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Purse Remaining</span>
+                  <p style={{ fontSize: '20px', fontWeight: '800', color: 'var(--accent-teal)', margin: '4px 0 0' }}>{(activeTeam.pointsPurse - activeTeam.pointsSpent).toLocaleString()} <span style={{ fontSize: '12px' }}>pts</span></p>
+                </div>
+              </div>
+            </div>
+          </div>
 
-                {/* Team Squad */}
-                <div>
-                  <h3 style={{ fontSize: '14px', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <Users size={16} /> 
-                    {searchTerm ? (
-                      <span>Players Found ({team.players.length} of {team.totalSquadCount})</span>
-                    ) : (
-                      <span>Players Recruited ({team.players.length})</span>
-                    )}
-                  </h3>
-
-                  {team.players.length === 0 ? (
-                    <p style={{ fontStyle: 'italic', color: 'var(--text-secondary)', fontSize: '14px' }}>
-                      {searchTerm ? 'No matching players on this squad.' : 'No players drafted yet.'}
-                    </p>
-                  ) : (
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(110px, 1fr))', gap: '12px', justifyItems: 'center' }}>
-                      {team.players.map((player) => (
-                        <div key={player.id} className={`fut-card-small ${player.gender === 'Female' ? 'female' : 'male'}`}>
+          {/* Categorized Squad Grid */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '32px', marginTop: '10px' }}>
+            {Object.entries(groupedPlayers).map(([role, players]) => {
+              if (players.length === 0) return null;
+              
+              return (
+                <div key={role}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px', borderBottom: '1px solid var(--card-border)', paddingBottom: '12px' }}>
+                    <h3 style={{ fontSize: '18px', fontWeight: '800', color: 'var(--text-primary)', margin: 0 }}>
+                      {role}s <span style={{ color: 'var(--text-secondary)', fontSize: '14px', fontWeight: '600' }}>({players.length})</span>
+                    </h3>
+                  </div>
+                  
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '16px', justifyItems: 'center' }}>
+                    {players.map((player) => {
+                      const isMarquee = player.soldPrice === highestPrice && highestPrice > 0;
+                      
+                      return (
+                        <div key={player.id} className={`fut-card-small ${player.gender === 'Female' ? 'female' : 'male'}`} style={{ transform: isMarquee ? 'scale(1.05)' : 'none', zIndex: isMarquee ? 2 : 1 }}>
+                          {isMarquee && (
+                            <div style={{
+                              position: 'absolute',
+                              top: '-10px',
+                              left: '50%',
+                              transform: 'translateX(-50%)',
+                              background: 'linear-gradient(135deg, #FFD700, #FFA500)',
+                              color: '#000',
+                              fontSize: '9px',
+                              fontWeight: '900',
+                              padding: '2px 8px',
+                              borderRadius: '10px',
+                              zIndex: 10,
+                              whiteSpace: 'nowrap',
+                              boxShadow: '0 4px 12px rgba(255, 215, 0, 0.4)',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '3px'
+                            }}>
+                              <Crown size={10} /> MARQUEE
+                            </div>
+                          )}
                           <div className="fut-photo-container">
                             <img src={`/api/player/${player.id}/photo`} alt={player.fullName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                           </div>
-                          <div className="fut-badge-role">{player.preferredRole}</div>
                           
                           <div className="fut-details">
                             <h4 className="fut-name">{player.fullName}</h4>
@@ -156,17 +260,15 @@ export default function TeamsListClient({ initialTeams = [], dbError = false, er
 
                           <div className="fut-price-tag">{player.soldPrice?.toLocaleString()} pts</div>
                         </div>
-                      ))}
-                    </div>
-                  )}
+                      );
+                    })}
+                  </div>
                 </div>
-
-              </div>
-            );
-          })}
-        </div>
-
-      </div>
+              );
+            })}
+          </div>
+        </>
+      )}
 
     </div>
   );
