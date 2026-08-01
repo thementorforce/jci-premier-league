@@ -1,128 +1,167 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
-import { Calendar, MapPin, Trophy, Activity, ChevronRight } from "lucide-react";
 import Link from "next/link";
+import { Calendar, MapPin, Activity } from "lucide-react";
+
+const STATUS_CONFIG = {
+  LIVE: { label: 'LIVE', bg: 'rgba(239,68,68,0.15)', color: '#f87171', border: 'rgba(239,68,68,0.4)' },
+  COMPLETED: { label: 'FT', bg: 'rgba(74,222,128,0.1)', color: '#4ade80', border: 'rgba(74,222,128,0.3)' },
+  SCHEDULED: { label: 'UPCOMING', bg: 'rgba(255,255,255,0.06)', color: 'var(--text-secondary)', border: 'var(--card-border)' },
+};
+
+function formatDate(dateString) {
+  return new Date(dateString).toLocaleString('en-IN', {
+    weekday: 'short', month: 'short', day: 'numeric',
+    hour: '2-digit', minute: '2-digit',
+  });
+}
 
 export default function MatchesClient({ initialMatches }) {
   const [matches] = useState(initialMatches);
 
-  const formatDate = (dateString) => {
-    const options = { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
-    return new Date(dateString).toLocaleDateString(undefined, options);
-  };
-
   return (
-    <main className="max-w-5xl mx-auto px-4 py-8 relative z-10">
-      {/* Header Section */}
-      <div className="text-center mb-10">
-        <h1 className="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-yellow-200 to-yellow-500 uppercase tracking-tight mb-4 filter drop-shadow-lg">
-          Fixtures & Results
-        </h1>
-        <p className="text-gray-400 max-w-2xl mx-auto text-sm md:text-base">
-          Track the live action, upcoming fixtures, and past match results.
+    <div style={{ maxWidth: '860px', margin: '0 auto', padding: '32px 16px' }}>
+      {/* Header */}
+      <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+        <p className="eyebrow">Season 1</p>
+        <h1 className="gold-gradient-text section-title">Fixtures & Results</h1>
+        <p style={{ color: 'var(--text-secondary)', marginTop: '8px' }}>
+          Track upcoming matches, live scores, and past results.
         </p>
       </div>
 
       {matches.length === 0 ? (
-        <div className="premium-card p-12 text-center rounded-2xl border border-gray-800 bg-gray-900/50 backdrop-blur-sm">
-          <Calendar size={48} className="mx-auto mb-4 text-gray-500 opacity-50" />
-          <h3 className="text-xl font-bold text-gray-300 mb-2">No Matches Scheduled</h3>
-          <p className="text-gray-500 text-sm">The tournament schedule has not been released yet.</p>
+        <div className="premium-card" style={{ padding: '64px 24px', textAlign: 'center' }}>
+          <Calendar size={48} style={{ margin: '0 auto 16px', color: 'var(--text-secondary)', opacity: 0.4 }} />
+          <h3 style={{ fontSize: '18px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '8px' }}>No Matches Scheduled</h3>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>The tournament schedule has not been released yet.</p>
         </div>
       ) : (
-        <div className="space-y-6">
-          {matches.map((match) => (
-            <div 
-              key={match.id} 
-              className={`premium-card overflow-hidden rounded-2xl border transition-all hover:scale-[1.01] ${
-                match.status === 'LIVE' ? 'border-red-500/50 shadow-[0_0_30px_rgba(239,68,68,0.2)]' : 
-                match.status === 'COMPLETED' ? 'border-yellow-500/20 shadow-[0_0_20px_rgba(255,215,0,0.05)] bg-gray-900/80' : 
-                'border-gray-800 bg-gray-950/80'
-              } backdrop-blur-md`}
-            >
-              {/* Match Header (Date & Venue) */}
-              <div className={`px-4 py-2 flex justify-between items-center text-xs md:text-sm font-semibold uppercase tracking-wider ${
-                match.status === 'LIVE' ? 'bg-red-500/20 text-red-400' : 
-                'bg-gray-900 border-b border-gray-800 text-gray-400'
-              }`}>
-                <div className="flex items-center gap-2">
-                  <span>Match {match.matchNumber}</span>
-                  {match.status === 'LIVE' && (
-                    <span className="flex items-center gap-1 bg-red-500 text-white px-2 py-0.5 rounded-full text-[10px] animate-pulse">
-                      <Activity size={10} /> LIVE
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {matches.map((match) => {
+            const cfg = STATUS_CONFIG[match.status] || STATUS_CONFIG.SCHEDULED;
+            const isLive = match.status === 'LIVE';
+            return (
+              <div
+                key={match.id}
+                className="premium-card"
+                style={{
+                  overflow: 'hidden',
+                  border: `1px solid ${isLive ? 'rgba(239,68,68,0.5)' : 'var(--card-border)'}`,
+                  boxShadow: isLive ? '0 0 24px rgba(239,68,68,0.15)' : undefined,
+                }}
+              >
+                {/* Match header bar */}
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  padding: '8px 16px',
+                  background: 'rgba(0,0,0,0.3)',
+                  borderBottom: '1px solid var(--card-border)',
+                  fontSize: '12px',
+                  fontWeight: '700',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.06em',
+                }}>
+                  <span style={{ color: 'var(--text-secondary)' }}>Match {match.matchNumber}</span>
+                  <span style={{
+                    background: cfg.bg,
+                    color: cfg.color,
+                    border: `1px solid ${cfg.border}`,
+                    padding: '2px 10px',
+                    borderRadius: '99px',
+                    fontSize: '10px',
+                    animation: isLive ? 'pulse 2s infinite' : undefined,
+                  }}>
+                    {cfg.label}
+                  </span>
+                </div>
+
+                {/* Teams & Score */}
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: '1fr auto 1fr',
+                  alignItems: 'center',
+                  padding: '20px 16px',
+                  gap: '16px',
+                }}>
+                  {/* Team 1 */}
+                  <Link href={`/teams?teamId=${match.team1.id}`} style={{ display: 'flex', alignItems: 'center', gap: '12px', textDecoration: 'none' }}>
+                    <div style={{
+                      width: '48px', height: '48px', flexShrink: 0,
+                      borderRadius: '50%', background: 'var(--bg-tertiary)',
+                      border: '2px solid var(--card-border)', overflow: 'hidden',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    }}>
+                      {match.team1.logoUrl
+                        ? <img src={match.team1.logoUrl} alt={match.team1.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        : <Activity size={20} style={{ color: 'var(--text-secondary)' }} />
+                      }
+                    </div>
+                    <div>
+                      <div style={{ fontWeight: '800', color: 'var(--text-primary)', fontSize: '15px', lineHeight: 1.2 }}>{match.team1.name}</div>
+                      {match.team1Score && (
+                        <div style={{ fontSize: '22px', fontWeight: '900', color: 'var(--accent-gold)', marginTop: '2px' }}>{match.team1Score}</div>
+                      )}
+                    </div>
+                  </Link>
+
+                  {/* VS */}
+                  <div style={{
+                    width: '40px', height: '40px', borderRadius: '50%',
+                    background: 'var(--bg-tertiary)', border: '1px solid var(--card-border)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: '11px', fontWeight: '900', color: 'var(--text-secondary)',
+                    flexShrink: 0,
+                  }}>VS</div>
+
+                  {/* Team 2 */}
+                  <Link href={`/teams?teamId=${match.team2.id}`} style={{ display: 'flex', alignItems: 'center', gap: '12px', textDecoration: 'none', flexDirection: 'row-reverse', textAlign: 'right' }}>
+                    <div style={{
+                      width: '48px', height: '48px', flexShrink: 0,
+                      borderRadius: '50%', background: 'var(--bg-tertiary)',
+                      border: '2px solid var(--card-border)', overflow: 'hidden',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    }}>
+                      {match.team2.logoUrl
+                        ? <img src={match.team2.logoUrl} alt={match.team2.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        : <Activity size={20} style={{ color: 'var(--text-secondary)' }} />
+                      }
+                    </div>
+                    <div>
+                      <div style={{ fontWeight: '800', color: 'var(--text-primary)', fontSize: '15px', lineHeight: 1.2 }}>{match.team2.name}</div>
+                      {match.team2Score && (
+                        <div style={{ fontSize: '22px', fontWeight: '900', color: 'var(--accent-gold)', marginTop: '2px' }}>{match.team2Score}</div>
+                      )}
+                    </div>
+                  </Link>
+                </div>
+
+                {/* Footer: result / venue */}
+                <div style={{
+                  padding: '10px 16px',
+                  background: 'rgba(0,0,0,0.2)',
+                  borderTop: '1px solid var(--card-border)',
+                  textAlign: 'center',
+                  fontSize: '13px',
+                }}>
+                  {match.status === 'COMPLETED' ? (
+                    <span style={{ color: 'var(--accent-gold)', fontWeight: '700' }}>{match.result}</span>
+                  ) : match.status === 'LIVE' ? (
+                    <span style={{ color: '#f87171', fontWeight: '600' }}>Match in Progress...</span>
+                  ) : (
+                    <span style={{ color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                      <MapPin size={13} /> {match.venue} &nbsp;·&nbsp; {formatDate(match.date)}
                     </span>
                   )}
                 </div>
-                <div className="flex items-center gap-2 text-right">
-                  <span>{formatDate(match.date)}</span>
-                </div>
               </div>
-
-              {/* Match Body (Teams & Scores) */}
-              <div className="p-4 md:p-6 flex flex-col md:flex-row items-center justify-between gap-6 relative">
-                
-                {/* Team 1 */}
-                <div className="flex items-center justify-between md:justify-start w-full md:w-[40%] gap-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 md:w-16 md:h-16 relative flex-shrink-0 bg-gray-950 rounded-full border border-gray-700 overflow-hidden flex items-center justify-center p-1">
-                      {match.team1.logoUrl ? (
-                        <Image src={match.team1.logoUrl} alt={match.team1.name} fill className="object-contain p-1" />
-                      ) : (
-                        <Trophy size={20} className="text-gray-600" />
-                      )}
-                    </div>
-                    <Link href={`/teams?teamId=${match.team1.id}`} className="font-bold text-white text-lg md:text-xl truncate hover:text-yellow-400 transition-colors">
-                      {match.team1.name}
-                    </Link>
-                  </div>
-                  {match.team1Score && (
-                    <div className="font-black text-2xl md:text-3xl text-yellow-400">{match.team1Score}</div>
-                  )}
-                </div>
-
-                {/* VS Badge */}
-                <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 bg-gray-950 border border-gray-800 rounded-full w-10 h-10 flex items-center justify-center text-xs font-black text-gray-500 hidden md:flex">
-                  VS
-                </div>
-
-                {/* Team 2 */}
-                <div className="flex items-center justify-between md:justify-end w-full md:w-[40%] gap-4 flex-row-reverse md:flex-row">
-                  <div className="flex items-center gap-3 flex-row-reverse md:flex-row">
-                    <div className="w-12 h-12 md:w-16 md:h-16 relative flex-shrink-0 bg-gray-950 rounded-full border border-gray-700 overflow-hidden flex items-center justify-center p-1">
-                      {match.team2.logoUrl ? (
-                        <Image src={match.team2.logoUrl} alt={match.team2.name} fill className="object-contain p-1" />
-                      ) : (
-                        <Trophy size={20} className="text-gray-600" />
-                      )}
-                    </div>
-                    <Link href={`/teams?teamId=${match.team2.id}`} className="font-bold text-white text-lg md:text-xl truncate text-right hover:text-yellow-400 transition-colors">
-                      {match.team2.name}
-                    </Link>
-                  </div>
-                  {match.team2Score && (
-                    <div className="font-black text-2xl md:text-3xl text-yellow-400">{match.team2Score}</div>
-                  )}
-                </div>
-              </div>
-
-              {/* Match Footer (Result / Venue) */}
-              <div className="px-4 py-3 bg-gray-950/50 border-t border-gray-800 flex justify-center text-sm">
-                {match.status === 'COMPLETED' ? (
-                  <span className="font-bold text-yellow-400 tracking-wide text-center uppercase">{match.result}</span>
-                ) : match.status === 'LIVE' ? (
-                  <span className="font-semibold text-red-400 tracking-wide text-center animate-pulse">Match in Progress...</span>
-                ) : (
-                  <div className="flex items-center gap-1 text-gray-500 font-medium">
-                    <MapPin size={14} /> {match.venue}
-                  </div>
-                )}
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
-    </main>
+    </div>
   );
 }

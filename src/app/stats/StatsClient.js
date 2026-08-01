@@ -1,108 +1,154 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
-import { Medal, Flame, Zap, User } from "lucide-react";
+
+const TABS = [
+  { id: "runs",    label: "🟠 Orange Cap",   subtitle: "Most Runs",    unit: "Runs",   accentColor: "#f97316" },
+  { id: "wickets", label: "🟣 Purple Cap",   subtitle: "Most Wickets", unit: "Wkts",   accentColor: "#a855f7" },
+  { id: "sixes",   label: "💥 Most Sixes",   subtitle: "Sixes Hit",    unit: "Sixes",  accentColor: "#3b82f6" },
+];
 
 export default function StatsClient({ topRuns, topWickets, topSixes }) {
   const [activeTab, setActiveTab] = useState("runs");
 
-  const tabs = [
-    { id: "runs", label: "Orange Cap (Runs)", icon: <Flame size={16} />, data: topRuns, unit: "Runs", color: "from-orange-500 to-orange-300" },
-    { id: "wickets", label: "Purple Cap (Wickets)", icon: <Zap size={16} />, data: topWickets, unit: "Wkts", color: "from-purple-600 to-purple-400" },
-    { id: "sixes", label: "Most Sixes", icon: <Medal size={16} />, data: topSixes, unit: "Sixes", color: "from-blue-500 to-blue-300" }
-  ];
-
-  const activeTabData = tabs.find(t => t.id === activeTab);
+  const dataMap = { runs: topRuns, wickets: topWickets, sixes: topSixes };
+  const activeTabCfg = TABS.find(t => t.id === activeTab);
+  const data = dataMap[activeTab] || [];
 
   return (
-    <main className="max-w-5xl mx-auto px-4 py-8 relative z-10">
+    <div style={{ maxWidth: '820px', margin: '0 auto', padding: '32px 16px' }}>
       {/* Header */}
-      <div className="text-center mb-10">
-        <h1 className="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-yellow-200 to-yellow-500 uppercase tracking-tight mb-4 filter drop-shadow-lg">
-          Tournament Stats
-        </h1>
-        <p className="text-gray-400 max-w-2xl mx-auto text-sm md:text-base">
+      <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+        <p className="eyebrow">Season 1</p>
+        <h1 className="gold-gradient-text section-title">Tournament Stats</h1>
+        <p style={{ color: 'var(--text-secondary)', marginTop: '8px' }}>
           The ultimate leaderboard for the best performers of the season.
         </p>
       </div>
 
-      {/* Tabs */}
-      <div className="flex overflow-x-auto hide-scrollbar gap-2 mb-8 bg-gray-900/50 p-2 rounded-2xl border border-gray-800">
-        {tabs.map((tab) => (
+      {/* Tab Switcher */}
+      <div style={{
+        display: 'flex',
+        gap: '8px',
+        background: 'var(--bg-secondary)',
+        padding: '6px',
+        borderRadius: '16px',
+        border: '1px solid var(--card-border)',
+        marginBottom: '28px',
+        overflowX: 'auto',
+      }}>
+        {TABS.map(tab => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`flex-1 min-w-[140px] flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold text-sm md:text-base transition-all whitespace-nowrap ${
-              activeTab === tab.id
-                ? `bg-gradient-to-r ${tab.color} text-white shadow-lg`
-                : "text-gray-400 hover:bg-gray-800 hover:text-white"
-            }`}
+            style={{
+              flex: 1,
+              minWidth: '130px',
+              padding: '10px 16px',
+              borderRadius: '12px',
+              border: 'none',
+              cursor: 'pointer',
+              fontWeight: '700',
+              fontSize: '14px',
+              transition: 'all 0.2s',
+              background: activeTab === tab.id ? activeTabCfg.accentColor : 'transparent',
+              color: activeTab === tab.id ? '#fff' : 'var(--text-secondary)',
+              boxShadow: activeTab === tab.id ? `0 0 20px ${activeTabCfg.accentColor}55` : 'none',
+            }}
           >
-            {tab.icon} {tab.label}
+            {tab.label}
           </button>
         ))}
       </div>
 
-      {/* Leaderboard List */}
-      <div className="space-y-4">
-        {activeTabData.data.length === 0 ? (
-          <div className="premium-card p-12 text-center rounded-2xl border border-gray-800 bg-gray-900/50 backdrop-blur-sm">
-            <User size={48} className="mx-auto mb-4 text-gray-500 opacity-50" />
-            <h3 className="text-xl font-bold text-gray-300 mb-2">No Stats Available</h3>
-            <p className="text-gray-500 text-sm">Matches haven't generated any stats for this category yet.</p>
+      {/* Leaderboard */}
+      <div className="premium-card" style={{ padding: 0, overflow: 'hidden' }}>
+        {data.length === 0 ? (
+          <div style={{ padding: '64px 24px', textAlign: 'center', color: 'var(--text-secondary)' }}>
+            <div style={{ fontSize: '48px', marginBottom: '16px', opacity: 0.3 }}>📊</div>
+            <h3 style={{ fontSize: '18px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '8px' }}>No Stats Available</h3>
+            <p style={{ fontSize: '14px' }}>Matches haven't generated any stats for this category yet.</p>
           </div>
         ) : (
-          activeTabData.data.map((stat, index) => {
+          data.map((stat, index) => {
             const isFirst = index === 0;
+            const value = stat[activeTab];
             return (
-              <div 
-                key={stat.id} 
-                className={`premium-card overflow-hidden rounded-2xl border transition-all ${
-                  isFirst ? 'border-yellow-500/50 shadow-[0_0_25px_rgba(255,215,0,0.15)] bg-gradient-to-r from-gray-900 to-gray-800 scale-[1.02]' : 'border-gray-800 bg-gray-950/80 hover:bg-gray-900'
-                } flex items-center p-3 md:p-4 gap-4`}
+              <div
+                key={stat.id}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '16px',
+                  padding: isFirst ? '20px 20px' : '14px 20px',
+                  borderBottom: '1px solid var(--card-border)',
+                  background: isFirst
+                    ? 'linear-gradient(90deg, rgba(216,240,107,0.08) 0%, transparent 100%)'
+                    : 'transparent',
+                  borderLeft: isFirst ? '3px solid var(--accent-gold)' : '3px solid transparent',
+                  transition: 'background 0.2s',
+                }}
               >
                 {/* Rank */}
-                <div className={`w-8 md:w-12 text-center font-black ${
-                  isFirst ? 'text-3xl md:text-4xl text-transparent bg-clip-text bg-gradient-to-br from-yellow-300 to-yellow-600' : 
-                  index === 1 ? 'text-2xl md:text-3xl text-gray-300' :
-                  index === 2 ? 'text-2xl md:text-3xl text-amber-600' :
-                  'text-xl md:text-2xl text-gray-600'
-                }`}>
+                <div style={{
+                  width: '32px',
+                  textAlign: 'center',
+                  fontWeight: '900',
+                  fontSize: isFirst ? '28px' : '18px',
+                  color: isFirst ? 'var(--accent-gold)' : index === 1 ? '#d1d5db' : index === 2 ? '#92400e' : 'var(--text-secondary)',
+                  flexShrink: 0,
+                }}>
                   #{index + 1}
                 </div>
 
-                {/* Photo */}
-                <div className={`relative flex-shrink-0 rounded-full border-2 overflow-hidden ${
-                  isFirst ? 'w-16 h-16 md:w-20 md:h-20 border-yellow-500' : 'w-12 h-12 md:w-14 md:h-14 border-gray-700'
-                }`}>
-                  <Image 
-                    src={stat.player.photoUrl} 
-                    alt={stat.player.fullName} 
-                    fill 
-                    className="object-cover object-top" 
+                {/* Player Photo */}
+                <div style={{
+                  width: isFirst ? '60px' : '44px',
+                  height: isFirst ? '60px' : '44px',
+                  flexShrink: 0,
+                  borderRadius: '50%',
+                  border: `2px solid ${isFirst ? 'var(--accent-gold)' : 'var(--card-border)'}`,
+                  overflow: 'hidden',
+                  background: 'var(--bg-tertiary)',
+                  transition: 'all 0.2s',
+                }}>
+                  <img
+                    src={stat.player.photoUrl}
+                    alt={stat.player.fullName}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top' }}
                   />
                 </div>
 
-                {/* Details */}
-                <div className="flex-1 min-w-0">
-                  <h3 className={`font-bold truncate ${isFirst ? 'text-xl md:text-2xl text-white' : 'text-lg md:text-xl text-gray-200'}`}>
+                {/* Name & Team */}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{
+                    fontWeight: '800',
+                    fontSize: isFirst ? '18px' : '15px',
+                    color: 'var(--text-primary)',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                  }}>
                     {stat.player.fullName}
-                  </h3>
-                  <div className="text-gray-500 text-xs md:text-sm truncate">
-                    {stat.player.team?.name || 'Unassigned'} • {stat.matches} Matches
+                  </div>
+                  <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                    {stat.player.team?.name || '—'} &nbsp;·&nbsp; {stat.matches} match{stat.matches !== 1 ? 'es' : ''}
                   </div>
                 </div>
 
                 {/* Stat Value */}
-                <div className="text-right">
-                  <div className={`font-black ${isFirst ? 'text-3xl md:text-4xl text-yellow-400' : 'text-2xl md:text-3xl text-white'}`}>
-                    {activeTab === 'runs' && stat.runs}
-                    {activeTab === 'wickets' && stat.wickets}
-                    {activeTab === 'sixes' && stat.sixes}
+                <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                  <div style={{
+                    fontWeight: '900',
+                    fontSize: isFirst ? '36px' : '26px',
+                    color: isFirst ? 'var(--accent-gold)' : 'var(--text-primary)',
+                    lineHeight: 1,
+                    filter: isFirst ? 'drop-shadow(0 0 8px var(--accent-gold-glow))' : undefined,
+                  }}>
+                    {value}
                   </div>
-                  <div className="text-[10px] md:text-xs text-gray-500 font-bold uppercase tracking-wider">
-                    {activeTabData.unit}
+                  <div style={{ fontSize: '10px', color: 'var(--text-secondary)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '2px' }}>
+                    {activeTabCfg.unit}
                   </div>
                 </div>
               </div>
@@ -110,6 +156,6 @@ export default function StatsClient({ topRuns, topWickets, topSixes }) {
           })
         )}
       </div>
-    </main>
+    </div>
   );
 }
