@@ -41,16 +41,11 @@ export async function POST(request) {
     const purseVal = parseInt(pointsPurse, 10);
     const purse = isNaN(purseVal) || purseVal <= 0 ? 100000 : purseVal;
 
-    // Check if team name already exists
-    const existingTeam = await prisma.team.findUnique({
-      where: { name: trimmedName }
-    });
-
+    const existingTeam = await prisma.team.findUnique({ where: { name: trimmedName } });
     if (existingTeam) {
       return NextResponse.json({ error: 'A team with this name already exists' }, { status: 400 });
     }
 
-    // Create team
     const team = await prisma.team.create({
       data: {
         name: trimmedName,
@@ -62,14 +57,50 @@ export async function POST(request) {
       }
     });
 
-    return NextResponse.json({
-      success: true,
-      message: 'Team created successfully',
-      team,
-    }, { status: 201 });
-
+    return NextResponse.json({ success: true, message: 'Team created successfully', team }, { status: 201 });
   } catch (error) {
     console.error('Error creating team:', error);
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+  }
+}
+
+// PATCH: Set Captain / Vice-Captain for a team
+export async function PATCH(request) {
+  const auth = await requireAdmin();
+  if (auth.response) return auth.response;
+
+  try {
+    const { teamId, captainId, viceCaptainId } = await request.json();
+
+    if (!teamId) {
+      return NextResponse.json({ error: 'teamId is required' }, { status: 400 });
+    }
+
+    // Clear existing C/VC for this team first
+    await prisma.playerProfile.updateMany({
+      where: { teamId },
+      data: { isCaptain: false, isViceCaptain: false },
+    });
+
+    // Set new captain
+    if (captainId) {
+      await prisma.playerProfile.update({
+        where: { id: captainId },
+        data: { isCaptain: true },
+      });
+    }
+
+    // Set new vice-captain (must be a different player)
+    if (viceCaptainId && viceCaptainId !== captainId) {
+      await prisma.playerProfile.update({
+        where: { id: viceCaptainId },
+        data: { isViceCaptain: true },
+      });
+    }
+
+    return NextResponse.json({ success: true, message: 'Captain and Vice Captain updated.' });
+  } catch (error) {
+    console.error('Error setting captain:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
@@ -86,24 +117,16 @@ export async function DELETE(request) {
       return NextResponse.json({ error: 'Team ID is required' }, { status: 400 });
     }
 
-    // Check if team exists
-    const team = await prisma.team.findUnique({
-      where: { id },
-      include: { players: true }
-    });
-
+    const team = await prisma.team.findUnique({ where: { id }, include: { players: true } });
     if (!team) {
       return NextResponse.json({ error: 'Team not found' }, { status: 404 });
     }
 
-    // Check if team has drafted players
     if (team.players.length > 0) {
       return NextResponse.json({ error: 'Cannot delete a team that already has drafted players' }, { status: 400 });
     }
 
-    // Delete team (bids cascade, no linked user to remove)
     await prisma.team.delete({ where: { id } });
-
     return NextResponse.json({ success: true, message: 'Team deleted successfully' });
   } catch (error) {
     console.error('Error deleting team:', error);
