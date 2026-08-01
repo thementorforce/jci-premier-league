@@ -107,6 +107,16 @@ export default function AdminMatchesClient() {
     fetchData();
   };
 
+  const handleDeleteMatch = async (match) => {
+    if (!confirm(`Delete Match ${match.matchNumber}: ${match.team1.name} vs ${match.team2.name}?\n\nThis cannot be undone.`)) return;
+    await fetch('/api/admin/matches', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: match.id }),
+    });
+    fetchData();
+  };
+
   /* ── Captain actions ── */
   const handleTeamSelect = (teamId) => {
     const team = teams.find(t => t.id === teamId);
@@ -295,6 +305,22 @@ export default function AdminMatchesClient() {
                           </button>
                         </>
                       )}
+                      <button
+                        onClick={() => handleDeleteMatch(match)}
+                        title="Delete fixture"
+                        style={{
+                          padding: '8px 12px',
+                          background: 'rgba(239,68,68,0.1)',
+                          border: '1px solid rgba(239,68,68,0.3)',
+                          borderRadius: '10px',
+                          color: '#f87171',
+                          cursor: 'pointer',
+                          fontSize: '16px',
+                          transition: 'all 0.2s',
+                        }}
+                      >
+                        🗑️
+                      </button>
                     </div>
                   </div>
                 );

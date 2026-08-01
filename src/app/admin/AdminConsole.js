@@ -7,7 +7,7 @@ import {
   Play, Check, X, Plus, Trash2, RotateCcw, AlertTriangle,
   Radio, Coffee, Pause, Flag, Clock, Eye, EyeOff, IndianRupee,
   Users, Trophy, CreditCard, Image, LogOut, Shield, Search, UserRound, CalendarDays, ArrowRight,
-  RefreshCw, Download,
+  RefreshCw, Download, Edit,
 } from 'lucide-react';
 
 const AUCTION_STATUSES = [
@@ -45,6 +45,7 @@ export default function AdminConsole({ username = 'admin' }) {
 
   const [bidForm, setBidForm] = useState({ teamId: '', amount: '' });
   const [adForm, setAdForm] = useState({ title: '', imageUrl: '', targetUrl: '', contact: '', positions: [], sponsorType: 'General' });
+  const [editingAd, setEditingAd] = useState(null); // ad object being edited
   const [setupKey, setSetupKey] = useState('');
   const [configForm, setConfigForm] = useState({ upiId: '', payeeName: '', regFee: '', auctionStatus: 'NOT_STARTED' });
   const [adminTeams, setAdminTeams] = useState([]);
@@ -534,6 +535,41 @@ export default function AdminConsole({ username = 'admin' }) {
       }
     } catch {
       showStatus('error', 'Failed to delete banner');
+    }
+  };
+
+  const handleEditAd = async (e) => {
+    e.preventDefault();
+    if (!editingAd) return;
+    if (!editingAd.positions || editingAd.positions.length === 0) {
+      showStatus('error', 'Please select at least one page to display the sponsor');
+      return;
+    }
+    try {
+      const res = await fetch('/api/admin/ads', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+        body: JSON.stringify({
+          id: editingAd.id,
+          title: editingAd.title,
+          imageUrl: editingAd.imageUrl,
+          targetUrl: editingAd.targetUrl || '#',
+          contact: editingAd.contact || '',
+          sponsorType: editingAd.sponsorType || 'General',
+          position: editingAd.positions.join(','),
+          active: editingAd.active,
+        }),
+      });
+      if (res.ok) {
+        showStatus('success', 'Sponsor updated!');
+        setEditingAd(null);
+        fetchConsoleData();
+      } else {
+        const d = await res.json();
+        showStatus('error', d.error || 'Failed to update');
+      }
+    } catch {
+      showStatus('error', 'Failed to update sponsor');
     }
   };
 
@@ -1329,10 +1365,14 @@ export default function AdminConsole({ username = 'admin' }) {
                 <label className="form-label" style={{ marginBottom: '6px', display: 'block' }}>Display Placements (Choose where to show) *</label>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', padding: '6px 0' }}>
                   {[
-                    { path: '/', label: 'Home Page' },
-                    { path: '/register-player', label: 'Player Register Page' },
-                    { path: '/teams', label: 'Teams Page' },
-                    { path: '/auction', label: 'Live Auction Arena' },
+                    { path: 'all', label: '🌐 All Pages' },
+                    { path: '/', label: '🏠 Home Page' },
+                    { path: 'matches', label: '📅 Matches Page' },
+                    { path: 'standings', label: '🏆 Standings Page' },
+                    { path: 'stats', label: '📊 Stats Page' },
+                    { path: '/teams', label: '👥 Teams Page' },
+                    { path: '/register-player', label: '📝 Player Register Page' },
+                    { path: '/auction', label: '🔴 Live Auction Arena' },
                   ].map((p) => (
                     <label key={p.path} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px' }}>
                       <input
@@ -1382,6 +1422,17 @@ export default function AdminConsole({ username = 'admin' }) {
                       </div>
                     </div>
                     <div style={{ display: 'flex', gap: '8px' }}>
+                      <button
+                        onClick={() => {
+                          const pages = (ad.position || '').split(',').map(p => p.trim()).filter(Boolean);
+                          setEditingAd({ ...ad, positions: pages });
+                        }}
+                        className="premium-button-secondary"
+                        style={{ padding: '8px', borderRadius: '50%' }}
+                        title="Edit sponsor"
+                      >
+                        <Edit size={16} />
+                      </button>
                       <button onClick={() => handleToggleAd(ad.id, !ad.active)} className="premium-button-secondary" style={{ padding: '8px', borderRadius: '50%' }} title={ad.active ? 'Hide' : 'Show'}>
                         {ad.active ? <EyeOff size={16} /> : <Eye size={16} />}
                       </button>
@@ -1393,6 +1444,84 @@ export default function AdminConsole({ username = 'admin' }) {
                 ))
               )}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Sponsor Edit Modal ── */}
+      {editingAd && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(4px)', zIndex: 60, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
+          <div style={{ background: 'var(--bg-secondary)', border: '1px solid var(--card-border)', borderRadius: '20px', width: '100%', maxWidth: '520px', padding: '28px', maxHeight: '90vh', overflowY: 'auto' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <h3 style={{ fontSize: '18px', fontWeight: '800', color: 'var(--text-primary)', margin: 0 }}>✏️ Edit Sponsor</h3>
+              <button onClick={() => setEditingAd(null)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)', padding: '4px' }}><X size={20} /></button>
+            </div>
+
+            <form onSubmit={handleEditAd} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div>
+                <label className="form-label">Sponsor Type</label>
+                <select value={editingAd.sponsorType || 'General'} onChange={e => setEditingAd({ ...editingAd, sponsorType: e.target.value })} className="premium-input" style={{ background: 'var(--bg-secondary)', cursor: 'pointer' }}>
+                  <option value="General">General Sponsor</option>
+                  <option value="Title Sponsor">Title Sponsor</option>
+                  <option value="Bat Sponsor">Bat Sponsor</option>
+                  <option value="Ball Sponsor">Ball Sponsor</option>
+                  <option value="Food Sponsor">Food Sponsor</option>
+                  <option value="Trophy Sponsor">Trophy Sponsor</option>
+                </select>
+              </div>
+              <div>
+                <label className="form-label">Sponsor Title *</label>
+                <input type="text" required value={editingAd.title} onChange={e => setEditingAd({ ...editingAd, title: e.target.value })} className="premium-input" />
+              </div>
+              <div>
+                <label className="form-label">Image URL *</label>
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '6px' }}>
+                  {editingAd.imageUrl && <img src={editingAd.imageUrl} alt="Preview" style={{ width: '70px', height: '48px', objectFit: 'cover', borderRadius: '6px', border: '1px solid var(--card-border)' }} />}
+                </div>
+                <input type="text" required value={editingAd.imageUrl} onChange={e => setEditingAd({ ...editingAd, imageUrl: e.target.value })} className="premium-input" placeholder="https://..." />
+              </div>
+              <div>
+                <label className="form-label">Click-through URL</label>
+                <input type="text" value={editingAd.targetUrl || ''} onChange={e => setEditingAd({ ...editingAd, targetUrl: e.target.value })} className="premium-input" placeholder="https://sponsor-website.com" />
+              </div>
+              <div>
+                <label className="form-label">Contact Detail</label>
+                <input type="text" value={editingAd.contact || ''} onChange={e => setEditingAd({ ...editingAd, contact: e.target.value })} className="premium-input" placeholder="+91 98765 43210" />
+              </div>
+              <div>
+                <label className="form-label" style={{ marginBottom: '6px', display: 'block' }}>Display on Pages *</label>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {[
+                    { path: 'all', label: '🌐 All Pages' },
+                    { path: '/', label: '🏠 Home Page' },
+                    { path: 'matches', label: '📅 Matches Page' },
+                    { path: 'standings', label: '🏆 Standings Page' },
+                    { path: 'stats', label: '📊 Stats Page' },
+                    { path: '/teams', label: '👥 Teams Page' },
+                    { path: '/register-player', label: '📝 Player Register Page' },
+                    { path: '/auction', label: '🔴 Live Auction Arena' },
+                  ].map(p => (
+                    <label key={p.path} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px' }}>
+                      <input
+                        type="checkbox"
+                        checked={(editingAd.positions || []).includes(p.path)}
+                        onChange={e => {
+                          const cur = editingAd.positions || [];
+                          const next = e.target.checked ? [...cur, p.path] : cur.filter(x => x !== p.path);
+                          setEditingAd({ ...editingAd, positions: next });
+                        }}
+                        style={{ width: '16px', height: '16px', accentColor: 'var(--accent-teal)' }}
+                      />
+                      <span>{p.label}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: '10px', marginTop: '8px' }}>
+                <button type="button" onClick={() => setEditingAd(null)} className="premium-button-secondary" style={{ flex: 1, justifyContent: 'center' }}>Cancel</button>
+                <button type="submit" className="premium-button" style={{ flex: 1, justifyContent: 'center' }}><Check size={16} /> Save Changes</button>
+              </div>
+            </form>
           </div>
         </div>
       )}

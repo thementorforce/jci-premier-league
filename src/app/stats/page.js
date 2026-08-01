@@ -4,6 +4,13 @@ import SponsorMarquee from "@/components/SponsorMarquee";
 
 export const dynamic = 'force-dynamic';
 
+async function getSponsors() {
+  try {
+    const ads = await prisma.adPlacement.findMany({ where: { active: true }, orderBy: { createdAt: 'desc' } });
+    return ads.filter(ad => { const p = (ad.position || '').split(',').map(x => x.trim().toLowerCase()); return p.includes('all') || p.includes('stats'); });
+  } catch { return []; }
+}
+
 async function getTopStats(category) {
   try {
     const orderBy = {};
@@ -36,14 +43,11 @@ export default async function StatsPage() {
     getTopStats('sixes')
   ]);
   
+  const sponsors = await getSponsors();
   return (
-    <div className="min-h-screen bg-gray-950 pb-20">
-      <SponsorMarquee />
-      <StatsClient 
-        topRuns={topRuns} 
-        topWickets={topWickets} 
-        topSixes={topSixes} 
-      />
+    <div style={{ minHeight: '100vh', paddingBottom: '80px' }}>
+      <SponsorMarquee ads={sponsors} />
+      <StatsClient topRuns={topRuns} topWickets={topWickets} topSixes={topSixes} />
     </div>
   );
 }

@@ -4,6 +4,13 @@ import SponsorMarquee from "@/components/SponsorMarquee";
 
 export const dynamic = 'force-dynamic';
 
+async function getSponsors() {
+  try {
+    const ads = await prisma.adPlacement.findMany({ where: { active: true }, orderBy: { createdAt: 'desc' } });
+    return ads.filter(ad => { const p = (ad.position || '').split(',').map(x => x.trim().toLowerCase()); return p.includes('all') || p.includes('matches'); });
+  } catch { return []; }
+}
+
 export default async function MatchesPage() {
   let matches = [];
   try {
@@ -21,9 +28,10 @@ export default async function MatchesPage() {
     console.error("Matches page DB error:", e.message);
   }
 
+  const sponsors = await getSponsors();
   return (
-    <div className="min-h-screen bg-gray-950 pb-20">
-      <SponsorMarquee />
+    <div style={{ minHeight: '100vh', paddingBottom: '80px' }}>
+      <SponsorMarquee ads={sponsors} />
       <MatchesClient initialMatches={matches} />
     </div>
   );
