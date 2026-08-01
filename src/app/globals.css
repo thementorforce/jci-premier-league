@@ -2991,3 +2991,189 @@ body:has(.auction-fullscreen) > main {
     font-size: 11px;
   }
 }
+
+/* ═══════════════════════════════════════════════════════
+   TOURNAMENT PAGES — RESPONSIVE (Standings / Matches / Stats)
+   ═══════════════════════════════════════════════════════ */
+
+/* ── Standings Table ── */
+.standings-header-row,
+.standings-team-row {
+  display: grid;
+  grid-template-columns: 36px 1fr 44px 44px 44px 72px 56px;
+  padding: 12px 16px;
+  align-items: center;
+  gap: 8px;
+}
+.standings-team-row {
+  border-bottom: 1px solid var(--card-border);
+  text-decoration: none;
+  transition: background 0.2s;
+}
+.standings-team-row:hover {
+  background: rgba(255,255,255,0.03);
+}
+.standings-logo {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  overflow: hidden;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--card-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.standings-team-name {
+  font-weight: 700;
+  color: var(--text-primary);
+  font-size: 14px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 520px) {
+  .standings-header-row,
+  .standings-team-row {
+    /* Hide P (played) and NRR — show only #, Team, W, L, PTS */
+    grid-template-columns: 26px 1fr 32px 32px 44px;
+    padding: 10px 12px;
+    gap: 6px;
+  }
+  .standings-col-p,
+  .standings-col-nrr { display: none !important; }
+  .standings-logo { width: 28px; height: 28px; }
+  .standings-team-name { font-size: 12px; }
+}
+
+/* ── Matches Page ── */
+.match-card {
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid var(--card-border);
+  background: var(--bg-secondary);
+}
+.match-teams-grid {
+  display: grid;
+  grid-template-columns: 1fr 44px 1fr;
+  align-items: center;
+  padding: 20px 16px;
+  gap: 12px;
+}
+.match-team-logo {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--bg-tertiary);
+  border: 2px solid var(--card-border);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.match-team-name {
+  font-weight: 800;
+  color: var(--text-primary);
+  font-size: 15px;
+  line-height: 1.2;
+}
+.match-score-val {
+  font-size: 22px;
+  font-weight: 900;
+  color: var(--accent-gold);
+  margin-top: 2px;
+}
+.match-team-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+}
+.match-team-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  flex-direction: row-reverse;
+  text-align: right;
+}
+
+@media (max-width: 480px) {
+  .match-teams-grid {
+    grid-template-columns: 1fr 32px 1fr;
+    padding: 14px 10px;
+    gap: 6px;
+  }
+  .match-team-logo { width: 36px; height: 36px; }
+  .match-team-name { font-size: 12px; }
+  .match-score-val { font-size: 17px; }
+  .match-team-left,
+  .match-team-right { gap: 6px; }
+}
+
+/* ── Stats Page ── */
+.stats-tab-bar {
+  display: flex;
+  gap: 6px;
+  background: var(--bg-secondary);
+  padding: 6px;
+  border-radius: 16px;
+  border: 1px solid var(--card-border);
+  margin-bottom: 28px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.stats-tab-bar::-webkit-scrollbar { display: none; }
+
+.stats-tab-btn {
+  flex: 1;
+  min-width: 120px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 14px;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.stats-leaderboard-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--card-border);
+  transition: background 0.2s;
+}
+.stats-leaderboard-row:hover {
+  background: rgba(255,255,255,0.02);
+}
+.stats-player-photo {
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.stats-player-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top;
+}
+
+@media (max-width: 480px) {
+  .stats-tab-btn {
+    min-width: 95px;
+    font-size: 12px;
+    padding: 8px 10px;
+  }
+  .stats-leaderboard-row {
+    padding: 12px 14px;
+    gap: 10px;
+  }
+  .stats-rank-num { font-size: 14px !important; }
+}

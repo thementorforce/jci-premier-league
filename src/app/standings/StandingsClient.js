@@ -20,11 +20,9 @@ export default function StandingsClient({ initialStandings }) {
 
       {/* Table */}
       <div className="premium-card" style={{ padding: 0, overflow: 'hidden', border: '1px solid rgba(216, 240, 107, 0.2)' }}>
-        {/* Header Row */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: '40px 1fr 50px 50px 50px 80px 70px',
-          padding: '12px 16px',
+
+        {/* Header Row — uses CSS class for responsive grid */}
+        <div className="standings-header-row" style={{
           background: 'rgba(0,0,0,0.4)',
           borderBottom: '1px solid var(--card-border)',
           fontSize: '11px',
@@ -32,15 +30,13 @@ export default function StandingsClient({ initialStandings }) {
           textTransform: 'uppercase',
           letterSpacing: '0.08em',
           color: 'var(--text-secondary)',
-          alignItems: 'center',
-          gap: '8px',
         }}>
           <span>#</span>
           <span>Team</span>
-          <span style={{ textAlign: 'center' }}>P</span>
+          <span className="standings-col-p" style={{ textAlign: 'center' }}>P</span>
           <span style={{ textAlign: 'center' }}>W</span>
           <span style={{ textAlign: 'center' }}>L</span>
-          <span style={{ textAlign: 'center' }}>NRR</span>
+          <span className="standings-col-nrr" style={{ textAlign: 'center' }}>NRR</span>
           <span style={{ textAlign: 'center', color: 'var(--accent-gold)' }}>PTS</span>
         </div>
 
@@ -57,16 +53,9 @@ export default function StandingsClient({ initialStandings }) {
               <Link
                 key={team.id}
                 href={`/teams?teamId=${team.id}`}
+                className="standings-team-row"
                 style={{
-                  display: 'grid',
-                  gridTemplateColumns: '40px 1fr 50px 50px 50px 80px 70px',
-                  padding: '14px 16px',
-                  borderBottom: '1px solid var(--card-border)',
-                  alignItems: 'center',
-                  gap: '8px',
-                  textDecoration: 'none',
                   background: isTop4 ? 'rgba(216, 240, 107, 0.03)' : 'transparent',
-                  transition: 'background 0.2s',
                   borderLeft: isTop4 ? '3px solid var(--accent-gold)' : '3px solid transparent',
                 }}
               >
@@ -80,34 +69,20 @@ export default function StandingsClient({ initialStandings }) {
                 </span>
 
                 {/* Team Name + Logo */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0 }}>
-                  <div style={{
-                    width: '36px',
-                    height: '36px',
-                    flexShrink: 0,
-                    borderRadius: '50%',
-                    background: 'var(--bg-tertiary)',
-                    border: '1px solid var(--card-border)',
-                    overflow: 'hidden',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}>
-                    {team.logoUrl ? (
-                      <img src={team.logoUrl} alt={team.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    ) : (
-                      <Trophy size={16} style={{ color: 'var(--text-secondary)' }} />
-                    )}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
+                  <div className="standings-logo">
+                    {team.logoUrl
+                      ? <img src={team.logoUrl} alt={team.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      : <Trophy size={14} style={{ color: 'var(--text-secondary)' }} />
+                    }
                   </div>
-                  <span style={{ fontWeight: '700', color: 'var(--text-primary)', fontSize: '14px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {team.name}
-                  </span>
+                  <span className="standings-team-name">{team.name}</span>
                 </div>
 
-                <span style={{ textAlign: 'center', color: 'var(--text-secondary)', fontSize: '14px' }}>{team.matchesPlayed}</span>
+                <span className="standings-col-p" style={{ textAlign: 'center', color: 'var(--text-secondary)', fontSize: '14px' }}>{team.matchesPlayed}</span>
                 <span style={{ textAlign: 'center', color: '#4ade80', fontWeight: '600', fontSize: '14px' }}>{team.won}</span>
                 <span style={{ textAlign: 'center', color: '#f87171', fontWeight: '600', fontSize: '14px' }}>{team.lost}</span>
-                <span style={{ textAlign: 'center', color: 'var(--text-secondary)', fontSize: '13px' }}>
+                <span className="standings-col-nrr" style={{ textAlign: 'center', color: 'var(--text-secondary)', fontSize: '13px' }}>
                   {team.nrr > 0 ? `+${team.nrr.toFixed(3)}` : team.nrr.toFixed(3)}
                 </span>
                 <span style={{
@@ -126,8 +101,8 @@ export default function StandingsClient({ initialStandings }) {
       </div>
 
       {/* Footer note */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'center', marginTop: '20px', color: 'var(--text-secondary)', fontSize: '12px' }}>
-        <Info size={14} />
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'center', marginTop: '20px', color: 'var(--text-secondary)', fontSize: '12px', textAlign: 'center', flexWrap: 'wrap' }}>
+        <Info size={14} style={{ flexShrink: 0 }} />
         <span>Teams ranked by Points. Equal points decided by Net Run Rate (NRR).</span>
       </div>
     </div>
