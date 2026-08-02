@@ -65,7 +65,7 @@ export default function AdminMatchesClient() {
       const res = await fetch('/api/admin/matches', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ date, venue, team1Id, team2Id }),
+        body: JSON.stringify({ date: new Date(date).toISOString(), venue, team1Id, team2Id }),
       });
       if (res.ok) {
         setDate(""); setVenue(""); setTeam1Id(""); setTeam2Id("");
@@ -287,7 +287,7 @@ export default function AdminMatchesClient() {
                         <div style={{ fontSize: '13px', color: '#4ade80', fontWeight: '600', marginTop: '4px' }}>{match.result}</div>
                       )}
                       <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <Calendar size={11} /> {new Date(match.date).toLocaleString()} · {match.venue}
+                        <Calendar size={11} /> {new Date(match.date).toLocaleString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true })} · {match.venue}
                       </div>
                     </div>
 

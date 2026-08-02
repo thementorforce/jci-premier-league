@@ -9,8 +9,8 @@ export default function MatchGraphicModal({ match, onClose }) {
   if (!match) return null;
 
   const matchDate = new Date(match.date);
-  const dateStr = matchDate.toLocaleDateString('en-IN', {
-    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+  const dateStr = matchDate.toLocaleDateString('en-GB', {
+    day: '2-digit', month: '2-digit', year: 'numeric'
   });
   const timeStr = matchDate.toLocaleTimeString('en-IN', {
     hour: '2-digit', minute: '2-digit', hour12: true

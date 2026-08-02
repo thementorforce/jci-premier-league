@@ -68,11 +68,11 @@ async function main() {
 
   // 1. Create Teams
   const teams = [
-    { name: 'Tumkur Titans', ownerName: 'Rajesh Gowda', pointsPurse: 100000, pointsSpent: 0 },
-    { name: 'Metro Mavericks', ownerName: 'Amit Shah', pointsPurse: 100000, pointsSpent: 0 },
-    { name: 'Prerana Panthers', ownerName: 'Dr. Ramesh', pointsPurse: 100000, pointsSpent: 0 },
-    { name: 'JCI Warriors', ownerName: 'Kiran Kumar', pointsPurse: 100000, pointsSpent: 0 },
-    { name: 'Royal Challengers Tumkur', ownerName: 'Sanjay Murthy', pointsPurse: 100000, pointsSpent: 0 },
+    { name: 'Tumkur Titans', ownerName: 'Rajesh Gowda', pointsPurse: 100000, pointsSpent: 0, logoUrl: 'https://api.dicebear.com/7.x/shapes/svg?seed=Titans&backgroundColor=0D8ABC' },
+    { name: 'Metro Mavericks', ownerName: 'Amit Shah', pointsPurse: 100000, pointsSpent: 0, logoUrl: 'https://api.dicebear.com/7.x/shapes/svg?seed=Mavericks&backgroundColor=E53935' },
+    { name: 'Prerana Panthers', ownerName: 'Dr. Ramesh', pointsPurse: 100000, pointsSpent: 0, logoUrl: 'https://api.dicebear.com/7.x/shapes/svg?seed=Panthers&backgroundColor=43A047' },
+    { name: 'JCI Warriors', ownerName: 'Kiran Kumar', pointsPurse: 100000, pointsSpent: 0, logoUrl: 'https://api.dicebear.com/7.x/shapes/svg?seed=Warriors&backgroundColor=FDD835' },
+    { name: 'Royal Challengers Tumkur', ownerName: 'Sanjay Murthy', pointsPurse: 100000, pointsSpent: 0, logoUrl: 'https://api.dicebear.com/7.x/shapes/svg?seed=RCT&backgroundColor=8E24AA' },
   ];
 
   const seededTeams = [];
