@@ -291,9 +291,14 @@ export default function AdminMatchesClient() {
 
                     <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                       {match.status === 'SCHEDULED' && (
-                        <button onClick={() => updateMatchStatus(match.id, 'LIVE')} className="premium-button" style={{ background: 'rgba(239,68,68,0.85)', borderColor: '#f87171', color: '#fff', boxShadow: '0 0 15px rgba(239,68,68,0.4)' }}>
-                          🔴 Go Live
-                        </button>
+                        <>
+                          <button onClick={() => updateMatchStatus(match.id, 'LIVE')} className="premium-button" style={{ background: 'rgba(239,68,68,0.85)', borderColor: '#f87171', color: '#fff', boxShadow: '0 0 15px rgba(239,68,68,0.4)' }}>
+                            🔴 Go Live
+                          </button>
+                          <a href={`/api/og/match?id=${match.id}`} target="_blank" rel="noopener noreferrer" className="premium-button-secondary" style={{ textDecoration: 'none' }}>
+                            🖼️ Generate Graphic
+                          </a>
+                        </>
                       )}
                       {match.status === 'LIVE' && (
                         <>
