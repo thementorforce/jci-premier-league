@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { ArrowLeft, Plus, Calendar, Trophy, Shield, Star } from "lucide-react";
 import Link from "next/link";
+import MatchGraphicModal from "../../../components/MatchGraphicModal";
 
 const STATUS_COLORS = {
   LIVE:      { bg: 'rgba(239,68,68,0.15)',  color: '#f87171', border: 'rgba(239,68,68,0.4)' },
@@ -35,6 +36,7 @@ export default function AdminMatchesClient() {
   const [viceCaptainId, setViceCaptainId] = useState("");
   const [cvSaving, setCvSaving]         = useState(false);
   const [cvMsg, setCvMsg]               = useState("");
+  const [graphicMatch, setGraphicMatch] = useState(null);
 
   useEffect(() => { fetchData(); }, []);
 
@@ -295,9 +297,9 @@ export default function AdminMatchesClient() {
                           <button onClick={() => updateMatchStatus(match.id, 'LIVE')} className="premium-button" style={{ background: 'rgba(239,68,68,0.85)', borderColor: '#f87171', color: '#fff', boxShadow: '0 0 15px rgba(239,68,68,0.4)' }}>
                             🔴 Go Live
                           </button>
-                          <a href={`/api/og/match?id=${match.id}`} target="_blank" rel="noopener noreferrer" className="premium-button-secondary" style={{ textDecoration: 'none' }}>
+                          <button onClick={() => setGraphicMatch(match)} className="premium-button-secondary" style={{ textDecoration: 'none' }}>
                             🖼️ Generate Graphic
-                          </a>
+                          </button>
                         </>
                       )}
                       {match.status === 'LIVE' && (
@@ -457,6 +459,11 @@ export default function AdminMatchesClient() {
             </form>
           </div>
         </div>
+      )}
+
+      {/* Graphic Modal */}
+      {graphicMatch && (
+        <MatchGraphicModal match={graphicMatch} onClose={() => setGraphicMatch(null)} />
       )}
     </div>
   );
