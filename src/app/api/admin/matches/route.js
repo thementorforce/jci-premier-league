@@ -5,8 +5,8 @@ export async function GET() {
   try {
     const matches = await prisma.match.findMany({
       include: {
-        team1: { select: { id: true, name: true } },
-        team2: { select: { id: true, name: true } }
+        team1: { select: { id: true, name: true, logoUrl: true } },
+        team2: { select: { id: true, name: true, logoUrl: true } }
       },
       orderBy: { matchNumber: "asc" }
     });
