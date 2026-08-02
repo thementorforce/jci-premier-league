@@ -59,6 +59,7 @@ async function main() {
   }
 
   // Clean existing data (only run in local development)
+  await prisma.match.deleteMany({});
   await prisma.bidHistory.deleteMany({});
   await prisma.playerProfile.deleteMany({});
   await prisma.user.deleteMany({});
@@ -173,12 +174,116 @@ async function main() {
       photoUrl: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=200&q=80',
       status: 'Registered',
     },
+    {
+      fullName: 'Karthik S',
+      email: 'karthik.s@example.com',
+      mobileNumber: '9876543215',
+      organization: 'JCOM',
+      gender: 'Male',
+      ageGroup: '25–40 Years',
+      jerseySize: 'L',
+      preferredRole: 'All-Rounder',
+      experience: 'Experienced',
+      photoUrl: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=200&q=80',
+      status: 'Registered',
+    },
+    {
+      fullName: 'Priya Sharma',
+      email: 'priya.sharma@example.com',
+      mobileNumber: '9876543216',
+      organization: 'Rotary Tumkur Prerana',
+      gender: 'Female',
+      ageGroup: '25–40 Years',
+      jerseySize: 'M',
+      preferredRole: 'Batsman',
+      experience: 'Intermediate',
+      photoUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=200&q=80',
+      status: 'Registered',
+    },
+    {
+      fullName: 'Darshan K',
+      email: 'darshan.k@example.com',
+      mobileNumber: '9876543217',
+      organization: 'JAC',
+      gender: 'Male',
+      ageGroup: 'Below 25 Years',
+      jerseySize: 'M',
+      preferredRole: 'Bowler',
+      experience: 'Beginner',
+      photoUrl: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=200&q=80',
+      status: 'Registered',
+    },
+    {
+      fullName: 'Suresh Babu',
+      email: 'suresh.babu@example.com',
+      mobileNumber: '9876543218',
+      organization: 'JCI Tumkur Metro',
+      gender: 'Male',
+      ageGroup: 'Above 40 Years',
+      jerseySize: 'XL',
+      preferredRole: 'All-Rounder',
+      experience: 'Experienced',
+      photoUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80',
+      status: 'Registered',
+    },
+    {
+      fullName: 'Neha Gupta',
+      email: 'neha.gupta@example.com',
+      mobileNumber: '9876543219',
+      organization: 'JCOM',
+      gender: 'Female',
+      ageGroup: 'Below 25 Years',
+      jerseySize: 'S',
+      preferredRole: 'Bowler',
+      experience: 'Intermediate',
+      photoUrl: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=200&q=80',
+      status: 'Registered',
+    }
   ];
 
+  const seededPlayers = [];
   for (const p of players) {
-    await prisma.playerProfile.create({ data: p });
+    const player = await prisma.playerProfile.create({ data: p });
+    seededPlayers.push(player);
   }
   console.log(`Seeded ${players.length} players.`);
+
+  // 3.5 Complete the Auction / Assign Players to Teams
+  let teamIndex = 0;
+  for (let i = 0; i < seededPlayers.length; i++) {
+    const player = seededPlayers[i];
+    const team = seededTeams[teamIndex];
+    
+    const soldPrice = 5000 + (Math.floor(Math.random() * 5) * 1000); // 5000 to 9000
+    
+    await prisma.bidHistory.create({
+      data: {
+        playerId: player.id,
+        teamId: team.id,
+        amount: soldPrice
+      }
+    });
+
+    await prisma.playerProfile.update({
+      where: { id: player.id },
+      data: {
+        teamId: team.id,
+        status: 'Sold',
+        soldPrice: soldPrice,
+      }
+    });
+
+    await prisma.team.update({
+      where: { id: team.id },
+      data: {
+        pointsSpent: { increment: soldPrice },
+        pointsPurse: { decrement: soldPrice }
+      }
+    });
+
+    teamIndex = (teamIndex + 1) % seededTeams.length;
+  }
+  console.log(`Assigned players to teams and generated bid histories.`);
 
   // 4. Create Sample Ads
   const ads = [
@@ -218,6 +323,31 @@ async function main() {
     await prisma.adPlacement.create({ data: ad });
   }
   console.log(`Seeded ${ads.length} ads.`);
+
+  // 5. Create Sample Matches
+  const matches = [
+    {
+      matchNumber: 1,
+      date: new Date(new Date().getTime() + 24 * 60 * 60 * 1000), // Tomorrow
+      venue: 'Tumkur Central Stadium',
+      team1Id: seededTeams[0].id,
+      team2Id: seededTeams[1].id,
+      status: 'SCHEDULED',
+    },
+    {
+      matchNumber: 2,
+      date: new Date(new Date().getTime() + 48 * 60 * 60 * 1000), // Day after tomorrow
+      venue: 'JCI Sports Ground',
+      team1Id: seededTeams[2].id,
+      team2Id: seededTeams[3].id,
+      status: 'SCHEDULED',
+    }
+  ];
+
+  for (const m of matches) {
+    await prisma.match.create({ data: m });
+  }
+  console.log(`Seeded ${matches.length} matches.`);
 
   console.log('Seeding completed successfully!');
 }
